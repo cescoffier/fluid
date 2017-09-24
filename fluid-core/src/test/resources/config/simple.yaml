@@ -1,0 +1,24 @@
+sources:
+  input:
+      topic: "input"
+      bootstrap.servers: localhost:9092
+      acks: 1
+      client.id: the_producer
+      group.id: the_group
+      key.serializer: "io.vertx.kafka.client.serialization.JsonObjectSerializer"
+      value.serializer: "io.vertx.kafka.client.serialization.JsonObjectSerializer"
+      key.deserializer: "io.vertx.kafka.client.serialization.JsonObjectDeserializer"
+      value.deserializer: "io.vertx.kafka.client.serialization.JsonObjectDeserializer"
+
+sinks:
+  output:
+      topic: "output"
+      enable.auto.commit: false
+      group.id: the_group
+      auto.offset.reset: latest
+      bootstrap.servers: localhost:9092
+      key.serializer: "io.vertx.kafka.client.serialization.JsonObjectSerializer"
+      value.serializer: "io.vertx.kafka.client.serialization.JsonObjectSerializer"
+      key.deserializer: "io.vertx.kafka.client.serialization.JsonObjectDeserializer"
+      value.deserializer: "io.vertx.kafka.client.serialization.JsonObjectDeserializer"
+      client.id: the_client
