@@ -13,8 +13,8 @@
   <artifactId>fluid-core</artifactId>
 
   <properties>
-    <kafka.version>0.10.2.1</kafka.version>
-    <debezium.version>0.5.1</debezium.version>
+    <kafka.version>0.11.0.1</kafka.version>
+    <debezium.version>0.6.0</debezium.version>
   </properties>
 
 
@@ -99,7 +99,7 @@
     <dependency>
       <groupId>com.github.akarnokd</groupId>
       <artifactId>rxjava2-extensions</artifactId>
-      <version>0.17.7</version>
+      <version>0.17.8</version>
       <scope>test</scope>
     </dependency>
     <dependency>
