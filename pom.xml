@@ -14,7 +14,10 @@
   <packaging>pom</packaging>
 
   <modules>
+    <module>fluid-constructs</module>
     <module>fluid-core</module>
+    <module>kafka-connector</module>
+    <module>examples/simple-mediation</module>
   </modules>
 
   <developers>
