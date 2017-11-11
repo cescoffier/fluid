@@ -26,12 +26,17 @@
     </dependency>
     <dependency>
       <groupId>${project.groupId}</groupId>
-      <artifactId>fluid-constructs</artifactId>
+      <artifactId>fluid-framework</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>me.escoffier.fluid</groupId>
       <artifactId>kafka-connector</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>me.escoffier.fluid</groupId>
+      <artifactId>vertx-eventbus-connector</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

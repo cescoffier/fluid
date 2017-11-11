@@ -66,7 +66,7 @@ public class Main {
             .to(Sinks.get("sensor"));
     }
 
-    private static void init() throws IOException {
+    public static void init() throws IOException {
         File dataDir = Testing.Files.createTestingDirectory("cluster");
         dataDir.deleteOnExit();
         kafkaCluster = new KafkaCluster()

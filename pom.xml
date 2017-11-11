@@ -15,8 +15,9 @@
 
   <modules>
     <module>fluid-constructs</module>
-    <module>fluid-core</module>
     <module>kafka-connector</module>
+    <module>vertx-eventbus-connector</module>
+    <module>fluid-framework</module>
     <module>examples/simple-mediation</module>
   </modules>
 

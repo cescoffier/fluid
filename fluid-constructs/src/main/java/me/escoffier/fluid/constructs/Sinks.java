@@ -44,7 +44,7 @@ public class Sinks {
 
         SinkFactory factory = lookupForFactory(type);
         if (factory == null) {
-            throw new NullPointerException("Invalid configuration, the sink type " + name + " is unknown");
+            throw new NullPointerException("Invalid configuration, the sink type " + type + " is unknown");
         }
 
         String output = config.root()

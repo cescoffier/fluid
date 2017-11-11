@@ -64,7 +64,7 @@ public class Sources {
 
         SourceFactory factory = lookupForFactory(type);
         if (factory == null) {
-            throw new NullPointerException("Invalid configuration, the source type " + name + " is unknown");
+            throw new NullPointerException("Invalid configuration, the sink type " + type + " is unknown");
         }
 
         String output = config.root()
