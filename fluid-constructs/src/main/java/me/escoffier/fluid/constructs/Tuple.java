@@ -1,7 +1,5 @@
 package me.escoffier.fluid.constructs;
 
-import org.jetbrains.annotations.NotNull;
-
 import java.util.*;
 
 /**
@@ -36,7 +34,6 @@ public class Tuple implements Iterable<Object>, Comparable<Tuple> {
         return (T) items.get(pos);
     }
 
-    @NotNull
     @Override
     public Iterator<Object> iterator() {
         return items.iterator();

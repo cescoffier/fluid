@@ -27,26 +27,6 @@ public interface Sink<OUT> {
         };
     }
 
-    static <T> Sink<T> sendToEventBus(Vertx vertx, String address) {
-        return data -> {
-            vertx.eventBus().send(address, data);
-            return Completable.complete();
-        };
-    }
-
-    static <T> Sink<T> publishToEventBus(Vertx vertx, String address) {
-        return data -> {
-            vertx.eventBus().publish(address, data);
-            return Completable.complete();
-        };
-    }
-
-    static <T> Sink<T> sendWithReplyToEventBus(Vertx vertx, String address) {
-        return data ->
-            vertx.eventBus().rxSend(address, data)
-                .toCompletable();
-    }
-
     static <T> Sink<T> forEachAsync(Function<T, Completable> fun) {
         return fun::apply;
     }

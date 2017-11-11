@@ -2,7 +2,6 @@ package me.escoffier.fluid.constructs;
 
 import io.reactivex.Flowable;
 import me.escoffier.fluid.constructs.impl.DataStreamImpl;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,10 +29,10 @@ public interface DataStream<T> {
     <OUT> DataStream<OUT> transformFlow(Function<Flowable<T>, Flowable<OUT>> function);
 
 
-    DataStream<T> broadcastTo(@NotNull DataStream... streams);
+    DataStream<T> broadcastTo(DataStream... streams);
 
 
-    void broadcastTo(@NotNull Sink... sinks);
+    void broadcastTo(Sink... sinks);
 
     Flowable<T> flow();
 

@@ -3,7 +3,6 @@ package me.escoffier.fluid.constructs.impl;
 import io.reactivex.Flowable;
 import io.reactivex.flowables.ConnectableFlowable;
 import me.escoffier.fluid.constructs.*;
-import org.jetbrains.annotations.NotNull;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
@@ -81,7 +80,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
 
     @Override
-    public <OUT> DataStream<OUT> transformWith(@NotNull Transformer<T, OUT> transformer) {
+    public <OUT> DataStream<OUT> transformWith(Transformer<T, OUT> transformer) {
         Objects.requireNonNull(transformer, "The given transformer must not be `null`");
         return new DataStreamImpl<>(this, transformer.transform(flow));
     }
@@ -99,7 +98,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     }
 
     @Override
-    public DataStream<T> broadcastTo(@NotNull DataStream... streams) {
+    public DataStream<T> broadcastTo(DataStream... streams) {
         ConnectableFlowable<T> publish = flow.replay();
         DataStreamImpl<T, T> stream = new DataStreamImpl<>(this, publish);
 
@@ -137,7 +136,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     }
 
     @Override
-    public void broadcastTo(@NotNull Sink... sinks) {
+    public void broadcastTo(Sink... sinks) {
         ConnectableFlowable<T> publish = flow.publish();
         for (Sink s : sinks) {
             publish

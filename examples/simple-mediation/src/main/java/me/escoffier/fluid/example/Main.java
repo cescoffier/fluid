@@ -45,17 +45,13 @@ public class Main {
             .transformFlow(flow ->
                 flow.window(5)
                     .flatMap(MathFlowable::averageDouble))
-            .broadcastTo(Sink.forEach(System.out::println), Sink.publishToEventBus(vertx, "average"));
+            .broadcastTo(Sink.forEach(System.out::println), Sinks.get("eb-average"));
 
 //         //Output
 //        printAndSend(vertx);
 
     }
-
-    private static void printAndSend(Vertx vertx) {
-        Sources.<Double>get("average")
-            .broadcastTo(Sink.forEach(System.out::println), Sink.publishToEventBus(vertx, "average"));
-    }
+    
 
     private static void createSensor() {
         String id = UUID.randomUUID().toString();
