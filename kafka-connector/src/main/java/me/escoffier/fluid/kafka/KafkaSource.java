@@ -23,7 +23,6 @@ public class KafkaSource<T> extends DataStreamImpl<Void, T> implements Source<T>
             .map(KafkaConsumerRecord::value));
         
         name = json.getString("name");
-        System.out.println("Kafka source " + name + " reading from topic " + json.getString("topic"));
     }
 
     private static Map<String, String> toMap(JsonObject json) {

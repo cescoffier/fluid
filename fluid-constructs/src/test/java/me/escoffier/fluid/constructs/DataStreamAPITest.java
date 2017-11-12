@@ -12,6 +12,7 @@ public class DataStreamAPITest {
 
     @BeforeAll
     static void initAll() {
+
     }
 
     @BeforeEach

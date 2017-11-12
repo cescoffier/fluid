@@ -1,11 +1,10 @@
 package me.escoffier.fluid.kafka;
 
 import io.reactivex.Completable;
-import io.reactivex.CompletableEmitter;
-import io.reactivex.CompletableOnSubscribe;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaWriteStream;
 import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.core.impl.AsyncResultCompletable;
 import me.escoffier.fluid.constructs.Sink;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
@@ -31,8 +30,6 @@ public class KafkaSink<T> implements Sink<T> {
         timestamp = json.getLong("timestamp");
         key = json.getString("key");
         name = json.getString("name");
-
-        System.out.println("Kafka sink: " + name + " on topic " + topic);
     }
 
     private static Map<String, Object> toMap(JsonObject json) {
@@ -44,14 +41,10 @@ public class KafkaSink<T> implements Sink<T> {
 
     @Override
     public Completable dispatch(T data) {
-        // TODO would be better to have some RX structure here
-        //partition, timestamp, key,
-        stream.write(new ProducerRecord(topic,  partition, timestamp, key, data), ar -> {
-            if (ar.failed()) {
-                ar.cause().printStackTrace();
-            }
-        });
-        return Completable.complete();
+        ProducerRecord<String, T> record
+            = new ProducerRecord(topic, partition, timestamp, key, data);
+        return new AsyncResultCompletable(
+            handler -> stream.write(record, x -> handler.handle(x.mapEmpty())));
     }
 
     @Override

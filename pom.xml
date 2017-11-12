@@ -69,6 +69,9 @@
     <fabric8.generator.from>registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift</fabric8.generator.from>
 
     <vertx.version>3.5.0</vertx.version>
+
+    <kafka.version>0.11.0.1</kafka.version>
+    <debezium.version>0.6.1</debezium.version>
   </properties>
 
   <scm>
