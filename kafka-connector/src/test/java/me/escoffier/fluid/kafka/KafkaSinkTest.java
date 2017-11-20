@@ -1,5 +1,6 @@
 package me.escoffier.fluid.kafka;
 
+import io.debezium.kafka.KafkaCluster;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.constructs.Source;
@@ -8,11 +9,13 @@ import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.ClassRule;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import org.testcontainers.containers.GenericContainer;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -29,12 +32,19 @@ public class KafkaSinkTest {
 
     private Vertx vertx;
 
-    @ClassRule
-    public static GenericContainer kafka =
-        new GenericContainer("teivah/kafka:latest")
-            .withExposedPorts(2181, 9092)
-            .withEnv("ADVERTISED_HOST", "localhost")
-            .withEnv("ADVERTISED_PORT", "9092");
+    private static KafkaCluster kafka;
+
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        kafka = new KafkaCluster().withPorts(2181, 9092).addBrokers(1).
+                usingDirectory(new File("/tmp/fluid-kafka-test")).deleteDataPriorToStartup(true).
+                startup();
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        kafka.shutdown();
+    }
 
     @Before
     public void setup() {
