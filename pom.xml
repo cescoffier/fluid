@@ -18,6 +18,7 @@
     <module>kafka-connector</module>
     <module>vertx-eventbus-connector</module>
     <module>fluid-framework</module>
+    <module>camel-sink</module>
     <module>examples/simple-mediation</module>
   </modules>
 
