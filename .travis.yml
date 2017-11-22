@@ -1,8 +1,20 @@
 language: java
 
 jdk:
-- openjdk8
+  - openjdk8
+
+env:
+  global:
+    - SONATYPE_USERNAME="clement.escoffier"
+    - secure: "1aWBp7FWqUzB+nL3IzpZonyD4S+DjrQJk2ylh+i0GSAjXyS2ZKEzu61Ho5MRP8TqeUp4Nbqa8wgas8N8Ep7/jEYAlfkmCZI0SzqpezDPBzEYF8kn0VTs2C8cKunE2GCCEFa5IIYKuIRfTBvBu77xCt2mCEKNHYsw6670aT/wAVoE7KdwwPZRNoQ27Y5W3Py4fS53ecIUgimHtGNb1+FRvWKxncVBlojerzvl63hU/tqb3WrjqPIymBN6t4I0x5rTXhkbjShKsaQ5WFXghaOt26+2UKpfA8Bhc8YUZ5I64fam63xGkfY3nGZC/xyfbtPCTN4kEqhb5VfK6bxjS4/2tuIpkS8hfo8YFXaO3e/pgVXXIPeMXcrfoy14O22dBgbkypoHGBXVvw/3muDLAOn2WbVbnHD7KMTuhev3NzNbHuiPwIWqXQ/6fgPSEysMWUlS3+h352NJlw4GMjhEtH0nI3Uk3w4aEYRFWrfiNa40Y6OpDciQ5GI5mj0FZYBBPRm5u4HvatQHtKndyWVl82zyouoHS6/xj4Ig+g1irS0GMir+PsAP5ln8UmJm1z/ZFkHasC+mY6+MGQnZy06TKm6E6xFuCwWMzH0Fu+m5evOgHudtpbBIYhhmdbZ/BcBHKghiipUJpsMHy8CvhhUfewLL5Bz6B2XgNQlP+UUji+cf72c="
+
+after_success:
+    - .build/deploy_snapshot.sh
 
 notifications:
   email:
     - clement@apache.org
+
+cache:
+  directories:
+    - $HOME/.m2
