@@ -1,6 +1,7 @@
 package me.escoffier.fluid.constructs;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import io.reactivex.Completable;
@@ -26,13 +27,17 @@ public class Sinks {
     public static void load(Vertx vertx) {
         Config load = ConfigFactory.load();
 
-        Config sinks = load.getConfig("sinks");
-        Set<String> names = sinks.root().keySet();
+        try {
+            Config sinks = load.getConfig("sinks");
+            Set<String> names = sinks.root().keySet();
 
-        for (String name : names) {
-            Config config = sinks.getConfig(name);
-            Sink<?> sink = create(vertx, name, config);
-            register(name, sink);
+            for (String name : names) {
+                Config config = sinks.getConfig(name);
+                Sink<?> sink = create(vertx, name, config);
+                register(name, sink);
+            }
+        } catch (ConfigException e) {
+            // No sinks
         }
     }
 
