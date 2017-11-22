@@ -13,6 +13,9 @@ import org.apache.commons.lang3.reflect.MethodUtils;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -72,9 +75,36 @@ public class Fluid {
         if (!method.isAccessible()) {
             method.setAccessible(true);
         }
-        // TODO Why not allowing param injection?
+
+        Parameter[] parameters = method.getParameters();
+        List<Object>  values = new ArrayList<>();
+        for (Parameter param : parameters) {
+            Port port = param.getAnnotation(Port.class);
+            if (port != null) {
+                String name = port.value();
+                if (param.getType().isAssignableFrom(Sink.class)) {
+                    Sink<Object> sink = Sinks.get(name);
+                    if (sink == null) {
+                        throw new IllegalStateException("Unable to find the sink " + name);
+                    } else {
+                        values.add(sink);
+                    }
+                } else if (param.getType().isAssignableFrom(Source.class)) {
+                    Source<Object> source = Sources.get(name);
+                    if (source == null) {
+                        throw new IllegalStateException("Unable to find the source " + name);
+                    } else {
+                        values.add(source);
+                    }
+                }
+            } else {
+                throw new RuntimeException("Invalid parameter - one parameter of " + method.getName()
+                    + " is not annotated with @Port");
+            }
+        }
+
         try {
-            method.invoke(mediator);
+            method.invoke(mediator, values.toArray());
         } catch (Exception e) {
             throw new IllegalStateException("Unable to invoke " + method.getName() + " from " + mediator.getClass()
                 .getName(), e);
