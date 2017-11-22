@@ -14,3 +14,4 @@ after_success:
 notifications:
   email:
     - clement@apache.org
+    - hekonsek@gmail.com
