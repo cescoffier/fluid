@@ -14,6 +14,7 @@ import me.escoffier.fluid.constructs.Sources;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Properties;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -63,12 +64,13 @@ public class Main {
     }
 
     public static void init() throws IOException {
-        File dataDir = Testing.Files.createTestingDirectory("cluster");
-        dataDir.deleteOnExit();
-        kafkaCluster = new KafkaCluster()
-            .usingDirectory(dataDir)
-            .withPorts(2181, 9092)
-            .addBrokers(1)
+        Properties props = new Properties();
+        props.setProperty("zookeeper.connection.timeout.ms", "10000");
+        File directory = Testing.Files.createTestingDirectory(System.getProperty("java.io.tmpdir"), true);
+        kafkaCluster = new KafkaCluster().withPorts(2181, 9092).addBrokers(1)
+            .usingDirectory(directory)
+            .deleteDataUponShutdown(true)
+            .withKafkaConfiguration(props)
             .deleteDataPriorToStartup(true)
             .startup();
     }
