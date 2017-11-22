@@ -2,8 +2,8 @@ package me.escoffier.fluid.example;
 
 import hu.akarnokd.rxjava2.math.MathFlowable;
 import io.vertx.core.json.JsonObject;
-import me.escoffier.fluid.annottions.Port;
-import me.escoffier.fluid.annottions.Transformation;
+import me.escoffier.fluid.annotations.Port;
+import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.constructs.Sink;
 import me.escoffier.fluid.constructs.Source;
 

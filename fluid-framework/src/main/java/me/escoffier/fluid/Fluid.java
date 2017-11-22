@@ -2,8 +2,8 @@ package me.escoffier.fluid;
 
 import io.reactivex.Flowable;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.annottions.Port;
-import me.escoffier.fluid.annottions.Transformation;
+import me.escoffier.fluid.annotations.Port;
+import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.constructs.Sink;
 import me.escoffier.fluid.constructs.Sinks;
 import me.escoffier.fluid.constructs.Source;
