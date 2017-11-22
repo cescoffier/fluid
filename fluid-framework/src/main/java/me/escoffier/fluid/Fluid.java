@@ -52,7 +52,7 @@ public class Fluid {
         try {
             obj = mediatorClass.newInstance();
         } catch (Exception e) {
-            throw new RuntimeException("Unable to create a new instance from " + mediatorClass);
+            throw new RuntimeException("Unable to create a new instance from " + mediatorClass, e);
         }
         return deploy(obj);
     }
@@ -65,7 +65,10 @@ public class Fluid {
     }
 
     private void execute(Object mediator) {
-        Method[] methods = MethodUtils.getMethodsWithAnnotation(mediator.getClass(), Transformation.class);
+        Method[] methods = MethodUtils.getMethodsWithAnnotation(mediator.getClass(), Transformation.class, true, true);
+        if (methods == null  || methods.length == 0) {
+            throw new IllegalArgumentException("Invalid object " + mediator + " - no transformation method found");
+        }
         for (Method method : methods) {
             invoke(mediator, method);
         }
@@ -85,20 +88,20 @@ public class Fluid {
                 if (param.getType().isAssignableFrom(Sink.class)) {
                     Sink<Object> sink = Sinks.get(name);
                     if (sink == null) {
-                        throw new IllegalStateException("Unable to find the sink " + name);
+                        throw new IllegalArgumentException("Unable to find the sink " + name);
                     } else {
                         values.add(sink);
                     }
                 } else if (param.getType().isAssignableFrom(Source.class)) {
                     Source<Object> source = Sources.get(name);
                     if (source == null) {
-                        throw new IllegalStateException("Unable to find the source " + name);
+                        throw new IllegalArgumentException("Unable to find the source " + name);
                     } else {
                         values.add(source);
                     }
                 }
             } else {
-                throw new RuntimeException("Invalid parameter - one parameter of " + method.getName()
+                throw new IllegalArgumentException("Invalid parameter - one parameter of " + method.getName()
                     + " is not annotated with @Port");
             }
         }
@@ -118,14 +121,14 @@ public class Fluid {
             if (field.getType().isAssignableFrom(Sink.class)) {
                 Sink<Object> sink = Sinks.get(annotation.value());
                 if (sink == null) {
-                    throw new IllegalStateException("Unable to find the sink " + annotation.value());
+                    throw new IllegalArgumentException("Unable to find the sink " + annotation.value());
                 } else {
                     set(mediator, field, sink);
                 }
             } else if (field.getType().isAssignableFrom(Source.class)) {
                 Source<Object> source = Sources.get(annotation.value());
                 if (source == null) {
-                    throw new IllegalStateException("Unable to find the source " + annotation.value());
+                    throw new IllegalArgumentException("Unable to find the source " + annotation.value());
                 } else {
                     set(mediator, field, source);
                 }
@@ -154,7 +157,7 @@ public class Fluid {
         return Sources.get(name);
     }
     
-    public <T> Sink<T> to(String name) {
+    public <T> Sink<T> sink(String name) {
         return Sinks.get(name);
     }
 
