@@ -1,7 +1,6 @@
 package me.escoffier.fluid.constructs;
 
 import io.reactivex.Completable;
-import io.vertx.reactivex.core.Vertx;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -25,6 +24,16 @@ public interface Sink<OUT> {
             consumer.accept(data);
             return Completable.complete();
         };
+    }
+
+    /**
+     * A sink discarding all inputs.
+     *
+     * @param <T> the excepted data type
+     * @return the sink
+     */
+    static <T> Sink<T> discard() {
+        return x -> Completable.complete();
     }
 
     static <T> Sink<T> forEachAsync(Function<T, Completable> fun) {
