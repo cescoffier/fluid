@@ -1,6 +1,7 @@
 package me.escoffier.fluid.constructs;
 
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigRenderOptions;
 import io.vertx.core.json.JsonObject;
@@ -45,15 +46,20 @@ public class Sources {
     public static void load(Vertx vertx) {
         Config load = ConfigFactory.load();
 
-        Config sources = load.getConfig("sources");
+        try {
+            Config sources = load.getConfig("sources");
+            Collection<String> names = sources.root().keySet();
 
-        Collection<String> names = sources.root().keySet();
-
-        for (String name : names) {
-            Config config = sources.getConfig(name);
-            Source<?> source = create(vertx, name, config);
-            register(name, source);
+            for (String name : names) {
+                Config config = sources.getConfig(name);
+                Source<?> source = create(vertx, name, config);
+                register(name, source);
+            }
+        } catch (ConfigException e) {
+            // No sources
         }
+
+
     }
 
     private static Source<?> create(Vertx vertx, String name, Config config) {
