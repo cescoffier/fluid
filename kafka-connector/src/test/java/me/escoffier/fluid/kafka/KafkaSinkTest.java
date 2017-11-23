@@ -116,7 +116,8 @@ public class KafkaSinkTest {
             .put("bootstrap.servers", "localhost:9092")
             .put("acks", 1)
             .put("key.serializer", StringSerializer.class.getName())
-            .put("key.deserializer", StringDeserializer.class.getName());
+            .put("key.deserializer", StringDeserializer.class.getName())
+            .put("key", "groovy:null");
     }
 
 
