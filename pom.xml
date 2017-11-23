@@ -20,6 +20,7 @@
     <module>vertx-eventbus-connector</module>
     <module>fluid-framework</module>
     <module>camel-sink</module>
+    <module>expression-groovy</module>
     <module>examples/simple-mediation</module>
   </modules>
 

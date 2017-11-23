@@ -6,10 +6,13 @@ import io.vertx.kafka.client.producer.KafkaWriteStream;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.impl.AsyncResultCompletable;
 import me.escoffier.fluid.constructs.Sink;
+import me.escoffier.fluid.spi.DataExpression;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import static me.escoffier.fluid.constructs.impl.DataExpressionFactories.requiredEventExpression;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -19,7 +22,7 @@ public class KafkaSink<T> implements Sink<T> {
     private final KafkaWriteStream<String, T> stream;
     private final String topic;
     private final Integer partition;
-    private final String key;
+    private final DataExpression key;
     private final String name;
     private Long timestamp;
 
@@ -28,7 +31,7 @@ public class KafkaSink<T> implements Sink<T> {
         topic = json.getString("topic");
         partition = json.getInteger("partition");
         timestamp = json.getLong("timestamp");
-        key = json.getString("key");
+        key = requiredEventExpression(json.getString("key"));
         name = json.getString("name");
     }
 
@@ -42,7 +45,7 @@ public class KafkaSink<T> implements Sink<T> {
     @Override
     public Completable dispatch(T data) {
         ProducerRecord<String, T> record
-            = new ProducerRecord(topic, partition, timestamp, key, data);
+            = new ProducerRecord(topic, partition, timestamp, key.evaluate(data), data);
         return new AsyncResultCompletable(
             handler -> stream.write(record, x -> handler.handle(x.mapEmpty())));
     }
