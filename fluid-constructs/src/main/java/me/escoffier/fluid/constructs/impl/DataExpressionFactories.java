@@ -5,13 +5,18 @@ import me.escoffier.fluid.spi.DataExpressionFactory;
 
 import java.util.Optional;
 import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static java.util.Optional.empty;
+import static me.escoffier.fluid.spi.DataExpressionFactoryPriority.priority;
 
 public class DataExpressionFactories {
 
     public static Optional<DataExpression> eventExpression(String expression) {
-        for (DataExpressionFactory factory : ServiceLoader.load(DataExpressionFactory.class)) {
+        Set<DataExpressionFactory> factories = new TreeSet<>((firstFactory, secondFactory) -> priority(secondFactory) - priority(firstFactory));
+        ServiceLoader.load(DataExpressionFactory.class).iterator().forEachRemaining(factories::add);
+        for (DataExpressionFactory factory : factories) {
             if (factory.supports(expression)) {
                 return Optional.of(factory.create(expression));
             }
