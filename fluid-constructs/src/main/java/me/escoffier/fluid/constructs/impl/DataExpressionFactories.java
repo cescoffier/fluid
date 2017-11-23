@@ -13,7 +13,7 @@ import static me.escoffier.fluid.spi.DataExpressionFactoryPriority.priority;
 
 public class DataExpressionFactories {
 
-    public static Optional<DataExpression> eventExpression(String expression) {
+    public static Optional<DataExpression> eventExpression(Object expression) {
         Set<DataExpressionFactory> factories = new TreeSet<>((firstFactory, secondFactory) -> priority(secondFactory) - priority(firstFactory));
         ServiceLoader.load(DataExpressionFactory.class).iterator().forEachRemaining(factories::add);
         for (DataExpressionFactory factory : factories) {
@@ -24,7 +24,7 @@ public class DataExpressionFactories {
         return empty();
     }
 
-    public static DataExpression requiredEventExpression(String expression) {
+    public static DataExpression requiredEventExpression(Object expression) {
         return eventExpression(expression).orElseThrow(() -> new IllegalStateException("Unknown expression: " + expression));
     }
 
