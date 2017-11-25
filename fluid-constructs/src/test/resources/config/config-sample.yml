@@ -1,0 +1,66 @@
+---
+message: welcome
+
+# A list of tasty fruits
+fruits:
+    - Apple
+    - Orange
+    - Strawberry
+    - Mango
+
+# An object
+martin:
+    name: Martin D'vloper
+    job: Developer
+    skill: Elite
+    age: 45
+
+# Array of objects
+objects:
+  -  martin:
+      name: Martin D'vloper
+      job: Developer
+      skills:
+        - python
+        - perl
+        - pascal
+  -  tabitha:
+      name: Tabitha Bitumen
+      job: Developer
+      skills:
+        - lisp
+        - fortran
+        - erlang
+
+# Inline dictionaries
+dictionaries:
+  martin: {name: Martin D'vloper, job: Developer, skill: Elite}
+  fruits: ['Apple', 'Orange', 'Strawberry', 'Mango']
+
+# Boolean values
+booleans:
+  create_key: yes
+  needs_agent: no
+  knows_oop: True
+  likes_emacs: TRUE
+  uses_cvs: false
+
+
+# Multilines
+include_newlines: |
+            exactly as you see
+            will appear these three
+            lines of poetry
+
+ignore_newlines: >
+            this is really a
+            single line of text
+            despite appearances
+
+# numbers
+an_integer: 25
+a_double: 25.5
+
+key.with.dots: some value
+key-with-dashes: some value
+"key with spaces": some value

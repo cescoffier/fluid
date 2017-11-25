@@ -4,6 +4,7 @@ import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.fluid.Fluid;
+import me.escoffier.fluid.constructs.Sink;
 import me.escoffier.fluid.constructs.Sinks;
 
 import java.io.IOException;
@@ -20,6 +21,9 @@ public class MainWithFramework {
         Main.init();
         
         Fluid fluid = new Fluid();
+
+        Sink<Object> sensor = Sinks.get("sensor");
+        System.out.println("Sensor: " + sensor);
 
         // Deploy some sensors using the "code" deployment
         fluid.deploy(MainWithFramework::createSensor);

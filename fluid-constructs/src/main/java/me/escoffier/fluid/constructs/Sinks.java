@@ -1,17 +1,17 @@
 package me.escoffier.fluid.constructs;
 
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigException;
-import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigRenderOptions;
-import io.reactivex.Completable;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.FluidConfig;
 import me.escoffier.fluid.spi.SinkFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -19,30 +19,32 @@ import java.util.stream.Collectors;
 public class Sinks {
 
     private static Map<String, Sink<?>> registered = new ConcurrentHashMap<>();
+    private static final Logger LOGGER = LogManager.getLogger(Sinks.class);
+
 
     public static synchronized void reset() {
         registered.clear();
     }
 
     public static void load(Vertx vertx) {
-        Config load = ConfigFactory.load();
+        Optional<JsonNode> node = FluidConfig.get("sinks");
 
-        try {
-            Config sinks = load.getConfig("sinks");
-            Set<String> names = sinks.root().keySet();
-
-            for (String name : names) {
-                Config config = sinks.getConfig(name);
-                Sink<?> sink = create(vertx, name, config);
-                register(name, sink);
+        if (node.isPresent()) {
+            Iterator<String> names = node.get().fieldNames();
+            while (names.hasNext()) {
+                String name = names.next();
+                LOGGER.info("Creating sink from configuration `" + name + "`");
+                JsonNode conf = node.get().get(name);
+                Sink<?> source = create(FluidConfig.mapper(), vertx, name, conf);
+                register(name, source);
             }
-        } catch (ConfigException e) {
-            // No sinks
+        } else {
+            LOGGER.warn("No sinks configured from the fluid configuration");
         }
     }
 
-    private static Sink<?> create(Vertx vertx, String name, Config config) {
-        String type = config.getString("type");
+    private static Sink<?> create(ObjectMapper mapper, Vertx vertx, String name, JsonNode config) {
+        String type = config.get("type").asText(null);
         if (type == null) {
             throw new NullPointerException("Invalid configuration, the config " + name + " has no `type`");
         }
@@ -52,11 +54,13 @@ public class Sinks {
             throw new NullPointerException("Invalid configuration, the sink type " + type + " is unknown");
         }
 
-        String output = config.root()
-            .render(ConfigRenderOptions.concise()
-            .setJson(true).setComments(false).setFormatted(false));
+        try {
+            String json = mapper.writeValueAsString(config);
+            return factory.create(vertx, new JsonObject(json).put("name", name)).blockingGet();
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Invalid configuration for " + name, e);
+        }
 
-        return factory.create(vertx, new JsonObject(output).put("name", name)).blockingGet();
     }
 
     private static SinkFactory lookupForFactory(String type) {
