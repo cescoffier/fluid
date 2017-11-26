@@ -12,7 +12,7 @@
   <description>Fluid - a substance that has no fixed shape and yields easily to external pressure</description>
   <url>https://github.com/cescoffier/fluid</url>
   <packaging>pom</packaging>
-  
+
 
   <modules>
     <module>fluid-constructs</module>
@@ -25,7 +25,6 @@
   </modules>
 
 
-  
   <properties>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
@@ -340,6 +339,33 @@
                 <phase>verify</phase>
                 <goals>
                   <goal>sign</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>coverage</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <version>0.7.9</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>prepare-agent</goal>
+                </goals>
+              </execution>
+              <execution>
+                <id>report</id>
+                <phase>test</phase>
+                <goals>
+                  <goal>report</goal>
                 </goals>
               </execution>
             </executions>
