@@ -31,14 +31,12 @@ public class StreamConnector<T> implements Processor<T, T> {
                 return;
             }
         }
-        System.out.println("Subscription on the processor");
         sub = s;
         source.subscribe(this);
     }
 
     @Override
     public void onSubscribe(Subscription s) {
-        System.out.println("Processor subscribed to the upstream");
         sub.onSubscribe(s);
     }
 

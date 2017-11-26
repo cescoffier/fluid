@@ -39,7 +39,7 @@ public interface DataStream<T> {
     Sink<T> to(Sink<T> sink);
 
     static <T> DataStream<T> of(Class<T> clazz) {
-        return new DataStreamImpl<>(clazz);
+        return new DataStreamImpl<>();
     }
 
     <I> DataStream<I> previous();

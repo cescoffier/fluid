@@ -27,7 +27,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     this.connectable = false;
   }
 
-  public DataStreamImpl(Class<T> clazz) {
+  public DataStreamImpl() {
     connector = new StreamConnector<>();
     this.flow = Flowable.fromPublisher(connector);
     this.previous = null;
