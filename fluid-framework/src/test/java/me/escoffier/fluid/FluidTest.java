@@ -4,9 +4,8 @@ import io.vertx.core.Vertx;
 import me.escoffier.fluid.annotations.Port;
 import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.constructs.Sink;
-import me.escoffier.fluid.constructs.Sinks;
 import me.escoffier.fluid.constructs.Source;
-import me.escoffier.fluid.constructs.Sources;
+import me.escoffier.fluid.registry.FluidRegistry;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -22,316 +21,316 @@ import static org.awaitility.Awaitility.await;
  */
 public class FluidTest {
 
-    @Test
-    public void testCreation() {
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
+  @Test
+  public void testCreation() {
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
 
-        AtomicBoolean called = new AtomicBoolean();
-        fluid.deploy(f -> called.set(f == fluid));
+    AtomicBoolean called = new AtomicBoolean();
+    fluid.deploy(f -> called.set(f == fluid));
 
-        assertThat(called.get()).isTrue();
+    assertThat(called.get()).isTrue();
+  }
+
+  @Test
+  public void testCreationWithVertx() {
+    Vertx vertx = Vertx.vertx();
+    Fluid fluid = new Fluid(vertx);
+
+    List<String> list = new ArrayList<>();
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+
+    fluid.deploy(f -> {
+      Sink<String> output = f.sink("output");
+      f.<String>from("input")
+        .transform(String::toUpperCase)
+        .to(output);
+    });
+
+    await().until(() -> list.size() == 3);
+    assertThat(list).containsExactly("A", "B", "C");
+  }
+
+  @Test
+  public void testDeploymentWithClass() {
+
+    List<String> list = new ArrayList<>();
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
+
+    fluid.deploy(MyMediator1.class);
+
+    await().until(() -> list.size() == 3);
+    assertThat(list).containsExactly("A", "B", "C");
+  }
+
+  @Test
+  public void testDeploymentWithClassUsingPrivate() {
+
+    List<String> list = new ArrayList<>();
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
+
+    fluid.deploy(MyMediator2.class);
+
+    await().until(() -> list.size() == 3);
+    assertThat(list).containsExactly("A", "B", "C");
+  }
+
+  @Test
+  public void testDeploymentWithClassWithoutTransformationMethod() {
+
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.register("output", Sink.<String>forEach(s -> {
+    }));
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
+
+    try {
+      fluid.deploy(MyMediator3.class);
+      fail("Invalid configuration not detected");
+    } catch (IllegalArgumentException e) {
+      // OK
+    }
+  }
+
+  @Test
+  public void testDeploymentWithClassWithUnknownSource() {
+
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.register("output", Sink.<String>forEach(s -> {
+    }));
+
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
+
+    try {
+      fluid.deploy(MyMediator4.class);
+      fail("Invalid configuration not detected");
+    } catch (IllegalArgumentException e) {
+      // OK
+    }
+  }
+
+  @Test
+  public void testDeploymentWithClassWithUnknownSink() {
+
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.register("output", Sink.<String>forEach(s -> {
+    }));
+
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
+
+    try {
+      fluid.deploy(MyMediator5.class);
+      fail("Invalid configuration not detected");
+    } catch (IllegalArgumentException e) {
+      // OK
+    }
+  }
+
+  @Test
+  public void testDeploymentWithClassUsingParentClass() {
+
+    List<String> list = new ArrayList<>();
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
+
+    fluid.deploy(MyChildMediator.class);
+
+    await().until(() -> list.size() == 3);
+    assertThat(list).containsExactly("A", "B", "C");
+  }
+
+  @Test
+  public void testDeploymentWithClassUsingParameter() {
+
+    List<String> list = new ArrayList<>();
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
+
+    fluid.deploy(MyMediator6.class);
+
+    await().until(() -> list.size() == 3);
+    assertThat(list).containsExactly("A", "B", "C");
+  }
+
+  @Test
+  public void testDeploymentWithClassUsingParameterWithUnknown() {
+
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.unregisterSink("output");
+
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
+
+    try {
+      fluid.deploy(MyMediator7.class);
+      fail("Invalid configuration not detected");
+    } catch (IllegalArgumentException e) {
+      // OK
     }
 
-    @Test
-    public void testCreationWithVertx() {
-        Vertx vertx = Vertx.vertx();
-        Fluid fluid = new Fluid(vertx);
+    FluidRegistry.unregisterSource("input");
+    FluidRegistry.register("output", Sink.discard());
 
-        List<String> list = new ArrayList<>();
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.register("output", Sink.<String>forEach(list::add));
+    try {
+      fluid.deploy(MyMediator8.class);
+      fail("Invalid configuration not detected");
+    } catch (IllegalArgumentException e) {
+      // OK
+    }
+  }
 
-        fluid.deploy(f -> {
-            Sink<String> output = f.sink("output");
-            f.<String>from("input")
-                .transform(String::toUpperCase)
-                .to(output);
-        });
+  @Test
+  public void testDeploymentWithClassUsingParameterWithBadParameter() {
 
-        await().until(() -> list.size() == 3);
-        assertThat(list).containsExactly("A", "B", "C");
+    FluidRegistry.register("input", Source.from("a", "b", "c"));
+    FluidRegistry.register("output", Sink.discard());
+
+    Fluid fluid = new Fluid();
+    assertThat(fluid.vertx()).isNotNull();
+
+    try {
+      fluid.deploy(MyMediator9.class);
+      fail("Invalid configuration not detected");
+    } catch (IllegalArgumentException e) {
+      // OK
+    }
+  }
+
+  static class MyMediator1 {
+
+    @Port("input")
+    Source<String> source;
+
+    @Port("output")
+    Sink<String> sink;
+
+    @Transformation
+    void transform() {
+      source.transform(String::toUpperCase).to(sink);
     }
 
-    @Test
-    public void testDeploymentWithClass() {
+  }
 
-        List<String> list = new ArrayList<>();
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.register("output", Sink.<String>forEach(list::add));
+  static class MyMediator2 {
 
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
+    @Port("input")
+    private Source<String> source;
 
-        fluid.deploy(MyMediator1.class);
+    @Port("output")
+    private Sink<String> sink;
 
-        await().until(() -> list.size() == 3);
-        assertThat(list).containsExactly("A", "B", "C");
+    @Transformation
+    private void transform() {
+      source.transform(String::toUpperCase).to(sink);
     }
 
-    @Test
-    public void testDeploymentWithClassUsingPrivate() {
+  }
 
-        List<String> list = new ArrayList<>();
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.register("output", Sink.<String>forEach(list::add));
+  static class MyMediator3 {
 
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
+    @Port("input")
+    Source<String> source;
 
-        fluid.deploy(MyMediator2.class);
+    @Port("output")
+    Sink<String> sink;
 
-        await().until(() -> list.size() == 3);
-        assertThat(list).containsExactly("A", "B", "C");
+  }
+
+  static class MyMediator4 {
+
+    @Port("missing-input")
+    Source<String> source;
+
+    @Port("output")
+    Sink<String> sink;
+
+    @Transformation
+    void transform() {
+      source.transform(String::toUpperCase).to(sink);
     }
 
-    @Test
-    public void testDeploymentWithClassWithoutTransformationMethod() {
+  }
 
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.register("output", Sink.<String>forEach(s -> {
-        }));
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
+  static class MyMediator5 {
 
-        try {
-            fluid.deploy(MyMediator3.class);
-            fail("Invalid configuration not detected");
-        } catch (IllegalArgumentException e) {
-            // OK
-        }
+    @Port("input")
+    Source<String> source;
+
+    @Port("missing-output")
+    Sink<String> sink;
+
+    @Transformation
+    void transform() {
+      source.transform(String::toUpperCase).to(sink);
     }
 
-    @Test
-    public void testDeploymentWithClassWithUnknownSource() {
+  }
 
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.register("output", Sink.<String>forEach(s -> {
-        }));
+  static class MyMediator6 {
 
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
-
-        try {
-            fluid.deploy(MyMediator4.class);
-            fail("Invalid configuration not detected");
-        } catch (IllegalArgumentException e) {
-            // OK
-        }
+    @Transformation
+    void transform(@Port("input")
+                     Source<String> source,
+                   @Port("output")
+                     Sink<String> sink) {
+      source.transform(String::toUpperCase).to(sink);
     }
 
-    @Test
-    public void testDeploymentWithClassWithUnknownSink() {
+  }
 
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.register("output", Sink.<String>forEach(s -> {
-        }));
+  static class MyMediator7 {
 
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
-
-        try {
-            fluid.deploy(MyMediator5.class);
-            fail("Invalid configuration not detected");
-        } catch (IllegalArgumentException e) {
-            // OK
-        }
+    @Transformation
+    void transform(@Port("input")
+                     Source<String> source,
+                   @Port("missing-output")
+                     Sink<String> sink) {
+      source.transform(String::toUpperCase).to(sink);
     }
 
-    @Test
-    public void testDeploymentWithClassUsingParentClass() {
+  }
 
-        List<String> list = new ArrayList<>();
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.register("output", Sink.<String>forEach(list::add));
+  static class MyMediator8 {
 
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
-
-        fluid.deploy(MyChildMediator.class);
-
-        await().until(() -> list.size() == 3);
-        assertThat(list).containsExactly("A", "B", "C");
+    @Transformation
+    void transform(@Port("missing-input")
+                     Source<String> source,
+                   @Port("output")
+                     Sink<String> sink) {
+      source.transform(String::toUpperCase).to(sink);
     }
 
-    @Test
-    public void testDeploymentWithClassUsingParameter() {
+  }
 
-        List<String> list = new ArrayList<>();
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.register("output", Sink.<String>forEach(list::add));
+  static class MyMediator9 {
 
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
+    @Port("input")
+    Source<String> source;
 
-        fluid.deploy(MyMediator6.class);
-
-        await().until(() -> list.size() == 3);
-        assertThat(list).containsExactly("A", "B", "C");
+    @Transformation
+    void transform(@Port("output")
+                     Sink<String> sink,
+                   String foo) {
+      source.transform(String::toUpperCase).transform(s -> foo).to(sink);
     }
 
-    @Test
-    public void testDeploymentWithClassUsingParameterWithUnknown() {
-
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.unregister("output");
-
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
-
-        try {
-            fluid.deploy(MyMediator7.class);
-            fail("Invalid configuration not detected");
-        } catch (IllegalArgumentException e) {
-            // OK
-        }
-
-        Sources.unregister("input");
-        Sinks.register("output", Sink.discard());
-
-        try {
-            fluid.deploy(MyMediator8.class);
-            fail("Invalid configuration not detected");
-        } catch (IllegalArgumentException e) {
-            // OK
-        }
-    }
-
-    @Test
-    public void testDeploymentWithClassUsingParameterWithBadParameter() {
-
-        Sources.register("input", Source.from("a", "b", "c"));
-        Sinks.register("output", Sink.discard());
-
-        Fluid fluid = new Fluid();
-        assertThat(fluid.vertx()).isNotNull();
-
-        try {
-            fluid.deploy(MyMediator9.class);
-            fail("Invalid configuration not detected");
-        } catch (IllegalArgumentException e) {
-            // OK
-        }
-    }
-
-    static class MyMediator1 {
-
-        @Port("input")
-        Source<String> source;
-
-        @Port("output")
-        Sink<String> sink;
-
-        @Transformation
-        void transform() {
-            source.transform(String::toUpperCase).to(sink);
-        }
-
-    }
-
-    static class MyMediator2 {
-
-        @Port("input")
-        private Source<String> source;
-
-        @Port("output")
-        private Sink<String> sink;
-
-        @Transformation
-        private void transform() {
-            source.transform(String::toUpperCase).to(sink);
-        }
-
-    }
-
-    static class MyMediator3 {
-
-        @Port("input")
-        Source<String> source;
-
-        @Port("output")
-        Sink<String> sink;
-
-    }
-
-    static class MyMediator4 {
-
-        @Port("missing-input")
-        Source<String> source;
-
-        @Port("output")
-        Sink<String> sink;
-
-        @Transformation
-        void transform() {
-            source.transform(String::toUpperCase).to(sink);
-        }
-
-    }
-
-    static class MyMediator5 {
-
-        @Port("input")
-        Source<String> source;
-
-        @Port("missing-output")
-        Sink<String> sink;
-
-        @Transformation
-        void transform() {
-            source.transform(String::toUpperCase).to(sink);
-        }
-
-    }
-
-    static class MyMediator6 {
-        
-        @Transformation
-        void transform(@Port("input")
-                           Source<String> source,
-                       @Port("output")
-                           Sink<String> sink) {
-            source.transform(String::toUpperCase).to(sink);
-        }
-
-    }
-
-    static class MyMediator7 {
-
-        @Transformation
-        void transform(@Port("input")
-                           Source<String> source,
-                       @Port("missing-output")
-                           Sink<String> sink) {
-            source.transform(String::toUpperCase).to(sink);
-        }
-
-    }
-
-    static class MyMediator8 {
-
-        @Transformation
-        void transform(@Port("missing-input")
-                           Source<String> source,
-                       @Port("output")
-                           Sink<String> sink) {
-            source.transform(String::toUpperCase).to(sink);
-        }
-
-    }
-
-    static class MyMediator9 {
-
-        @Port("input")
-        Source<String> source;
-
-        @Transformation
-        void transform(@Port("output")
-                           Sink<String> sink,
-                       String foo) {
-            source.transform(String::toUpperCase).transform(s -> foo).to(sink);
-        }
-
-    }
+  }
 
 }

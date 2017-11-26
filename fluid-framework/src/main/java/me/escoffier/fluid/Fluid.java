@@ -5,10 +5,9 @@ import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.annotations.Port;
 import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.constructs.Sink;
-import me.escoffier.fluid.constructs.Sinks;
 import me.escoffier.fluid.constructs.Source;
-import me.escoffier.fluid.constructs.Sources;
 import me.escoffier.fluid.reflect.ReflectionHelper;
+import me.escoffier.fluid.registry.FluidRegistry;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 
@@ -33,9 +32,7 @@ public class Fluid {
 
   public Fluid(Vertx vertx) {
     this.vertx = vertx;
-
-    Sources.load(vertx);
-    Sinks.load(vertx);
+    FluidRegistry.initialize(vertx);
   }
 
   public Fluid(io.vertx.core.Vertx vertx) {
@@ -75,7 +72,7 @@ public class Fluid {
   }
 
   private Sink<Object> getSinkOrFail(String name) {
-    Sink<Object> sink = Sinks.get(Objects.requireNonNull(name));
+    Sink<Object> sink = FluidRegistry.sink(Objects.requireNonNull(name));
     if (sink == null) {
       throw new IllegalArgumentException("Unable to find the sink " + name);
     }
@@ -83,7 +80,7 @@ public class Fluid {
   }
 
   private Source<Object> getSourceOrFail(String name) {
-    Source<Object> src = Sources.get(Objects.requireNonNull(name));
+    Source<Object> src = FluidRegistry.source(Objects.requireNonNull(name));
     if (src == null) {
       throw new IllegalArgumentException("Unable to find the sink " + name);
     }
@@ -139,11 +136,11 @@ public class Fluid {
   }
 
   public <T> Source<T> from(String name) {
-    return Sources.get(name);
+    return FluidRegistry.source(name);
   }
 
   public <T> Sink<T> sink(String name) {
-    return Sinks.get(name);
+    return FluidRegistry.sink(name);
   }
 
   public Vertx vertx() {

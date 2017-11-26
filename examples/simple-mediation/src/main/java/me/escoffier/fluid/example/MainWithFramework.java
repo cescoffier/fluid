@@ -5,7 +5,7 @@ import io.reactivex.schedulers.Schedulers;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.fluid.Fluid;
 import me.escoffier.fluid.constructs.Sink;
-import me.escoffier.fluid.constructs.Sinks;
+import me.escoffier.fluid.registry.FluidRegistry;
 
 import java.io.IOException;
 import java.util.Random;
@@ -17,31 +17,32 @@ import java.util.concurrent.TimeUnit;
  */
 public class MainWithFramework {
 
-    public static void main(String[] args) throws IOException {
-        Main.init();
-        
-        Fluid fluid = new Fluid();
+  public static void main(String[] args) throws IOException {
+    Main.init();
 
-        Sink<Object> sensor = Sinks.get("sensor");
-        System.out.println("Sensor: " + sensor);
+    Fluid fluid = new Fluid();
 
-        // Deploy some sensors using the "code" deployment
-        fluid.deploy(MainWithFramework::createSensor);
-        fluid.deploy(MainWithFramework::createSensor);
+    Sink<Object> sensor = FluidRegistry.sink("sensor");
+    System.out.println("Sensor: " + sensor);
 
-        // Deploy a mediator
-        fluid.deploy(Mediator.class);
+    // Deploy some sensors using the "code" deployment
+    fluid.deploy(MainWithFramework::createSensor);
+    fluid.deploy(MainWithFramework::createSensor);
 
-        fluid.vertx().deployVerticle(WebVerticle.class.getName());
-    }
+    // Deploy a mediator
+    fluid.deploy(Mediator.class);
+
+    fluid.vertx().deployVerticle(WebVerticle.class.getName());
+  }
 
 
-    private static void createSensor(Fluid fluid) {
-        String id = UUID.randomUUID().toString();
-        Random random = new Random();
+  private static void createSensor(Fluid fluid) {
+    String id = UUID.randomUUID().toString();
+    Random random = new Random();
 
-        fluid.from(Flowable.interval(1000, TimeUnit.MILLISECONDS).subscribeOn(Schedulers.computation()))
-            .transform(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
-            .to(Sinks.get("sensor"));
-    }
+    fluid.from(Flowable.interval(1000, TimeUnit.MILLISECONDS)
+      .subscribeOn(Schedulers.computation()))
+      .transform(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
+      .to(FluidRegistry.sink("sensor"));
+  }
 }
