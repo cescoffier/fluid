@@ -4,9 +4,10 @@
 
 [![codecov](https://codecov.io/gh/cescoffier/fluid/branch/master/graph/badge.svg)](https://codecov.io/gh/cescoffier/fluid)
 
-
+**IMPORTANT**: The project in in pre-alpha status.
 
 **The what and why** => https://github.com/cescoffier/fluid/wiki/Fluid---The-What-&-Why
+
 
 ## Build
 
