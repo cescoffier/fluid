@@ -121,7 +121,6 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   public void connect(DataStream<T> source) {
     this.connector.connectDownstream(source);
-
   }
 
   @Override

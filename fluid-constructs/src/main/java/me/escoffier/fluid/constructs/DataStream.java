@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 /**
- * Represents a Stream
+ * Represents a Stream.
  */
 public interface DataStream<T> {
 
