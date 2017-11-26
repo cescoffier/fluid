@@ -15,3 +15,7 @@
 mvn clean install
 ```
 
+* Travis Build: https://travis-ci.org/cescoffier/fluid
+* Sonar Quality Dashboard: https://sonarcloud.io/dashboard?id=me.escoffier.fluid%3Afluid-project
+* Code Coverage: https://codecov.io/gh/cescoffier/fluid
+
