@@ -18,7 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Sinks {
 
-    private static Map<String, Sink<?>> registered = new ConcurrentHashMap<>();
+  private static final String NAME_NOT_PROVIDED_MESSAGE = "The Sink has no name, or the given `name` is `null`";
+
+  private static Map<String, Sink<?>> registered = new ConcurrentHashMap<>();
     private static final Logger LOGGER = LogManager.getLogger(Sinks.class);
 
 
@@ -74,23 +76,23 @@ public class Sinks {
     }
 
     public static synchronized <T> void register(Sink<T> sink) {
-        registered.put(Objects.requireNonNull(sink.name(), "the sink has no name"), sink);
+        registered.put(Objects.requireNonNull(sink.name(), NAME_NOT_PROVIDED_MESSAGE), sink);
     }
 
     public static synchronized <T> void register(String name, Sink<T> sink) {
-        registered.put(Objects.requireNonNull(name, "the name must be provided"), sink);
+        registered.put(Objects.requireNonNull(name, NAME_NOT_PROVIDED_MESSAGE), sink);
     }
 
     public static synchronized <T> void unregister(Sink<T> sink) {
-        registered.remove(Objects.requireNonNull(sink.name(), "the sink has no name"));
+        registered.remove(Objects.requireNonNull(sink.name(), NAME_NOT_PROVIDED_MESSAGE));
     }
 
     public static synchronized <T> void unregister(String name) {
-        registered.remove(Objects.requireNonNull(name, "the name must be provided"));
+        registered.remove(Objects.requireNonNull(name, NAME_NOT_PROVIDED_MESSAGE));
     }
 
     public static <T> Sink<T> get(String name) {
-        return (Sink<T>) registered.get(Objects.requireNonNull(name, "the name must be provided"));
+        return (Sink<T>) registered.get(Objects.requireNonNull(name, NAME_NOT_PROVIDED_MESSAGE));
     }
 
 

@@ -18,27 +18,30 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class Sources {
 
-    private static final Logger LOGGER = LogManager.getLogger(Sources.class);
+  private static final String NAME_NOT_PROVIDED_MESSAGE = "The source has no name or the given `name` is `null`";
+
+
+  private static final Logger LOGGER = LogManager.getLogger(Sources.class);
     private static Map<String, Source<?>> registered = new ConcurrentHashMap<>();
 
     public static synchronized <T> void register(Source<T> source) {
-        registered.put(Objects.requireNonNull(source.name(), "the source has no name"), source);
+        registered.put(Objects.requireNonNull(source.name(), NAME_NOT_PROVIDED_MESSAGE), source);
     }
 
     public static synchronized <T> void register(String name, Source<T> source) {
-        registered.put(Objects.requireNonNull(name, "the name must be provided"), source);
+        registered.put(Objects.requireNonNull(name, NAME_NOT_PROVIDED_MESSAGE), source);
     }
 
     public static synchronized <T> void unregister(Source<T> source) {
-        registered.remove(Objects.requireNonNull(source.name(), "the source has no name"));
+        registered.remove(Objects.requireNonNull(source.name(), NAME_NOT_PROVIDED_MESSAGE));
     }
 
     public static synchronized <T> void unregister(String name) {
-        registered.remove(Objects.requireNonNull(name, "the name must be provided"));
+        registered.remove(Objects.requireNonNull(name, NAME_NOT_PROVIDED_MESSAGE));
     }
 
     public static <T> Source<T> get(String name) {
-        return (Source<T>) registered.get(Objects.requireNonNull(name, "the name must be provided"));
+        return (Source<T>) registered.get(Objects.requireNonNull(name, NAME_NOT_PROVIDED_MESSAGE));
     }
 
     public static synchronized void reset() {
@@ -72,7 +75,7 @@ public class Sources {
         if (factory == null) {
             throw new NullPointerException("Invalid configuration, the source type " + type + " is unknown");
         }
-        
+
         try {
             String json = mapper.writeValueAsString(config);
             return factory.create(vertx, new JsonObject(json).put("name", name)).blockingGet();
