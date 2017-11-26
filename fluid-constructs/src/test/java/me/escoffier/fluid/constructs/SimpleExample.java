@@ -4,9 +4,9 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.reactivex.core.Vertx;
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,18 +26,18 @@ public class SimpleExample {
 
     private Vertx vertx;
 
-    @BeforeEach
+    @Before
     public void setup() {
         vertx = Vertx.vertx();
     }
 
-    @AfterEach
+    @After
     public void teardown() {
         vertx.close();
     }
 
     @Test
-    void testWithRange() {
+    public void testWithRange() {
         CacheSink<Integer> sink = new CacheSink<>();
         Source.from(Flowable.range(0, 10))
             .transform(i -> {
@@ -50,24 +50,25 @@ public class SimpleExample {
     }
 
     @Test
-    void testWithRange2() {
+    public void testWithRange2() {
         Source.from(Flowable.range(0, 10))
             .to(Sink.forEach(System.out::println));
     }
 
     @Test
-    void testWithFactorial() throws IOException {
-        FileSink sink = new FileSink(vertx, "factorial.txt");
+    public void testWithFactorial() throws IOException {
+        String path = "target/test-classes/factorial.txt";
+        FileSink sink = new FileSink(vertx, path);
         getFactorialFlow()
             .transform(i -> i.toString() + "\n")
             .to(sink);
 
-        await().until(() -> FileUtils.readLines(new File("factorial.txt"), "UTF-8").size() >= 10);
-        assertThat(FileUtils.readLines(new File("factorial.txt"), "UTF-8")).contains("3628800");
+        await().until(() -> FileUtils.readLines(new File(path), "UTF-8").size() >= 10);
+        assertThat(FileUtils.readLines(new File(path), "UTF-8")).contains("3628800");
     }
 
     @Test
-    void testQuotes() {
+    public void testQuotes() {
         CacheSink<String> cache = new CacheSink<>();
         List<Quote> quotes = new ArrayList<>();
         quotes.add(new Quote("Attitude is everything", "Diane Von Furstenberg"));
@@ -76,7 +77,6 @@ public class SimpleExample {
         quotes.add(new Quote("Rhinestones make everything better", "Piera Gelardi"));
         quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
 
-        //TODO What is this generic issue?
         Source.from(quotes.stream())
             .transform(q -> q.author)
             .transformFlow(Flowable::distinct)
@@ -93,14 +93,15 @@ public class SimpleExample {
         public final String quote;
         public final String author;
 
-        public Quote(String quote, String author) {
+        Quote(String quote, String author) {
             this.author = author;
             this.quote = quote;
         }
     }
 
     Sink<BigInteger> toLineInFile() {
-        FileSink sink = new FileSink(vertx, "factorial-2.txt");
+        String path = "target/test-classes/factorial-2.txt";
+        FileSink sink = new FileSink(vertx, path);
         return data ->
             Single.just(data)
                 .map(d -> d.toString() + "\n")
@@ -108,12 +109,13 @@ public class SimpleExample {
     }
 
     @Test
-    void testWithFactorialUsingBuiltSink() throws IOException {
+    public void testWithFactorialUsingBuiltSink() throws IOException {
+        String path = "target/test-classes/factorial-2.txt";
         getFactorialFlow()
             .to(toLineInFile());
 
-        await().until(() -> FileUtils.readLines(new File("factorial-2.txt"), "UTF-8").size() >= 10);
-        assertThat(FileUtils.readLines(new File("factorial-2.txt"), "UTF-8")).contains("3628800");
+        await().until(() -> FileUtils.readLines(new File(path), "UTF-8").size() >= 10);
+        assertThat(FileUtils.readLines(new File(path), "UTF-8")).contains("3628800");
     }
 
     private DataStream<BigInteger> getFactorialFlow() {
@@ -122,7 +124,7 @@ public class SimpleExample {
     }
 
     @Test
-    void testTimeBasedManipulation() {
+    public void testTimeBasedManipulation() {
         CacheSink<String> cache = new CacheSink<>();
         getFactorialFlow()
             .transformFlow(flow ->
@@ -134,21 +136,7 @@ public class SimpleExample {
     }
 
     @Test
-    void testComplexShaping() {
-        /*
-        final UniformFanOutShape<Tweet, Tweet> bcast = b.add(Broadcast.create(2));
-  final FlowShape<Tweet, Author> toAuthor =
-	  b.add(Flow.of(Tweet.class).map(t -> t.author));
-  final FlowShape<Tweet, Hashtag> toTags =
-      b.add(Flow.of(Tweet.class).mapConcat(t -> new ArrayList<Hashtag>(t.hashtags())));
-  final SinkShape<Author> authors = b.add(writeAuthors);
-  final SinkShape<Hashtag> hashtags = b.add(writeHashtags);
-
-  b.from(b.add(tweets)).viaFanOut(bcast).via(toAuthor).to(authors);
-                             b.from(bcast).via(toTags).to(hashtags);
-  return ClosedShape.getInstance();
-         */
-
+    public void testComplexShaping() {
         Transformer<Quote, String> toAuthor = flow -> flow.map(q -> q.author);
         Transformer<Quote, String> toWords = flow -> flow
             .concatMap(q -> Flowable.fromArray(q.quote.split(" ")));
@@ -179,7 +167,7 @@ public class SimpleExample {
     }
 
     @Test
-    void testMerge() {
+    public void testMerge() {
         Flowable<String> f1 = Flowable.fromArray("a", "b", "c")
             .delay(10, TimeUnit.MILLISECONDS);
 
@@ -197,7 +185,7 @@ public class SimpleExample {
     }
 
     @Test
-    void testConcat() {
+    public void testConcat() {
         Flowable<String> f1 = Flowable.fromArray("a", "b", "c")
             .delay(10, TimeUnit.MILLISECONDS);
 
@@ -215,7 +203,7 @@ public class SimpleExample {
     }
 
     @Test
-    void testZip() {
+    public void testZip() {
         Flowable<String> f1 = Flowable.fromArray("a", "b", "c");
 
         Flowable<String> f2 = Flowable.fromArray("1", "2", "3");
@@ -230,7 +218,7 @@ public class SimpleExample {
     }
 
     @Test
-    void testFold() {
+    public void testFold() {
         Sink.ScanSink<Integer, Integer> sink = Sink.fold(0, (i, v) -> i + v);
         Source.from(Flowable.range(0, 3))
             .transform(i -> ++i)
@@ -240,7 +228,7 @@ public class SimpleExample {
     }
 
     @Test
-    void testHead() {
+    public void testHead() {
         Sink.HeadSink<Integer> sink = Sink.head();
         Source.from(Flowable.range(0, 3))
             .transform(i -> ++i)

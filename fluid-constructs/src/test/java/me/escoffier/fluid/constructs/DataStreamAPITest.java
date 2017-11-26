@@ -1,6 +1,6 @@
 package me.escoffier.fluid.constructs;
 
-import org.junit.jupiter.api.*;
+import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -10,17 +10,8 @@ import static org.awaitility.Awaitility.await;
  */
 public class DataStreamAPITest {
 
-    @BeforeAll
-    static void initAll() {
-
-    }
-
-    @BeforeEach
-    void init() {
-    }
-
     @Test
-    void testTransformWith() {
+    public void testTransformWith() {
         CacheSink<Integer> sink = new CacheSink<>();
 
         Source.from(1, 2, 3, 4, 5)
@@ -32,7 +23,7 @@ public class DataStreamAPITest {
     }
 
     @Test
-    void testTransform() {
+    public void testTransform() {
         CacheSink<Integer> sink = new CacheSink<>();
 
         Source.from(1, 2, 3, 4, 5)
@@ -44,7 +35,7 @@ public class DataStreamAPITest {
     }
 
     @Test
-    void testTransformFlow() {
+    public void testTransformFlow() {
         CacheSink<Integer> sink = new CacheSink<>();
 
         Source.from(1, 2, 3, 4, 5)
@@ -71,18 +62,4 @@ public class DataStreamAPITest {
         assertThat(sink.cache()).containsExactly(22, 24, 26, 28, 30, 32, 34, 36, 38, 40);
     }
 
-
-    @Test
-    @Disabled("for demonstration purposes")
-    void skippedTest() {
-        // not executed
-    }
-
-    @AfterEach
-    void tearDown() {
-    }
-
-    @AfterAll
-    static void tearDownAll() {
-    }
 }
