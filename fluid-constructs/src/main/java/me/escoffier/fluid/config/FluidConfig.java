@@ -34,6 +34,10 @@ public class FluidConfig {
 
     private static JsonNode root;
 
+    private FluidConfig() {
+      // Avoid direct instantiation.
+    }
+
     static {
         mapper = new ObjectMapper()
             .enable(JsonParser.Feature.ALLOW_COMMENTS)
@@ -43,7 +47,7 @@ public class FluidConfig {
         load();
     }
 
-    public synchronized static void load() {
+    public  static synchronized void load() {
         String path = System.getProperty("fluid-config");
         if (path == null) {
             path = System.getenv("FLUID_CONFIG");
@@ -133,7 +137,7 @@ public class FluidConfig {
             .orElse(null);
     }
 
-    public synchronized static Optional<JsonNode> get(String path) {
+    public  static synchronized Optional<JsonNode> get(String path) {
         Objects.requireNonNull(path, "The path must not be null");
         if (path.trim().isEmpty()) {
             throw new IllegalArgumentException("The path must not be empty");
