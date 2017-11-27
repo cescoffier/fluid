@@ -2,6 +2,9 @@ package me.escoffier.fluid.constructs;
 
 import org.junit.Test;
 
+import java.util.AbstractMap;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -40,6 +43,16 @@ public class PairTest {
     assertThat(pair1).isEqualTo(pair2).isNotSameAs(pair2);
     assertThat(pair1).isNotEqualTo(pair3).isNotSameAs(pair3);
     assertThat(pair1.hashCode()).isEqualTo(pair2.hashCode()).isNotEqualTo(pair3.hashCode());
+
+    assertThat(pair1).isEqualTo(pair1);
+
+    // Test with a Map.Entry
+
+    Map.Entry<String, Integer> entry = new AbstractMap.SimpleImmutableEntry<>("a", 1);
+
+    assertThat(pair1).isEqualTo(entry);
+    entry = new AbstractMap.SimpleImmutableEntry<>("a", 2);
+    assertThat(pair1).isNotEqualTo(entry);
   }
 
   @Test(expected = UnsupportedOperationException.class)
