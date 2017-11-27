@@ -32,6 +32,7 @@ public class Tuple implements Iterable<Object> {
   }
 
 
+  @SuppressWarnings("unchecked")
   public <T> T getNth(int pos) {
     if (pos >= size()) {
       throw new IndexOutOfBoundsException(
@@ -47,7 +48,9 @@ public class Tuple implements Iterable<Object> {
 
   public boolean contains(Object value) {
     for (Object val : this.items) {
-      if (itemEquals(value, val)) return true;
+      if (itemEquals(value, val)) {
+        return true;
+      }
     }
     return false;
   }

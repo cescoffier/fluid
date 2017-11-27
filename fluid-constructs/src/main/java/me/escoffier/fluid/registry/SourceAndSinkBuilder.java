@@ -22,8 +22,8 @@ public class SourceAndSinkBuilder {
 
   private static final Logger LOGGER = LogManager.getLogger(FluidRegistry.class);
 
-  public static Map<String, Source<?>> createSourcesFromConfiguration(Vertx vertx) {
-    Map<String, Source<?>> map = new HashMap<>();
+  public static Map<String, Source> createSourcesFromConfiguration(Vertx vertx) {
+    Map<String, Source> map = new HashMap<>();
     Optional<JsonNode> node = FluidConfig.get("sources");
 
     if (node.isPresent()) {
@@ -42,8 +42,8 @@ public class SourceAndSinkBuilder {
     return map;
   }
 
-  public static Map<String, Sink<?>> createSinksFromConfiguration(Vertx vertx) {
-    Map<String, Sink<?>> map = new HashMap<>();
+  public static Map<String, Sink> createSinksFromConfiguration(Vertx vertx) {
+    Map<String, Sink> map = new HashMap<>();
     Optional<JsonNode> node = FluidConfig.get("sinks");
 
     if (node.isPresent()) {
@@ -61,7 +61,7 @@ public class SourceAndSinkBuilder {
     return map;
   }
 
-  private static Source<?> buildSource(ObjectMapper mapper, Vertx vertx, String name, JsonNode config) {
+  private static Source buildSource(ObjectMapper mapper, Vertx vertx, String name, JsonNode config) {
     String type = config.get("type").asText(null);
     if (type == null) {
       throw new NullPointerException("Invalid configuration, the config " + name + " has no `type`");
@@ -80,7 +80,7 @@ public class SourceAndSinkBuilder {
     }
   }
 
-  private static Sink<?> buildSink(ObjectMapper mapper, Vertx vertx, String name, JsonNode config) {
+  private static Sink buildSink(ObjectMapper mapper, Vertx vertx, String name, JsonNode config) {
     String type = config.get("type").asText(null);
     if (type == null) {
       throw new NullPointerException("Invalid configuration, the config " + name + " has no `type`");

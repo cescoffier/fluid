@@ -179,7 +179,8 @@ public class FluidConfig {
     private static int asInteger(String seg) {
         try {
             return Integer.valueOf(seg);
-        } catch (Exception e) {
+        } catch (Exception e) { // NOSONAR
+          // Ignore exception
             return -1;
         }
     }
