@@ -39,7 +39,7 @@ public class SinkTest {
 
   @Test
   public void testHead() {
-    Sink.HeadSink<Integer> sink = Sink.head();
+    HeadSink<Integer> sink = Sink.head();
     assertThat(sink.name()).isNull();
     Completable c1 = sink.dispatch(1);
     Completable c2 = sink.dispatch(2);
@@ -54,7 +54,7 @@ public class SinkTest {
 
   @Test
   public void testTail() {
-    Sink.TailSink<Integer> sink = Sink.tail();
+    TailSink<Integer> sink = Sink.tail();
     assertThat(sink.name()).isNull();
     Completable c1 = sink.dispatch(1);
     Completable c2 = sink.dispatch(2);
@@ -155,23 +155,40 @@ public class SinkTest {
       }
       return i.toString();
     });
-    sink.dispatch(1);
-    sink.dispatch(2);
-    sink.dispatch(3);
-    sink.dispatch(4);
+    assertThat(sink.dispatch(1).blockingGet()).isNull();
+    assertThat(sink.dispatch(2).blockingGet()).isNull();
+    assertThat(sink.dispatch(3).blockingGet()).isNull();
+    assertThat(sink.dispatch(4).blockingGet()).isNull();
 
     assertThat(cache.buffer).containsExactly("1", "2", "4");
   }
 
   @Test
   public void testFold() throws InterruptedException {
-    Sink.ScanSink<Integer, Integer> sink = Sink.fold(0, (l, i) -> l + i);
+    ScanSink<Integer, Integer> sink = Sink.fold(0, (l, i) -> l + i);
     assertThat(sink.dispatch(1).blockingGet()).isNull();
     assertThat(sink.dispatch(2).blockingGet()).isNull();
     assertThat(sink.dispatch(3).blockingGet()).isNull();
     assertThat(sink.dispatch(4).blockingGet()).isNull();
 
     assertThat(sink.value()).isEqualTo(10);
+  }
+
+  @Test
+  public void testListSink() {
+    ListSink<Object> list = Sink.list();
+    Sink<Integer> sink = list.contramap(i -> {
+      if (i == 3) {
+        return null;
+      }
+      return i.toString();
+    });
+    assertThat(sink.dispatch(1).blockingGet()).isNull();
+    assertThat(sink.dispatch(2).blockingGet()).isNull();
+    assertThat(sink.dispatch(3).blockingGet()).isNull();
+    assertThat(sink.dispatch(4).blockingGet()).isNull();
+
+    assertThat(list.values()).containsExactly("1", "2", "4");
   }
 
 }

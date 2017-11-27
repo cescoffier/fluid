@@ -219,7 +219,7 @@ public class SimpleExample {
 
     @Test
     public void testFold() {
-        Sink.ScanSink<Integer, Integer> sink = Sink.fold(0, (i, v) -> i + v);
+        ScanSink<Integer, Integer> sink = Sink.fold(0, (i, v) -> i + v);
         Source.from(Flowable.range(0, 3))
             .transform(i -> ++i)
             .to(sink);
@@ -229,7 +229,7 @@ public class SimpleExample {
 
     @Test
     public void testHead() {
-        Sink.HeadSink<Integer> sink = Sink.head();
+        HeadSink<Integer> sink = Sink.head();
         Source.from(Flowable.range(0, 3))
             .transform(i -> ++i)
             .to(sink);

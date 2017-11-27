@@ -49,6 +49,10 @@ public interface Sink<OUT> {
     return data -> Completable.fromAction(() -> consumer.accept(data));
   }
 
+  static <T> ListSink<T> list() {
+    return new ListSink<>();
+  }
+
   /**
    * A sink discarding all inputs.
    *
@@ -74,69 +78,6 @@ public interface Sink<OUT> {
 
   static <T> TailSink<T> tail() {
     return new TailSink<>();
-  }
-
-  class ScanSink<OUT, RES> implements Sink<OUT> {
-    private final BiFunction<OUT, RES, RES> mapper;
-    private RES current;
-
-    // TODO provide a flowable to collect the "current" values.
-
-    ScanSink(RES init, BiFunction<OUT, RES, RES> mapper) {
-      this.mapper = mapper;
-      this.current = init;
-    }
-
-    @Override
-    public synchronized Completable dispatch(OUT data) {
-      return Completable.fromAction(() -> {
-        synchronized (ScanSink.this) {
-          current = mapper.apply(data, current);
-        }
-      });
-
-    }
-
-    RES value() {
-      return current;
-    }
-  }
-
-  class HeadSink<OUT> implements Sink<OUT> {
-    private volatile OUT head;
-
-    @Override
-    public Completable dispatch(OUT data) {
-      return Completable.fromAction(() -> {
-        synchronized (HeadSink.this) {
-          if (head == null) {
-            // TODO It would be nice to be able to cancel the subscription
-            head = data;
-          }
-        }
-      });
-    }
-
-    synchronized OUT value() {
-      return head;
-    }
-  }
-
-  class TailSink<OUT> implements Sink<OUT> {
-    private volatile OUT tail;
-
-    @Override
-    public Completable dispatch(OUT data) {
-      return Completable.fromAction(() -> {
-        synchronized (TailSink.this) {
-          tail = data;
-        }
-      });
-    }
-
-    synchronized OUT value() {
-      return tail;
-    }
   }
 
 }
