@@ -137,9 +137,9 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
-  public void broadcastTo(Sink... sinks) {
+  public void broadcastTo(Sink<T>... sinks) {
     ConnectableFlowable<T> publish = flow.publish();
-    for (Sink s : sinks) {
+    for (Sink<T> s : sinks) {
       publish
         .flatMapCompletable(s::dispatch)
         .subscribe();

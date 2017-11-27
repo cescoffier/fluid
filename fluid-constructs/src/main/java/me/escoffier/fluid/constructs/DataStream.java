@@ -32,7 +32,7 @@ public interface DataStream<T> {
     DataStream<T> broadcastTo(DataStream... streams);
 
 
-    void broadcastTo(Sink... sinks);
+    void broadcastTo(Sink<T>... sinks);
 
     Flowable<T> flow();
 
