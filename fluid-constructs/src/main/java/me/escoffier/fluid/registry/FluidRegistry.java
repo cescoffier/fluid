@@ -20,8 +20,8 @@ public class FluidRegistry {
   private static final String NAME_NOT_PROVIDED_MESSAGE = "The source/sink has no name or " +
     "the given `name` is `null`";
 
-  private static Map<String, Source<?>> sources = new ConcurrentHashMap<>();
-  private static Map<String, Sink<?>> sinks = new ConcurrentHashMap<>();
+  private static Map<String, Source> sources = new ConcurrentHashMap<>();
+  private static Map<String, Sink> sinks = new ConcurrentHashMap<>();
 
   public static synchronized void initialize(Vertx vertx) {
     sinks.putAll(SourceAndSinkBuilder.createSinksFromConfiguration(vertx));
