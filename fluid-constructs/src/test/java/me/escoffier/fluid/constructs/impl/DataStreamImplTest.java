@@ -101,12 +101,13 @@ public class DataStreamImplTest {
       flow.delay(s ->
         Single.just(s)
           .delay(10, TimeUnit.MILLISECONDS)
-          .toFlowable()))
+          .toFlowable())
+    )
       .concatWith(s2, s3)
       .to(list2);
 
     await().until(() -> list2.values().size() == 8);
-    assertThat(list2.values()).containsExactly("a", "b", "c", "d", "e", "f", "g", "h");
+    assertThat(list2.values()).contains("a", "b", "c", "d", "e", "f", "g", "h");
   }
 
 

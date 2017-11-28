@@ -1,6 +1,7 @@
 package me.escoffier.fluid.registry;
 
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.FluidConfig;
 import me.escoffier.fluid.constructs.ListSink;
 import me.escoffier.fluid.constructs.Sink;
 import me.escoffier.fluid.constructs.Source;
@@ -26,6 +27,8 @@ public class SourceAndSinkBuilderTest {
   public void setup() {
     System.setProperty("fluid-config", "src/test/resources/config/fake.yml");
     vertx = Vertx.vertx();
+    FluidRegistry.reset();
+    FluidConfig.load();
   }
 
   @After
