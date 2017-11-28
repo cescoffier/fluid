@@ -5,9 +5,13 @@ import io.reactivex.flowables.ConnectableFlowable;
 import me.escoffier.fluid.constructs.*;
 import org.reactivestreams.Publisher;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -34,20 +38,19 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     this.connectable = true;
   }
 
-  @Override
-  public DataStream<T> catchAndReturn(Function<Throwable, T> errorHandler) {
-    return new DataStreamImpl<>(this, flow.onErrorReturn(errorHandler::apply));
-  }
-
 
   @Override
   @SafeVarargs
   public final DataStream<T> mergeWith(DataStream<T>... streams) {
     Objects.requireNonNull(streams, NULL_STREAMS_MESSAGE);
-    Flowable<T> merged = flow;
-    for (DataStream<T> s : streams) {
-      merged = merged.mergeWith(s.flow());
-    }
+    List<DataStream<T>> list = new ArrayList<>();
+    list.add(this);
+    list.addAll(Arrays.asList(streams));
+
+    Flowable<T> merged = Flowable.merge(list.stream()
+      .map(DataStream::flow)
+      .collect(Collectors.toList())
+    );
     return new DataStreamImpl<>(this, merged);
   }
 
@@ -55,11 +58,15 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   @SafeVarargs
   public final DataStream<T> concatWith(DataStream<T>... streams) {
     Objects.requireNonNull(streams, NULL_STREAMS_MESSAGE);
-    Flowable<T> newFlow = flow;
-    for (DataStream<T> s : streams) {
-      newFlow = newFlow.concatWith(s.flow());
-    }
-    return new DataStreamImpl<>(this, newFlow);
+    List<DataStream<T>> list = new ArrayList<>();
+    list.add(this);
+    list.addAll(Arrays.asList(streams));
+
+    Flowable<T> merged = Flowable.concat(list.stream()
+      .map(DataStream::flow)
+      .collect(Collectors.toList())
+    );
+    return new DataStreamImpl<>(this, merged);
   }
 
   @Override
@@ -89,7 +96,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   @Override
   public <OUT> DataStream<OUT> transform(Function<T, OUT> mapper) {
-    Objects.requireNonNull(mapper, "The mapper mapper cannot be `null'");
+    Objects.requireNonNull(mapper, "The mapper mapper cannot be `null`");
     return new DataStreamImpl<>(this, flow.map(mapper::apply));
   }
 
