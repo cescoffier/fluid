@@ -11,9 +11,6 @@ import java.util.function.Function;
  */
 public interface DataStream<T> {
 
-
-    DataStream<T> catchAndReturn(Function<Throwable, T> errorHandler);
-
     DataStream<T> mergeWith(DataStream<T>... streams);
 
     DataStream<T> concatWith(DataStream<T>... streams);
