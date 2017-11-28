@@ -75,7 +75,7 @@ public class DataStreamImplTest {
     s1.transformFlow(flow ->
       flow.delay(s ->
         Single.just(s)
-          .delay(random.nextInt(100), TimeUnit.MILLISECONDS)
+          .delay(random.nextInt(10), TimeUnit.MILLISECONDS)
           .toFlowable()))
       .mergeWith(s2, s3)
       .to(list2);
