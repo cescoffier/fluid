@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -85,7 +86,7 @@ public class KafkaSourceTest {
         usage.produceIntegers(10, null,
             () -> new ProducerRecord<>(topic, counter.getAndIncrement()));
 
-        await().until(() -> results.size() >= 10);
+        await().atMost(1, TimeUnit.MINUTES).until(() -> results.size() >= 10);
         assertThat(results).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
     }
