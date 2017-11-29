@@ -9,10 +9,15 @@ import java.util.function.Function;
 
 /**
  * Represents a data sink.
+ * It receives {@link Data<OUT>}.
  */
 public interface Sink<OUT> {
 
-  Completable dispatch(OUT data);
+  Completable dispatch(Data<OUT> data);
+
+  default Completable dispatch(OUT data) {
+    return dispatch(new Data<>(data));
+  }
 
   default String name() {
     return null;
@@ -29,10 +34,10 @@ public interface Sink<OUT> {
    * @param <X>      the type of data received by the resulting sink
    * @return the new sink
    */
-  default <X> Sink<X> contramap(Function<X, OUT> function) {
+  default <X> Sink<X> contramap(Function<X, Data<OUT>> function) {
     return data -> {
       try {
-        OUT processed = function.apply(data);
+        Data<OUT> processed = function.apply(data.item());
         if (processed != null) {
           return Sink.this.dispatch(processed);
         } else {
@@ -45,8 +50,13 @@ public interface Sink<OUT> {
     };
   }
 
-  static <T> Sink<T> forEach(Consumer<T> consumer) {
+  static <T> Sink<T> forEach(Consumer<Data<T>> consumer) {
+    // TODO here we could detect if the consumer wants data or just item.
     return data -> Completable.fromAction(() -> consumer.accept(data));
+  }
+
+  static <T> Sink<T> forEachItem(Consumer<T> consumer) {
+    return data -> Completable.fromAction(() -> consumer.accept(data.item()));
   }
 
   static <T> ListSink<T> list() {
@@ -64,7 +74,7 @@ public interface Sink<OUT> {
     });
   }
 
-  static <T> Sink<T> forEachAsync(Function<T, Completable> fun) {
+  static <T> Sink<T> forEachAsync(Function<Data<T>, Completable> fun) {
     return fun::apply;
   }
 

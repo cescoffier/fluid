@@ -22,10 +22,10 @@ public class ScanSink<OUT, RES> implements Sink<OUT> {
   }
 
   @Override
-  public synchronized Completable dispatch(OUT data) {
+  public synchronized Completable dispatch(Data<OUT> data) {
     return Completable.fromAction(() -> {
       synchronized (me.escoffier.fluid.constructs.ScanSink.this) {
-        current = mapper.apply(data, current);
+        current = mapper.apply(data.item(), current);
       }
     });
 

@@ -18,10 +18,10 @@ public class TailSink<OUT> implements Sink<OUT> {
   private OUT tail;
 
   @Override
-  public Completable dispatch(OUT data) {
+  public Completable dispatch(Data<OUT> data) {
     return Completable.fromAction(() -> {
       synchronized (TailSink.this) {
-        tail = data;
+        tail = data.item();
       }
     });
   }

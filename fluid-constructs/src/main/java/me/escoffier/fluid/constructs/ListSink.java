@@ -15,8 +15,9 @@ public class ListSink<OUT> implements Sink<OUT> {
   private List<OUT> values = new CopyOnWriteArrayList<>();
 
   @Override
-  public Completable dispatch(OUT data) {
-    return Completable.fromAction(() -> values.add(data));
+  public Completable dispatch(Data<OUT> data) {
+    return Completable.fromAction(() ->
+      values.add(data.item()));
   }
 
   public synchronized List<OUT> values() {

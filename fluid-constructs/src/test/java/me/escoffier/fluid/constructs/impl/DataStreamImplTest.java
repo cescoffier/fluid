@@ -1,10 +1,7 @@
 package me.escoffier.fluid.constructs.impl;
 
 import io.reactivex.Single;
-import me.escoffier.fluid.constructs.DataStream;
-import me.escoffier.fluid.constructs.ListSink;
-import me.escoffier.fluid.constructs.Sink;
-import me.escoffier.fluid.constructs.Source;
+import me.escoffier.fluid.constructs.*;
 import org.junit.Test;
 
 import java.util.List;
@@ -24,7 +21,7 @@ public class DataStreamImplTest {
   public void testTransformation() {
     ListSink<Integer> list = Sink.list();
     Source.from(1, 2, 3, 4, 5)
-      .transform(i -> i + 1)
+      .transformItem(i -> i + 1)
       .to(list);
 
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
@@ -34,7 +31,7 @@ public class DataStreamImplTest {
   public void testTransformationFlow() {
     ListSink<Integer> list = Sink.list();
     Source.from(1, 2, 3, 4, 5)
-      .transformFlow(flow -> flow.map(i -> i + 1))
+      .transformItemFlow(flow -> flow.map(i -> i + 1))
       .to(list);
 
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
@@ -44,7 +41,7 @@ public class DataStreamImplTest {
   public void testTransformer() {
     ListSink<Integer> list = Sink.list();
     Source.from(1, 2, 3, 4, 5)
-      .transformWith(flow -> flow.map(i -> i + 1))
+      .transformItemFlow(flow -> flow.map(i -> i + 1))
       .to(list);
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
   }
@@ -53,6 +50,7 @@ public class DataStreamImplTest {
   public void testThatWeCanRetrieveTheFlow() {
     List<Integer> list  = Source.from(1, 2, 3, 4, 5)
       .flow()
+      .map(Data::item)
       .toList()
       .blockingGet();
     assertThat(list).containsExactly(1, 2, 3, 4, 5);

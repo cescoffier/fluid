@@ -15,7 +15,7 @@ public class DataStreamAPITest {
         CacheSink<Integer> sink = new CacheSink<>();
 
         Source.from(1, 2, 3, 4, 5)
-            .transformWith(x -> x.map(d -> d + 1))
+            .transformItemFlow(x -> x.map(d -> d + 1))
             .to(sink);
 
         await().until(() -> sink.buffer.size() == 5);
@@ -27,7 +27,7 @@ public class DataStreamAPITest {
         CacheSink<Integer> sink = new CacheSink<>();
 
         Source.from(1, 2, 3, 4, 5)
-            .transform(d -> d + 1)
+            .transformItem(d -> d + 1)
             .to(sink);
 
         await().until(() -> sink.buffer.size() == 5);
@@ -39,7 +39,7 @@ public class DataStreamAPITest {
         CacheSink<Integer> sink = new CacheSink<>();
 
         Source.from(1, 2, 3, 4, 5)
-            .transformFlow(f -> f.map(x -> x * 2))
+            .transformItemFlow(f -> f.map(x -> x * 2))
             .to(sink);
 
         await().until(() -> sink.buffer.size() == 5);
@@ -53,9 +53,9 @@ public class DataStreamAPITest {
         java.util.stream.Stream<Integer> stream = java.util.stream.Stream.iterate(0, i -> i + 1)
             .skip(10)
             .limit(10);
-        Source.from(stream)
-            .transform(x -> x + 1)
-            .transformFlow(in -> in.map(i -> i * 2))
+        Source.fromItems(stream)
+            .transformItem(x -> x + 1)
+            .transformItemFlow(in -> in.map(i -> i * 2))
             .to(sink);
 
         await().until(() -> sink.buffer.size() >= 5);

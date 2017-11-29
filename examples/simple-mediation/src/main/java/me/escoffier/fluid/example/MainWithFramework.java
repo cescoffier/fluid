@@ -12,6 +12,8 @@ import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
+import static me.escoffier.fluid.registry.FluidRegistry.sink;
+
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
@@ -21,9 +23,6 @@ public class MainWithFramework {
     Main.init();
 
     Fluid fluid = new Fluid();
-
-    Sink<Object> sensor = FluidRegistry.sink("sensor");
-    System.out.println("Sensor: " + sensor);
 
     // Deploy some sensors using the "code" deployment
     fluid.deploy(MainWithFramework::createSensor);
@@ -42,7 +41,7 @@ public class MainWithFramework {
 
     fluid.from(Flowable.interval(1000, TimeUnit.MILLISECONDS)
       .subscribeOn(Schedulers.computation()))
-      .transform(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
-      .to(FluidRegistry.sink("sensor"));
+      .transformItem(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
+      .to(sink("sensor"));
   }
 }

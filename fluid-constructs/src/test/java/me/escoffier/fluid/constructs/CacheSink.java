@@ -13,8 +13,8 @@ public class CacheSink<T> implements Sink<T> {
     List<T> buffer = new ArrayList<>();
 
     @Override
-    public Completable dispatch(T data) {
-        buffer.add(data);
+    public Completable dispatch(Data<T> data) {
+        buffer.add(data.item());
         return Completable.complete();
     }
 

@@ -41,11 +41,11 @@ public class Main {
 
     // Mediation
     source("sensor", JsonObject.class)
-      .transform(json -> json.getDouble("data"))
-      .transformFlow(flow ->
+      .transformItem(json -> json.getDouble("data"))
+      .transformItemFlow(flow ->
         flow.window(5)
           .flatMap(MathFlowable::averageDouble))
-      .broadcastTo(Sink.forEach(System.out::println), sink("eb-average"));
+      .to(sink("eb-average"));
 
   }
 
@@ -54,8 +54,8 @@ public class Main {
     String id = UUID.randomUUID().toString();
     Random random = new Random();
 
-    Source.from(Flowable.interval(1000, TimeUnit.MILLISECONDS).subscribeOn(Schedulers.computation()))
-      .transform(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
+    Source.fromItems(Flowable.interval(1000, TimeUnit.MILLISECONDS).subscribeOn(Schedulers.computation()))
+      .transformItem(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
       .to(sink("sensor"));
   }
 

@@ -3,6 +3,7 @@ package me.escoffier.fluid.registry;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Sink;
 import me.escoffier.fluid.constructs.Source;
 import me.escoffier.fluid.constructs.impl.SourceImpl;
@@ -69,7 +70,7 @@ public class FluidRegistryTest {
     Sink<String> source = new Sink<String>() {
 
       @Override
-      public Completable dispatch(String data) {
+      public Completable dispatch(Data<String> data) {
         return Completable.complete();
       }
 

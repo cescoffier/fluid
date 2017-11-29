@@ -11,39 +11,43 @@ import java.util.function.Function;
  */
 public interface DataStream<T> {
 
-    DataStream<T> mergeWith(DataStream<T>... streams);
+  DataStream<T> mergeWith(DataStream<T>... streams);
 
-    DataStream<T> concatWith(DataStream<T>... streams);
+  DataStream<T> concatWith(DataStream<T>... streams);
 
-    <O> DataStream<Pair<T, O>> zipWith(DataStream<O> stream);
+  <O> DataStream<Pair<T, O>> zipWith(DataStream<O> stream);
 
-    <O1, O2> DataStream<Tuple> zipWith(DataStream<O1> stream1, DataStream<O2> stream2);
+  <O1, O2> DataStream<Tuple> zipWith(DataStream<O1> stream1, DataStream<O2> stream2);
 
-    <OUT> DataStream<OUT> transformWith(Transformer<T, OUT> transformer);
+  <OUT> DataStream<OUT> transform(Transformer<Data<T>, Data<OUT>> transformer);
 
-    <OUT> DataStream<OUT> transform(Function<T, OUT> function);
+  <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function);
 
-    <OUT> DataStream<OUT> transformFlow(Function<Flowable<T>, Flowable<OUT>> function);
+  <OUT> DataStream<OUT> transformItem(Function<T, OUT> function);
+
+  <OUT> DataStream<OUT> transformItemFlow(Function<Flowable<T>, Flowable<OUT>> function);
+
+  <OUT> DataStream<OUT> transformFlow(Function<Flowable<Data<T>>,
+    Flowable<Data<OUT>>> function);
 
 
-    DataStream<T> broadcastTo(DataStream... streams);
+  DataStream<T> broadcastTo(DataStream... streams);
 
+  Flowable<Data<T>> flow();
 
-    void broadcastTo(Sink<T>... sinks);
+  Sink<T> to(Sink<T> sink);
 
-    Flowable<T> flow();
+  static <T> DataStream<T> of(Class<T> clazz) {
+    return new DataStreamImpl<>();
+  }
 
-    Sink<T> to(Sink<T> sink);
+  <I> DataStream<I> previous();
 
-    static <T> DataStream<T> of(Class<T> clazz) {
-        return new DataStreamImpl<>();
-    }
+  boolean isConnectable();
 
-    <I> DataStream<I> previous();
+  void connect(DataStream<T> source);
 
-    boolean isConnectable();
+  DataStream<T> onItem(Consumer<? super T> consumer);
 
-    void connect(DataStream<T> source);
-
-    DataStream<T> onData(Consumer<? super T> consumer);
+  DataStream<T> onData(Consumer<? super Data<T>> consumer);
 }

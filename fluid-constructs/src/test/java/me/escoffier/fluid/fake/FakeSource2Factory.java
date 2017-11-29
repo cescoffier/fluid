@@ -4,6 +4,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Source;
 import me.escoffier.fluid.constructs.impl.DataStreamImpl;
 import me.escoffier.fluid.spi.SourceFactory;
@@ -32,7 +33,7 @@ public class FakeSource2Factory implements SourceFactory {
 
     public FakeSourceImpl(JsonObject json) {
       super(null, Flowable.fromIterable(
-        json.getJsonArray("items").getList())
+        json.getJsonArray("items").getList()).map(Data::new)
       );
       name = json.getString("name");
     }
