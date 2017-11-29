@@ -100,10 +100,10 @@ public class DataStreamImplTest {
           .delay(10, TimeUnit.MILLISECONDS)
           .toFlowable())
     )
-      .concatWith(new DataStream[]{s2, s3})
+      .concatWith(s2, s3)
       .to(list2);
 
-    await().until(() -> list2.values().size() == 8);
+    await().atMost(1, TimeUnit.MINUTES).until(() -> list2.values().size() == 8);
     assertThat(list2.values()).contains("a", "b", "c", "d", "e", "f", "g", "h");
   }
 

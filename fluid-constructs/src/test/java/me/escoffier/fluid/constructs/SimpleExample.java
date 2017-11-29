@@ -80,7 +80,7 @@ public class SimpleExample {
 
     Source.fromItems(quotes.stream())
       .transformItem(q -> q.author)
-      .transformFlow(Flowable::distinct)
+      .transformItemFlow(Flowable::distinct)
       .transformItem(String::toUpperCase)
       .to(cache);
 
@@ -105,7 +105,7 @@ public class SimpleExample {
     FileSink sink = new FileSink(vertx, path);
     return data ->
       Single.just(data)
-        .map(d -> d.toString() + "\n")
+        .map(d -> d.with(d.item().toString() + "\n"))
         .flatMapCompletable(sink::dispatch);
   }
 
