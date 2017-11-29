@@ -33,7 +33,7 @@ public class Tuple implements Iterable<Object> {
 
 
   @SuppressWarnings("unchecked")
-  public <T> T getNth(int pos) {
+  public <T> T nth(int pos) {
     if (pos >= size()) {
       throw new IndexOutOfBoundsException(
         "Cannot retrieve item " + pos + " in tuple, size is " + size());

@@ -1,5 +1,6 @@
 package me.escoffier.fluid.constructs.impl;
 
+import io.reactivex.Flowable;
 import io.reactivex.Single;
 import me.escoffier.fluid.constructs.*;
 import org.junit.Test;
@@ -48,7 +49,7 @@ public class DataStreamImplTest {
 
   @Test
   public void testThatWeCanRetrieveTheFlow() {
-    List<Integer> list  = Source.from(1, 2, 3, 4, 5)
+    List<Integer> list = Source.from(1, 2, 3, 4, 5)
       .flow()
       .map(Data::item)
       .toList()
@@ -63,7 +64,6 @@ public class DataStreamImplTest {
     Source<String> s3 = Source.from("g", "h");
 
     ListSink<String> list = Sink.list();
-    // TODO Why do we have this generic issue
     s1.mergeWith(s2).to(list);
 
     assertThat(list.values()).containsExactly("a", "b", "c", "d", "e", "f");
@@ -89,7 +89,6 @@ public class DataStreamImplTest {
     Source<String> s3 = Source.from("g", "h");
 
     ListSink<String> list = Sink.list();
-    // TODO Why do we have this generic issue
     s1.concatWith(s2).to(list);
 
     assertThat(list.values()).containsExactly("a", "b", "c", "d", "e", "f");
@@ -101,13 +100,56 @@ public class DataStreamImplTest {
           .delay(10, TimeUnit.MILLISECONDS)
           .toFlowable())
     )
-      .concatWith(s2, s3)
+      .concatWith(new DataStream[]{s2, s3})
       .to(list2);
 
     await().until(() -> list2.values().size() == 8);
     assertThat(list2.values()).contains("a", "b", "c", "d", "e", "f", "g", "h");
   }
 
+  @Test
+  public void testZipWithAnotherStream() {
+    Source<String> s1 = Source.from("a", "b", "c");
+    Source<String> s2 = Source.from("d", "e", "f");
+    Source<String> s3 = Source.from("g", "h", "i");
+
+    ListSink<String> list = Sink.list();
+    s1.transformItemFlow(s -> s.map(String::toUpperCase))
+      .zipWith(s2)
+      .transformItem(pair -> pair.left() + "x" + pair.right())
+      .to(list);
+
+    assertThat(list.values()).containsExactly("Axd", "Bxe", "Cxf");
+
+    list = Sink.list();
+    s1.transformItemFlow(s -> s.map(String::toUpperCase))
+      .zipWith(s2, s3)
+      .transformItem(tuple -> tuple.nth(0) + "x" + tuple.nth(1) + "x" + tuple.nth(2))
+      .to(list);
+
+    assertThat(list.values()).containsExactly("Axdxg", "Bxexh", "Cxfxi");
+  }
+
+  @Test
+  public void testDataTransformation() {
+    ListSink<Integer> sink = new ListSink<>();
+    Source.from(Flowable.range(0, 10).map(i -> random()))
+      .transform(data -> data.with((int) (data.item() * 100)))
+      .to(sink);
+    assertThat(sink.values()).hasSize(10);
+    assertThat(sink.data()).hasSize(10);
+
+    for (Data<Integer> d : sink.data()) {
+      assertThat(d.<Long>get("X-Timestamp")).isNotNull().isGreaterThanOrEqualTo(0);
+      assertThat(d.<Boolean>get("Random")).isTrue();
+      assertThat(d.item()).isGreaterThanOrEqualTo(0).isLessThan(100);
+    }
+  }
+
+
+  private static Data<Double> random() {
+    return new Data<>(Math.random()).with("X-Timestamp", System.currentTimeMillis()).with("Random", true);
+  }
 
 
 }

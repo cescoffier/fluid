@@ -55,12 +55,41 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
+  public final DataStream<T> mergeWith(DataStream<T> stream) {
+    Objects.requireNonNull(stream, NULL_STREAMS_MESSAGE);
+    List<DataStream<T>> list = new ArrayList<>();
+    list.add(this);
+    list.add(stream);
+
+    Flowable<Data<T>> merged = Flowable.merge(list.stream()
+      .map(DataStream::flow)
+      .collect(Collectors.toList())
+    );
+    return new DataStreamImpl<>(this, merged);
+
+  }
+
+  @Override
   @SafeVarargs
   public final DataStream<T> concatWith(DataStream<T>... streams) {
     Objects.requireNonNull(streams, NULL_STREAMS_MESSAGE);
     List<DataStream<T>> list = new ArrayList<>();
     list.add(this);
     list.addAll(Arrays.asList(streams));
+
+    Flowable<Data<T>> merged = Flowable.concat(list.stream()
+      .map(DataStream::flow)
+      .collect(Collectors.toList())
+    );
+    return new DataStreamImpl<>(this, merged);
+  }
+
+  @Override
+  public final DataStream<T> concatWith(DataStream<T> stream) {
+    Objects.requireNonNull(stream, NULL_STREAMS_MESSAGE);
+    List<DataStream<T>> list = new ArrayList<>();
+    list.add(this);
+    list.add(stream);
 
     Flowable<Data<T>> merged = Flowable.concat(list.stream()
       .map(DataStream::flow)
@@ -89,13 +118,6 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   // TODO Zip up to 7 streams.
 
-
-  @Override
-  public <OUT> DataStream<OUT> transform(Transformer<Data<T>, Data<OUT>> transformer) {
-    Objects.requireNonNull(transformer, "The given transformer must not " +
-      "be `null`");
-    return new DataStreamImpl<>(this, transformer.transform(flow));
-  }
 
   @Override
   public <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function) {

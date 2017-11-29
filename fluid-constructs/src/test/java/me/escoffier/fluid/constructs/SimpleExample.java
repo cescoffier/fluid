@@ -184,7 +184,7 @@ public class SimpleExample {
     Source.fromItems(f1).broadcastTo(s1, s2);
 
     CacheSink<String> cache = new CacheSink<>();
-    s1.mergeWith(s2).to(cache);
+    s1.mergeWith(new DataStream[]{s2}).to(cache);
 
     await().until(() -> cache.cache().size() == 6);
     assertThat(cache.cache()).contains("A", "B", "C").contains("FOO");
@@ -202,7 +202,7 @@ public class SimpleExample {
     Source.fromItems(f1).broadcastTo(s1, s2);
 
     CacheSink<String> cache = new CacheSink<>();
-    s1.concatWith(s2).to(cache);
+    s1.concatWith(new DataStream[]{s2}).to(cache);
 
     await().until(() -> cache.cache().size() == 6);
     assertThat(cache.cache()).containsExactly("A", "B", "C", "FOO", "FOO", "FOO");

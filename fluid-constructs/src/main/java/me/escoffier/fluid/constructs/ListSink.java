@@ -5,6 +5,7 @@ import io.reactivex.Completable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 /**
  * A sink keeping the received items in a list. Do not use this sink on unbounded streams.
@@ -12,15 +13,19 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
 public class ListSink<OUT> implements Sink<OUT> {
-  private List<OUT> values = new CopyOnWriteArrayList<>();
+  private List<Data<OUT>> values = new CopyOnWriteArrayList<>();
 
   @Override
   public Completable dispatch(Data<OUT> data) {
     return Completable.fromAction(() ->
-      values.add(data.item()));
+      values.add(data));
   }
 
   public synchronized List<OUT> values() {
+    return values.stream().map(d -> d.item()).collect(Collectors.toList());
+  }
+
+  public synchronized List<Data<OUT>> data() {
     return new ArrayList<>(values);
   }
 }
