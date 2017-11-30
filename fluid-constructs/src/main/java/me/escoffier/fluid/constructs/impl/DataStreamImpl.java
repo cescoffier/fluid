@@ -102,7 +102,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   public <O> DataStream<Pair<T, O>> zipWith(DataStream<O> stream) {
     Objects.requireNonNull(stream, NULL_STREAM_MESSAGE);
     Flowable<Data<Pair<T, O>>> flowable = flow.zipWith(stream.flow(),
-      (d1, d2) -> new Data<>(Pair.pair(d1.item(), d2.item())));
+      (d1, d2) -> new Data<>(Pair.pair(d1.payload(), d2.payload())));
     return new DataStreamImpl<>(this, flowable);
   }
 
@@ -112,7 +112,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     Objects.requireNonNull(stream2, NULL_STREAM_MESSAGE);
     Flowable<Data<Tuple>> flowable = Flowable
       .zip(flow, stream1.flow(), stream2.flow(),
-        (a, b, c) -> new Data<>(Tuple.tuple(a.item(), b.item(), c.item())));
+        (a, b, c) -> new Data<>(Tuple.tuple(a.payload(), b.payload(), c.payload())));
     return new DataStreamImpl<>(this, flowable);
   }
 
@@ -126,19 +126,19 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
-  public <OUT> DataStream<OUT> transformItem(Function<T, OUT> function) {
+  public <OUT> DataStream<OUT> transformPayload(Function<T, OUT> function) {
     Objects.requireNonNull(function, "The given function must not be `null`");
     // TODO we are loosing the headers.
     return new DataStreamImpl<>(this,
-      flow.map(Data::item).map(function::apply).map(Data::new));
+      flow.map(Data::payload).map(function::apply).map(Data::new));
   }
 
   @Override
-  public <OUT> DataStream<OUT> transformItemFlow(Function<Flowable<T>, Flowable<OUT>> function) {
+  public <OUT> DataStream<OUT> transformPayloadFlow(Function<Flowable<T>, Flowable<OUT>> function) {
     Objects.requireNonNull(function, "The given function must not be `null`");
     // TODO we are loosing the headers.
 
-    Flowable<Data<OUT>> flowable = function.apply(flow.map(Data::item)).map(Data::new);
+    Flowable<Data<OUT>> flowable = function.apply(flow.map(Data::payload)).map(Data::new);
     return new DataStreamImpl<>(this, flowable);
   }
 
@@ -181,9 +181,9 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
-  public DataStream<T> onItem(Consumer<? super T> consumer) {
+  public DataStream<T> onPayload(Consumer<? super T> consumer) {
     return new DataStreamImpl<>(this,
-      flow.doOnNext(d -> consumer.accept(d.item())));
+      flow.doOnNext(d -> consumer.accept(d.payload())));
   }
 
   public DataStream<I> previous() {

@@ -14,7 +14,7 @@ public class CacheSink<T> implements Sink<T> {
 
     @Override
     public Completable dispatch(Data<T> data) {
-        buffer.add(data.item());
+        buffer.add(data.payload());
         return Completable.complete();
     }
 

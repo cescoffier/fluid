@@ -7,7 +7,6 @@ import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.constructs.Sink;
 import me.escoffier.fluid.constructs.Source;
 import me.escoffier.fluid.registry.FluidRegistry;
 
@@ -41,8 +40,8 @@ public class Main {
 
     // Mediation
     source("sensor", JsonObject.class)
-      .transformItem(json -> json.getDouble("data"))
-      .transformItemFlow(flow ->
+      .transformPayload(json -> json.getDouble("data"))
+      .transformPayloadFlow(flow ->
         flow.window(5)
           .flatMap(MathFlowable::averageDouble))
       .to(sink("eb-average"));
@@ -54,8 +53,8 @@ public class Main {
     String id = UUID.randomUUID().toString();
     Random random = new Random();
 
-    Source.fromItems(Flowable.interval(1000, TimeUnit.MILLISECONDS).subscribeOn(Schedulers.computation()))
-      .transformItem(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
+    Source.fromPayloads(Flowable.interval(1000, TimeUnit.MILLISECONDS).subscribeOn(Schedulers.computation()))
+      .transformPayload(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
       .to(sink("sensor"));
   }
 

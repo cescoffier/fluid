@@ -41,7 +41,7 @@ public class SimpleExample {
   public void testWithRange() {
     CacheSink<Integer> sink = new CacheSink<>();
     Source.from(Flowable.range(0, 10).map(Data::new))
-      .transformItem(i -> {
+      .transformPayload(i -> {
         System.out.println("Item: " + i);
         return i;
       })
@@ -61,7 +61,7 @@ public class SimpleExample {
     String path = "target/test-classes/factorial.txt";
     FileSink sink = new FileSink(vertx, path);
     getFactorialFlow()
-      .transformItem(i -> i.toString() + "\n")
+      .transformPayload(i -> i.toString() + "\n")
       .to(sink);
 
     await().until(() -> FileUtils.readLines(new File(path), "UTF-8").size() >= 10);
@@ -78,10 +78,10 @@ public class SimpleExample {
     quotes.add(new Quote("Rhinestones make everything better", "Piera Gelardi"));
     quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
 
-    Source.fromItems(quotes.stream())
-      .transformItem(q -> q.author)
-      .transformItemFlow(Flowable::distinct)
-      .transformItem(String::toUpperCase)
+    Source.fromPayloads(quotes.stream())
+      .transformPayload(q -> q.author)
+      .transformPayloadFlow(Flowable::distinct)
+      .transformPayload(String::toUpperCase)
       .to(cache);
 
     await().until(() -> cache.cache().size() == 4);
@@ -105,7 +105,7 @@ public class SimpleExample {
     FileSink sink = new FileSink(vertx, path);
     return data ->
       Single.just(data)
-        .map(d -> d.with(d.item().toString() + "\n"))
+        .map(d -> d.with(d.payload().toString() + "\n"))
         .flatMapCompletable(sink::dispatch);
   }
 
@@ -120,8 +120,8 @@ public class SimpleExample {
   }
 
   private DataStream<BigInteger> getFactorialFlow() {
-    return Source.fromItems(Flowable.range(1, 10))
-      .transformItemFlow(flow -> flow.scan(BigInteger.ONE,
+    return Source.fromPayloads(Flowable.range(1, 10))
+      .transformPayloadFlow(flow -> flow.scan(BigInteger.ONE,
         (acc, next) -> acc.multiply(BigInteger.valueOf(next))));
   }
 
@@ -129,7 +129,7 @@ public class SimpleExample {
   public void testTimeBasedManipulation() {
     CacheSink<String> cache = new CacheSink<>();
     getFactorialFlow()
-      .transformItemFlow(flow ->
+      .transformPayloadFlow(flow ->
         flow.zipWith(Flowable.range(0, 99),
           (num, idx) -> String.format("%d! = %s", idx, num))
           .delay(1, TimeUnit.SECONDS))
@@ -154,11 +154,11 @@ public class SimpleExample {
     quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
 
     DataStream<String> s1 = DataStream.of(Quote.class)
-      .transformItemFlow(toAuthor)
-      .transformItemFlow(Flowable::distinct);
+      .transformPayloadFlow(toAuthor)
+      .transformPayloadFlow(Flowable::distinct);
     DataStream<String> s2 = DataStream.of(Quote.class)
-      .transformItemFlow(toWords)
-      .transformItemFlow(Flowable::distinct);
+      .transformPayloadFlow(toWords)
+      .transformPayloadFlow(Flowable::distinct);
 
     // TODO Here we can't check the type connection, we may need to adapt s1 and s2 as sink.
     Source.from(quotes.stream().map(Data::new))
@@ -178,10 +178,10 @@ public class SimpleExample {
       .delay(10, TimeUnit.MILLISECONDS);
 
     DataStream<String> s1 = DataStream.of(String.class)
-      .transformItem(String::toUpperCase);
+      .transformPayload(String::toUpperCase);
     DataStream<String> s2 = DataStream.of(String.class)
-      .transformItem(s -> "FOO");
-    Source.fromItems(f1).broadcastTo(s1, s2);
+      .transformPayload(s -> "FOO");
+    Source.fromPayloads(f1).broadcastTo(s1, s2);
 
     CacheSink<String> cache = new CacheSink<>();
     s1.mergeWith(new DataStream[]{s2}).to(cache);
@@ -196,10 +196,10 @@ public class SimpleExample {
       .delay(10, TimeUnit.MILLISECONDS);
 
     DataStream<String> s1 = DataStream.of(String.class)
-      .transformItem(String::toUpperCase);
+      .transformPayload(String::toUpperCase);
     DataStream<String> s2 = DataStream.of(String.class)
-      .transformItem(s -> "FOO");
-    Source.fromItems(f1).broadcastTo(s1, s2);
+      .transformPayload(s -> "FOO");
+    Source.fromPayloads(f1).broadcastTo(s1, s2);
 
     CacheSink<String> cache = new CacheSink<>();
     s1.concatWith(new DataStream[]{s2}).to(cache);
@@ -215,8 +215,8 @@ public class SimpleExample {
     Flowable<String> f2 = Flowable.fromArray("1", "2", "3");
 
     CacheSink<String> cache = new CacheSink<>();
-    Source.fromItems(f1).transformItem(String::toUpperCase).zipWith(Source.fromItems(f2))
-      .transformItem(pair -> pair.left() + ":" + pair.right() + "\n")
+    Source.fromPayloads(f1).transformPayload(String::toUpperCase).zipWith(Source.fromPayloads(f2))
+      .transformPayload(pair -> pair.left() + ":" + pair.right() + "\n")
       .to(cache);
 
     await().until(() -> cache.cache().size() == 3);
@@ -226,8 +226,8 @@ public class SimpleExample {
   @Test
   public void testFold() {
     ScanSink<Integer, Integer> sink = Sink.fold(0, (i, v) -> i + v);
-    Source.fromItems(Flowable.range(0, 3))
-      .transformItem(i -> ++i)
+    Source.fromPayloads(Flowable.range(0, 3))
+      .transformPayload(i -> ++i)
       .to(sink);
 
     await().until(() -> sink.value() == 6);
@@ -236,8 +236,8 @@ public class SimpleExample {
   @Test
   public void testHead() {
     HeadSink<Integer> sink = Sink.head();
-    Source.fromItems(Flowable.range(0, 3))
-      .transformItem(i -> ++i)
+    Source.fromPayloads(Flowable.range(0, 3))
+      .transformPayload(i -> ++i)
       .to(sink);
 
     await().until(() -> sink.value() == 1);

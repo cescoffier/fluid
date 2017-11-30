@@ -49,7 +49,7 @@ public class KafkaSink<T> implements Sink<T> {
     // TODO Override publication configuration using headers
     // TODO Modify the evaluation to support Data<T>
     ProducerRecord<String, T> record
-      = new ProducerRecord(topic, partition, timestamp, key.evaluate(data), data.item());
+      = new ProducerRecord(topic, partition, timestamp, key.evaluate(data), data.payload());
     return new AsyncResultCompletable(
       handler ->
         stream.write(record, x -> {

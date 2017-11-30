@@ -8,7 +8,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
- * A sink keeping the received items in a list. Do not use this sink on unbounded streams.
+ * A sink keeping the received data in a list. Do not use this sink on unbounded streams.
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
@@ -22,7 +22,7 @@ public class ListSink<OUT> implements Sink<OUT> {
   }
 
   public synchronized List<OUT> values() {
-    return values.stream().map(d -> d.item()).collect(Collectors.toList());
+    return values.stream().map(Data::payload).collect(Collectors.toList());
   }
 
   public synchronized List<Data<OUT>> data() {

@@ -76,7 +76,7 @@ public class KafkaSinkTest {
 
 
         Source.from(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-            .transformItem(i -> i + 1)
+            .transformPayload(i -> i + 1)
             .to(sink);
 
 
@@ -102,8 +102,8 @@ public class KafkaSinkTest {
 
 
         Stream<String> stream = new Random().longs(10).mapToObj(Long::toString);
-        Source.fromItems(stream)
-            .onItem(values::add)
+        Source.fromPayloads(stream)
+            .onPayload(values::add)
             .to(sink);
 
 

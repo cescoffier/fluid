@@ -36,7 +36,7 @@ public class EventBusSink<T> implements Sink<T> {
     data.headers().forEach((k, v) -> options.addHeader(k, v.toString()));
 
     if (publish) {
-      eventBus.publish(address, data.item(), options);
+      eventBus.publish(address, data.payload(), options);
     } else {
       eventBus.send(address, data, options);
     }

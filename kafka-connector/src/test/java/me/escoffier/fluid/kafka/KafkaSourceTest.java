@@ -79,8 +79,8 @@ public class KafkaSourceTest {
 
         List<Integer> results = new ArrayList<>();
         source
-            .transformItem(i -> i + 1)
-            .to(Sink.forEachItem(results::add));
+            .transformPayload(i -> i + 1)
+            .to(Sink.forEachPayload(results::add));
 
         AtomicInteger counter = new AtomicInteger();
         usage.produceIntegers(10, null,

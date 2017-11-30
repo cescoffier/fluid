@@ -4,8 +4,6 @@ import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.fluid.Fluid;
-import me.escoffier.fluid.constructs.Sink;
-import me.escoffier.fluid.registry.FluidRegistry;
 
 import java.io.IOException;
 import java.util.Random;
@@ -41,7 +39,7 @@ public class MainWithFramework {
 
     fluid.from(Flowable.interval(1000, TimeUnit.MILLISECONDS)
       .subscribeOn(Schedulers.computation()))
-      .transformItem(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
+      .transformPayload(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
       .to(sink("sensor"));
   }
 }

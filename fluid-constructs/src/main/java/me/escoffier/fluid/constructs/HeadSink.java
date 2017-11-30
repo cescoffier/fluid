@@ -16,7 +16,7 @@ public class HeadSink<OUT> implements Sink<OUT> {
       synchronized (HeadSink.this) {
         if (head == null) {
           // TODO It would be nice to be able to cancel the subscription
-          head = data.item();
+          head = data.payload();
         }
       }
     });

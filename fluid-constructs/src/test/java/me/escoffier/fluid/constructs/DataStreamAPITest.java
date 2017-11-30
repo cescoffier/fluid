@@ -10,56 +10,56 @@ import static org.awaitility.Awaitility.await;
  */
 public class DataStreamAPITest {
 
-    @Test
-    public void testTransformWith() {
-        CacheSink<Integer> sink = new CacheSink<>();
+  @Test
+  public void testTransformWith() {
+    CacheSink<Integer> sink = new CacheSink<>();
 
-        Source.from(1, 2, 3, 4, 5)
-            .transformItemFlow(x -> x.map(d -> d + 1))
-            .to(sink);
+    Source.from(1, 2, 3, 4, 5)
+      .transformPayloadFlow(x -> x.map(d -> d + 1))
+      .to(sink);
 
-        await().until(() -> sink.buffer.size() == 5);
-        assertThat(sink.cache()).containsExactly(2, 3, 4, 5, 6);
-    }
+    await().until(() -> sink.buffer.size() == 5);
+    assertThat(sink.cache()).containsExactly(2, 3, 4, 5, 6);
+  }
 
-    @Test
-    public void testTransform() {
-        CacheSink<Integer> sink = new CacheSink<>();
+  @Test
+  public void testTransform() {
+    CacheSink<Integer> sink = new CacheSink<>();
 
-        Source.from(1, 2, 3, 4, 5)
-            .transformItem(d -> d + 1)
-            .to(sink);
+    Source.from(1, 2, 3, 4, 5)
+      .transformPayload(d -> d + 1)
+      .to(sink);
 
-        await().until(() -> sink.buffer.size() == 5);
-        assertThat(sink.cache()).containsExactly(2, 3, 4, 5, 6);
-    }
+    await().until(() -> sink.buffer.size() == 5);
+    assertThat(sink.cache()).containsExactly(2, 3, 4, 5, 6);
+  }
 
-    @Test
-    public void testTransformFlow() {
-        CacheSink<Integer> sink = new CacheSink<>();
+  @Test
+  public void testTransformFlow() {
+    CacheSink<Integer> sink = new CacheSink<>();
 
-        Source.from(1, 2, 3, 4, 5)
-            .transformItemFlow(f -> f.map(x -> x * 2))
-            .to(sink);
+    Source.from(1, 2, 3, 4, 5)
+      .transformPayloadFlow(f -> f.map(x -> x * 2))
+      .to(sink);
 
-        await().until(() -> sink.buffer.size() == 5);
-        assertThat(sink.cache()).containsExactly(2, 4, 6, 8, 10);
-    }
+    await().until(() -> sink.buffer.size() == 5);
+    assertThat(sink.cache()).containsExactly(2, 4, 6, 8, 10);
+  }
 
-    @Test
-    public void testChainingTransformation() {
-        CacheSink<Integer> sink = new CacheSink<>();
+  @Test
+  public void testChainingTransformation() {
+    CacheSink<Integer> sink = new CacheSink<>();
 
-        java.util.stream.Stream<Integer> stream = java.util.stream.Stream.iterate(0, i -> i + 1)
-            .skip(10)
-            .limit(10);
-        Source.fromItems(stream)
-            .transformItem(x -> x + 1)
-            .transformItemFlow(in -> in.map(i -> i * 2))
-            .to(sink);
+    java.util.stream.Stream<Integer> stream = java.util.stream.Stream.iterate(0, i -> i + 1)
+      .skip(10)
+      .limit(10);
+    Source.fromPayloads(stream)
+      .transformPayload(x -> x + 1)
+      .transformPayloadFlow(in -> in.map(i -> i * 2))
+      .to(sink);
 
-        await().until(() -> sink.buffer.size() >= 5);
-        assertThat(sink.cache()).containsExactly(22, 24, 26, 28, 30, 32, 34, 36, 38, 40);
-    }
+    await().until(() -> sink.buffer.size() >= 5);
+    assertThat(sink.cache()).containsExactly(22, 24, 26, 28, 30, 32, 34, 36, 38, 40);
+  }
 
 }

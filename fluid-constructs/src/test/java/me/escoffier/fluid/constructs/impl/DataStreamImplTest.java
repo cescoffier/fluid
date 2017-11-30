@@ -22,7 +22,7 @@ public class DataStreamImplTest {
   public void testTransformation() {
     ListSink<Integer> list = Sink.list();
     Source.from(1, 2, 3, 4, 5)
-      .transformItem(i -> i + 1)
+      .transformPayload(i -> i + 1)
       .to(list);
 
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
@@ -32,7 +32,7 @@ public class DataStreamImplTest {
   public void testTransformationFlow() {
     ListSink<Integer> list = Sink.list();
     Source.from(1, 2, 3, 4, 5)
-      .transformItemFlow(flow -> flow.map(i -> i + 1))
+      .transformPayloadFlow(flow -> flow.map(i -> i + 1))
       .to(list);
 
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
@@ -42,7 +42,7 @@ public class DataStreamImplTest {
   public void testTransformer() {
     ListSink<Integer> list = Sink.list();
     Source.from(1, 2, 3, 4, 5)
-      .transformItemFlow(flow -> flow.map(i -> i + 1))
+      .transformPayloadFlow(flow -> flow.map(i -> i + 1))
       .to(list);
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
   }
@@ -51,7 +51,7 @@ public class DataStreamImplTest {
   public void testThatWeCanRetrieveTheFlow() {
     List<Integer> list = Source.from(1, 2, 3, 4, 5)
       .flow()
-      .map(Data::item)
+      .map(Data::payload)
       .toList()
       .blockingGet();
     assertThat(list).containsExactly(1, 2, 3, 4, 5);
@@ -114,17 +114,17 @@ public class DataStreamImplTest {
     Source<String> s3 = Source.from("g", "h", "i");
 
     ListSink<String> list = Sink.list();
-    s1.transformItemFlow(s -> s.map(String::toUpperCase))
+    s1.transformPayloadFlow(s -> s.map(String::toUpperCase))
       .zipWith(s2)
-      .transformItem(pair -> pair.left() + "x" + pair.right())
+      .transformPayload(pair -> pair.left() + "x" + pair.right())
       .to(list);
 
     assertThat(list.values()).containsExactly("Axd", "Bxe", "Cxf");
 
     list = Sink.list();
-    s1.transformItemFlow(s -> s.map(String::toUpperCase))
+    s1.transformPayloadFlow(s -> s.map(String::toUpperCase))
       .zipWith(s2, s3)
-      .transformItem(tuple -> tuple.nth(0) + "x" + tuple.nth(1) + "x" + tuple.nth(2))
+      .transformPayload(tuple -> tuple.nth(0) + "x" + tuple.nth(1) + "x" + tuple.nth(2))
       .to(list);
 
     assertThat(list.values()).containsExactly("Axdxg", "Bxexh", "Cxfxi");
@@ -134,7 +134,7 @@ public class DataStreamImplTest {
   public void testDataTransformation() {
     ListSink<Integer> sink = new ListSink<>();
     Source.from(Flowable.range(0, 10).map(i -> random()))
-      .transform(data -> data.with((int) (data.item() * 100)))
+      .transform(data -> data.with((int) (data.payload() * 100)))
       .to(sink);
     assertThat(sink.values()).hasSize(10);
     assertThat(sink.data()).hasSize(10);
@@ -142,7 +142,7 @@ public class DataStreamImplTest {
     for (Data<Integer> d : sink.data()) {
       assertThat(d.<Long>get("X-Timestamp")).isNotNull().isGreaterThanOrEqualTo(0);
       assertThat(d.<Boolean>get("Random")).isTrue();
-      assertThat(d.item()).isGreaterThanOrEqualTo(0).isLessThan(100);
+      assertThat(d.payload()).isGreaterThanOrEqualTo(0).isLessThan(100);
     }
   }
 
