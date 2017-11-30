@@ -104,7 +104,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   public <O> DataStream<Pair<T, O>> zipWith(DataStream<O> stream) {
     Objects.requireNonNull(stream, NULL_STREAM_MESSAGE);
     Flowable<Data<Pair<T, O>>> flowable = flow.zipWith(stream.flow(),
-      (d1, d2) -> new Data<>(pair(d1.item(), d2.item())));
+      (d1, d2) -> new Data<>(pair(d1.payload(), d2.payload())));
     return new DataStreamImpl<>(this, flowable);
   }
 
@@ -114,7 +114,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     Objects.requireNonNull(stream2, NULL_STREAM_MESSAGE);
     Flowable<Data<Tuple>> flowable = Flowable
       .zip(flow, stream1.flow(), stream2.flow(),
-        (a, b, c) -> new Data<>(Tuple.tuple(a.item(), b.item(), c.item())));
+        (a, b, c) -> new Data<>(Tuple.tuple(a.payload(), b.payload(), c.payload())));
     return new DataStreamImpl<>(this, flowable);
   }
 
@@ -128,19 +128,19 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
-  public <OUT> DataStream<OUT> transformItem(Function<T, OUT> function) {
+  public <OUT> DataStream<OUT> transformPayload(Function<T, OUT> function) {
     Objects.requireNonNull(function, "The given function must not be `null`");
     // TODO we are loosing the headers.
     return new DataStreamImpl<>(this,
-      flow.map(Data::item).map(function::apply).map(Data::new));
+      flow.map(Data::payload).map(function::apply).map(Data::new));
   }
 
   @Override
-  public <OUT> DataStream<OUT> transformItemFlow(Function<Flowable<T>, Flowable<OUT>> function) {
+  public <OUT> DataStream<OUT> transformPayloadFlow(Function<Flowable<T>, Flowable<OUT>> function) {
     Objects.requireNonNull(function, "The given function must not be `null`");
     // TODO we are loosing the headers.
 
-    Flowable<Data<OUT>> flowable = function.apply(flow.map(Data::item)).map(Data::new);
+    Flowable<Data<OUT>> flowable = function.apply(flow.map(Data::payload)).map(Data::new);
     return new DataStreamImpl<>(this, flowable);
   }
 
@@ -171,26 +171,6 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     return streams;
   }
 
-
-//  @SafeVarargs
-//  public final DataStream<T> broadcastTo(DataStream... streams) {
-//    ConnectableFlowable<Data<T>> publish = flow.replay();
-//
-//    for (DataStream s : streams) {
-//      DataStream first = s;
-//      while (first.previous() != null) {
-//        first = first.previous();
-//      }
-//      if (first.isConnectable()) {
-//        first.connect(stream);
-//      } else {
-//        throw new IllegalArgumentException("The stream head is not connectable");
-//      }
-//    }
-//    publish.connect();
-//    return stream;
-//  }
-
   @Override
   public Pair<DataStream<T>, DataStream<T>> branch(Predicate<Data<T>> condition) {
     DataStream<T> success = new DataStreamImpl<T, T>();
@@ -211,7 +191,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     DataStream<T> success = new DataStreamImpl<T, T>();
     DataStream<T> failure = new DataStreamImpl<T, T>();
 
-    Branch<T> build = new Branch.BranchBuilder<T>().add(x -> condition.test(x.item()), success)
+    Branch<T> build = new Branch.BranchBuilder<T>().add(x -> condition.test(x.payload()), success)
       .addFallback(failure).build();
     DataStream<T> stream = new DataStreamImpl<>(this, build);
 
@@ -246,7 +226,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     Branch.BranchBuilder<T> builder = new Branch.BranchBuilder<>();
     for (Predicate<T> predicate : conditions) {
       DataStream<T> stream = new DataStreamImpl<T, T>();
-      builder.add(x -> predicate.test(x.item()), stream);
+      builder.add(x -> predicate.test(x.payload()), stream);
       branches.add(stream);
     }
     Branch<T> built = builder.build();
@@ -268,9 +248,9 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
-  public DataStream<T> onItem(Consumer<? super T> consumer) {
+  public DataStream<T> onPayload(Consumer<? super T> consumer) {
     return new DataStreamImpl<>(this,
-      flow.doOnNext(d -> consumer.accept(d.item())));
+      flow.doOnNext(d -> consumer.accept(d.payload())));
   }
 
   public DataStream<I> previous() {

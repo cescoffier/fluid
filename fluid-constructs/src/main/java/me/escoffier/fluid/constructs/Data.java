@@ -13,7 +13,7 @@ public class Data<T> {
   /**
    * The payload, must not be {@code null}
    */
-  private final T data;
+  private final T payload;
 
   /**
    * A set of headers.
@@ -23,34 +23,34 @@ public class Data<T> {
   /**
    * Creates a new instance of {@link Data}. This constructor does not set any headers (empty map).
    *
-   * @param content the payload / item / content, must not be {@code null}
+   * @param payload the payload, must not be {@code null}
    */
-  public Data(T content) {
-    this.data = Objects.requireNonNull(content);
+  public Data(T payload) {
+    this.payload = Objects.requireNonNull(payload);
     this.headers = Collections.emptyMap();
   }
 
   /**
    * Creates a new instance of {@link Data}. This constructor does not set any headers (empty map).
    *
-   * @param content the payload / item / content
+   * @param payload the payload
    * @param headers the header, must not be {@code null}
    */
-  public Data(T content, Map<String, Object> headers) {
-    this.data = Objects.requireNonNull(content);
+  public Data(T payload, Map<String, Object> headers) {
+    this.payload = Objects.requireNonNull(payload);
     this.headers = Collections
       .unmodifiableMap(new HashMap<>(Objects.requireNonNull(headers)));
   }
 
   /**
-   * Creates a new instance of {@link Data} reusing the same set of headers but with the new content.
+   * Creates a new instance of {@link Data} reusing the same set of headers but with the new payload.
    *
-   * @param data the payload / item / content
-   * @param <O>  the type of the encapsulated item
+   * @param payload the payload
+   * @param <O>  the type of the encapsulated payload
    * @return the new instance
    */
-  public <O> Data<O> with(O data) {
-    return new Data<>(Objects.requireNonNull(data), headers());
+  public <O> Data<O> with(O payload) {
+    return new Data<>(Objects.requireNonNull(payload), headers());
   }
 
   /**
@@ -74,7 +74,7 @@ public class Data<T> {
    */
   @SuppressWarnings("unchecked")
   public <X> Optional<X> getOpt(String key) {
-    return Optional.<X>ofNullable((X) headers.get(Objects.requireNonNull(key)));
+    return Optional.ofNullable((X) headers.get(Objects.requireNonNull(key)));
   }
 
   /**
@@ -88,7 +88,7 @@ public class Data<T> {
   public Data<T> with(String key, Object value) {
     Map<String, Object> copy = new HashMap<>(headers);
     copy.put(Objects.requireNonNull(key), value);
-    return new Data<>(data, copy);
+    return new Data<>(payload, copy);
   }
 
   /**
@@ -101,7 +101,7 @@ public class Data<T> {
   public Data<T> without(String key) {
     Map<String, Object> copy = new HashMap<>(headers);
     copy.remove(Objects.requireNonNull(key));
-    return new Data<>(data, copy);
+    return new Data<>(payload, copy);
   }
 
   /**
@@ -114,10 +114,10 @@ public class Data<T> {
   }
 
   /**
-   * @return the encapsulated item, never {@code null}
+   * @return the encapsulated payload, never {@code null}
    */
-  public T item() {
-    return data;
+  public T payload() {
+    return payload;
   }
 
 }

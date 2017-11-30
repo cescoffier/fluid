@@ -11,7 +11,7 @@ import java.util.function.Predicate;
 /**
  * Represents a Stream of Data. On this stream transit instances of {@link Data<T>}.
  *
- * @param <T> the type of the item encapsulated in the {@link Data} transiting in the stream
+ * @param <T> the type of the payload encapsulated in the {@link Data} transiting in the stream
  */
 public interface DataStream<T> {
 
@@ -86,30 +86,30 @@ public interface DataStream<T> {
   <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function);
 
   /**
-   * Operator transforming each incoming item into another item. This method acts on the items encapsulated in a
-   * {@link Data}.
+   * Operator transforming each incoming payload into another payload. This method acts on the payloads encapsulated
+   * in the transiting {@link Data}.
    * <p>
-   * This method is synchronous, for asynchronous processing, use {@link #transformItemFlow(Function)}.
+   * This method is synchronous, for asynchronous processing, use {@link #transformPayloadFlow(Function)}.
    *
-   * @param function the function transforming the incoming item into another item
-   * @param <OUT>    the type of the returned item
+   * @param function the function transforming the incoming payload into another payload
+   * @param <OUT>    the type of the returned payload
    * @return the new {@link DataStream}.
    */
-  <OUT> DataStream<OUT> transformItem(Function<T, OUT> function);
+  <OUT> DataStream<OUT> transformPayload(Function<T, OUT> function);
 
   /**
-   * Operator transforming the flow of incoming items. This method acts on the items encapsulated in a
+   * Operator transforming the flow of incoming payloads. This method acts on the payloads encapsulated in a
    * {@link Data}.
    *
-   * @param function the function transforming the incoming flow into another flow
-   * @param <OUT>    the type of item contained into the resulting flow
+   * @param function the function transforming the incoming flow of payload into another flow of payload
+   * @param <OUT>    the type of payload contained into the resulting flow
    * @return the new {@link DataStream}.
    */
-  <OUT> DataStream<OUT> transformItemFlow(Function<Flowable<T>, Flowable<OUT>> function);
+  <OUT> DataStream<OUT> transformPayloadFlow(Function<Flowable<T>, Flowable<OUT>> function);
 
   /**
    * Operator transforming the flow of incoming {@link Data}. This method acts on the {@link Data}, unlike
-   * {@link #transformItemFlow(Function)} processing the items (the encapsulated items).
+   * {@link #transformPayloadFlow(Function)} processing the payloads (the encapsulated payloads).
    *
    * @param function the function transforming the incoming flow into another flow
    * @param <OUT>    the type of the data contained into the resulting flow
@@ -237,12 +237,12 @@ public interface DataStream<T> {
   void connect(DataStream<T> source);
 
   /**
-   * NOOP operator invoked on every incoming item. Useful for tracing, debugging....
+   * NOOP operator invoked on every incoming payload. Useful for tracing, debugging....
    *
    * @param consumer the consumer, must not be {@code null}, should be side-effect free
    * @return the new {@link DataStream}
    */
-  DataStream<T> onItem(Consumer<? super T> consumer);
+  DataStream<T> onPayload(Consumer<? super T> consumer);
 
   /**
    * NOOP operator invoked on every incoming data. Useful for tracing, debugging....

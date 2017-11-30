@@ -75,8 +75,8 @@ public class KafkaSourceTest {
 
     List<Integer> results = new ArrayList<>();
     source
-      .transformItem(i -> i + 1)
-      .to(Sink.forEachItem(results::add));
+      .transformPayload(i -> i + 1)
+      .to(Sink.forEachPayload(results::add));
 
     AtomicInteger counter = new AtomicInteger();
     usage.produceIntegers(10, null,
@@ -108,12 +108,12 @@ public class KafkaSourceTest {
     List<Integer> resultsA = new ArrayList<>();
     List<Integer> resultsB = new ArrayList<>();
     source
-      .transformItem(i -> i + 1)
-      .to(Sink.forEachItem(resultsB::add));
+      .transformPayload(i -> i + 1)
+      .to(Sink.forEachPayload(resultsB::add));
 
     source
-      .transformItem(i -> i + 1)
-      .to(Sink.forEachItem(resultsA::add));
+      .transformPayload(i -> i + 1)
+      .to(Sink.forEachPayload(resultsA::add));
 
     AtomicInteger counter = new AtomicInteger();
     usage.produceIntegers(10, null,
@@ -153,6 +153,5 @@ public class KafkaSourceTest {
       .put("key.serializer", StringSerializer.class.getName())
       .put("key.deserializer", StringDeserializer.class.getName());
   }
-
 
 }

@@ -71,7 +71,7 @@ public class SinkTest {
   @Test
   public void testForEachItem() {
     List<Integer> list = new ArrayList<>();
-    Sink<Integer> sink = Sink.forEachItem(list::add);
+    Sink<Integer> sink = Sink.forEachPayload(list::add);
     assertThat(sink.name()).isNull();
     Completable c1 = sink.dispatch(1);
     Completable c2 = sink.dispatch(2);
@@ -97,7 +97,7 @@ public class SinkTest {
     assertThat(c2.blockingGet()).isNull();
     assertThat(c3.blockingGet()).isNull();
 
-    assertThat(list.stream().map(Data::item).collect(Collectors.toList()))
+    assertThat(list.stream().map(Data::payload).collect(Collectors.toList()))
       .containsExactly(1, 2, 3);
   }
 
@@ -118,14 +118,14 @@ public class SinkTest {
     assertThat(c2.blockingGet()).isNull();
     assertThat(c3.blockingGet()).isNull();
 
-    assertThat(list.stream().map(Data::item).collect(Collectors.toList()))
+    assertThat(list.stream().map(Data::payload).collect(Collectors.toList()))
       .containsExactly(1, 2, 3);
   }
 
   @Test
   public void testForEachWithFailure() {
     List<Integer> list = new ArrayList<>();
-    Sink<Integer> sink = Sink.forEachItem(i -> {
+    Sink<Integer> sink = Sink.forEachPayload(i -> {
       if (i == 2) {
         throw new IllegalArgumentException("No no no");
       } else {
@@ -154,7 +154,7 @@ public class SinkTest {
       counter.incrementAndGet();
     });
 
-    Source.fromItems(publisher)
+    Source.fromPayloads(publisher)
       .transformFlow(f -> f
         .observeOn(Schedulers.computation()))
       .to(slow);

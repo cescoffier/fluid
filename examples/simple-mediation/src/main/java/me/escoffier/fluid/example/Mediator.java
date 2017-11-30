@@ -15,8 +15,8 @@ public class Mediator {
   @Transformation
   public void mediation(@Port("sensor") Source<JsonObject> input, @Port("eb-average") Sink<Double> output) {
     input
-      .transformItem(json -> json.getDouble("data"))
-      .transformItemFlow(flow ->
+      .transformPayload(json -> json.getDouble("data"))
+      .transformPayloadFlow(flow ->
         flow.window(5)
           .flatMap(MathFlowable::averageDouble)
       )

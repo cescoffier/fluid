@@ -24,8 +24,8 @@ public interface Sink<OUT> {
   }
 
   /**
-   * Transforms the current Sink into another Sink that transforms each incoming item before
-   * calling current Sink. In other words, it creates a new Sink receiving data. Each data is
+   * Transforms the current Sink into another Sink that transforms each incoming payload (encapsulated in the
+   * {@link Data} before calling current Sink. In other words, it creates a new Sink receiving data. Each data is
    * processed using the given function and the result is passed to the current Sink.
    * <p>
    * Notice that if the function return {@code null}, the data is ignored.
@@ -37,7 +37,7 @@ public interface Sink<OUT> {
   default <X> Sink<X> contramap(Function<X, Data<OUT>> function) {
     return data -> {
       try {
-        Data<OUT> processed = function.apply(data.item());
+        Data<OUT> processed = function.apply(data.payload());
         if (processed != null) {
           return Sink.this.dispatch(processed);
         } else {
@@ -51,12 +51,12 @@ public interface Sink<OUT> {
   }
 
   static <T> Sink<T> forEach(Consumer<Data<T>> consumer) {
-    // TODO here we could detect if the consumer wants data or just item.
+    // TODO here we could detect if the consumer wants data or just the payload.
     return data -> Completable.fromAction(() -> consumer.accept(data));
   }
 
-  static <T> Sink<T> forEachItem(Consumer<T> consumer) {
-    return data -> Completable.fromAction(() -> consumer.accept(data.item()));
+  static <T> Sink<T> forEachPayload(Consumer<T> consumer) {
+    return data -> Completable.fromAction(() -> consumer.accept(data.payload()));
   }
 
   static <T> ListSink<T> list() {

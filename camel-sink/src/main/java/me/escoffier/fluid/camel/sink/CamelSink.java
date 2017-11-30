@@ -32,7 +32,7 @@ public class CamelSink<T> implements Sink<T> {
     }
 
     @Override public Completable dispatch(Data<T> data) {
-        CompletableFuture<Object> result = producerTemplate.asyncSendBody(endpoint, data.item());
+        CompletableFuture<Object> result = producerTemplate.asyncSendBody(endpoint, data.payload());
         return new CompletableFromObservable<>(toObservable(result));
     }
 
