@@ -23,7 +23,7 @@ public class ReviewRecentRating {
   @Transformation
   public void computeStatistics() {
     reviews
-      .transformItemFlow(flow ->
+      .transformPayloadFlow(flow ->
         flow
           .groupBy(data -> data.getString("course"))
           .flatMap(group ->
@@ -35,7 +35,7 @@ public class ReviewRecentRating {
               .map(avg -> Pair.pair(group.getKey(), avg)
               ))
       )
-      .to(Sink.forEachItem(pair -> System.out.println("Window rating of " + pair.left() + " : " + pair.right())));
+      .to(Sink.forEachPayload(pair -> System.out.println("Window rating of " + pair.left() + " : " + pair.right())));
   }
 
 }

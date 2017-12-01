@@ -15,7 +15,7 @@ public class SourcesTest {
 
   @Test
   public void testMultiCast() {
-    Source<Integer> source = Source.fromItems(Flowable.range(1, 10).replay().autoConnect());
+    Source<Integer> source = Source.fromPayloads(Flowable.range(1, 10).replay().autoConnect());
     ListSink<Integer> sink1 = Sink.list();
     ListSink<Integer> sink2 = Sink.list();
 

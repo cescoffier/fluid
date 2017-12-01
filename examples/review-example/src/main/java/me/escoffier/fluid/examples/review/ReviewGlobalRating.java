@@ -20,16 +20,16 @@ public class ReviewGlobalRating {
     reviews
       .transformFlow(flow ->
         flow
-          .groupBy(data -> data.item().getString("course"))
+          .groupBy(data -> data.payload().getString("course"))
           .flatMap(group ->
-            group.map(Data::item)
+            group.map(Data::payload)
               .map(i -> i.getInteger("rating"))
               .scan(Tuple.tuple(0L, 0.0, 0.0), average())
               .map(tuple -> Pair.pair(group.getKey(), (double) tuple.nth(2)))
               .map(Data::new)
           )
       )
-      .to(Sink.forEachItem(pair -> System.out.println("Rating of " + pair.left() + " : " + pair.right())));
+      .to(Sink.forEachPayload(pair -> System.out.println("Rating of " + pair.left() + " : " + pair.right())));
   }
 
   /**

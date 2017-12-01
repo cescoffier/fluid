@@ -28,7 +28,7 @@ public class FraudDetector {
 
     streams.left().to(fraud);
     streams.right()
-      .onData(json -> System.out.println("Valid review: " + json.item().encode()))
+      .onData(json -> System.out.println("Valid review: " + json.payload().encode()))
       .to(valid);
 
   }

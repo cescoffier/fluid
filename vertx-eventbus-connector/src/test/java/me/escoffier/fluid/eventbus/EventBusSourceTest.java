@@ -46,8 +46,8 @@ public class EventBusSourceTest {
 
     List<Integer> results = new ArrayList<>();
     source
-      .transformItem(i -> i + 1)
-      .to(Sink.forEachItem(results::add));
+      .transformPayload(i -> i + 1)
+      .to(Sink.forEachPayload(results::add));
 
     AtomicInteger counter = new AtomicInteger();
     for (int i = 0; i < 10; i++) {
@@ -77,12 +77,12 @@ public class EventBusSourceTest {
     List<Integer> resultsA = new ArrayList<>();
     List<Integer> resultsB = new ArrayList<>();
     source
-      .transformItem(i -> i + 1)
-      .to(Sink.forEachItem(resultsB::add));
+      .transformPayload(i -> i + 1)
+      .to(Sink.forEachPayload(resultsB::add));
 
     source
-      .transformItem(i -> i + 1)
-      .to(Sink.forEachItem(resultsA::add));
+      .transformPayload(i -> i + 1)
+      .to(Sink.forEachPayload(resultsA::add));
 
     AtomicInteger counter = new AtomicInteger();
     for (int i = 0; i < 10; i++) {

@@ -23,11 +23,11 @@ public class BranchTest {
     ListSink<Double> l2 = Sink.list();
 
     Pair<DataStream<Integer>, DataStream<Integer>> branch = Source
-      .fromItems(Flowable.range(0, 10))
+      .fromPayloads(Flowable.range(0, 10))
       .branchOnItem(x -> x < 5);
 
-    branch.left().transformItem(i -> Integer.toString(i)).to(l1);
-    branch.right().transformItem(i -> i * 2.0).to(l2);
+    branch.left().transformPayload(i -> Integer.toString(i)).to(l1);
+    branch.right().transformPayload(i -> i * 2.0).to(l2);
 
     assertThat(l1.values()).containsExactly("0", "1", "2", "3", "4");
     assertThat(l2.values()).containsExactly(10.0, 12.0, 14.0, 16.0, 18.0);
@@ -38,12 +38,12 @@ public class BranchTest {
     ListSink<String> l1 = Sink.list();
 
     Pair<DataStream<Integer>, DataStream<Integer>> branch = Source
-      .fromItems(Flowable.range(0, 10))
+      .fromPayloads(Flowable.range(0, 10))
       .branchOnItem(x -> x < 5);
 
 
-    DataStream<Double> stream = branch.left().transformItem(i -> i * 1.0);
-    branch.right().transformItem(i -> i * 2.0).mergeWith(stream).transformItem(Object::toString).to(l1);
+    DataStream<Double> stream = branch.left().transformPayload(i -> i * 1.0);
+    branch.right().transformPayload(i -> i * 2.0).mergeWith(stream).transformPayload(Object::toString).to(l1);
 
     assertThat(l1.values()).containsExactly("0.0", "1.0", "2.0", "3.0", "4.0", "10.0", "12.0", "14.0", "16.0", "18.0");
   }
@@ -53,11 +53,11 @@ public class BranchTest {
     ListSink<String> l1 = Sink.list();
 
     List<DataStream<Integer>> branches = Source
-      .fromItems(Flowable.range(0, 10))
+      .fromPayloads(Flowable.range(0, 10))
       .branchOnItem(x -> x < 3, x -> x < 8);
 
-    DataStream<String> stream1 = branches.get(0).transformItem(i -> Integer.toString(i));
-    DataStream<String> stream2 = branches.get(1).transformItem(i -> i * 2.0).transformItem(x -> Double.toString(x));
+    DataStream<String> stream1 = branches.get(0).transformPayload(i -> Integer.toString(i));
+    DataStream<String> stream2 = branches.get(1).transformPayload(i -> i * 2.0).transformPayload(x -> Double.toString(x));
 
     stream1.mergeWith(stream2).to(l1);
 
@@ -79,7 +79,7 @@ public class BranchTest {
     Pair<DataStream<String>, DataStream<String>> branches = Source.from(data)
       .branch(d -> d.get("up"));
 
-    branches.left().transformItem(String::toUpperCase).mergeWith(branches.right()).to(l1);
+    branches.left().transformPayload(String::toUpperCase).mergeWith(branches.right()).to(l1);
 
     assertThat(l1.values()).containsExactly("A", "b", "C", "D", "e");
   }
@@ -100,8 +100,8 @@ public class BranchTest {
     List<DataStream<String>> branches = Source.from(data)
       .branch(d -> ((int) d.get("up")) == 1,  d -> ((int) d.get("up")) == 2);
 
-    DataStream<String> stream = branches.get(0).transformItem(String::toUpperCase);
-    branches.get(1).transformItem(x -> "--" + x + "--").mergeWith(stream).to(l1);
+    DataStream<String> stream = branches.get(0).transformPayload(String::toUpperCase);
+    branches.get(1).transformPayload(x -> "--" + x + "--").mergeWith(stream).to(l1);
 
     assertThat(l1.values()).containsExactly("A", "--c--", "--d--", "E");
   }

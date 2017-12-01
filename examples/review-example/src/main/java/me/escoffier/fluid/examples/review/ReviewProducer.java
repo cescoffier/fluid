@@ -29,7 +29,7 @@ public class ReviewProducer {
 
   @Transformation
   public void generateReviews() {
-    Source.fromItems(Flowable.interval(1, TimeUnit.SECONDS))
+    Source.fromPayloads(Flowable.interval(1, TimeUnit.SECONDS))
       .transform(x -> {
         reviewCount += 1;
         JsonObject review = new JsonObject()

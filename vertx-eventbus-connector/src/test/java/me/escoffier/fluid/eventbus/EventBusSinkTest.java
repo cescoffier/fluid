@@ -57,7 +57,7 @@ public class EventBusSinkTest {
 
 
     Source.from(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-      .transformItem(i -> i + 1)
+      .transformPayload(i -> i + 1)
       .to(sink);
 
     latch.await();
@@ -83,7 +83,7 @@ public class EventBusSinkTest {
 
 
     Stream<String> stream = new Random().longs(10).mapToObj(Long::toString);
-    Source.fromItems(stream)
+    Source.fromPayloads(stream)
       .to(sink);
 
     latch.await();

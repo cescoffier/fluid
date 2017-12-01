@@ -13,13 +13,16 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static me.escoffier.fluid.constructs.CommonHeaders.KEY;
+import static me.escoffier.fluid.constructs.CommonHeaders.ORIGINAL;
+
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
 public class KafkaSource<T> extends SourceImpl<T> implements Source<T> {
   private final String name;
 
-  public KafkaSource(Vertx vertx, JsonObject json) {
+  KafkaSource(Vertx vertx, JsonObject json) {
     super(KafkaConsumer.<String, T>create(vertx, toMap(json))
       .subscribe(json.getString("topic", json.getString("name")))
       .toFlowable()
@@ -46,14 +49,13 @@ public class KafkaSource<T> extends SourceImpl<T> implements Source<T> {
     Map<String, Object> headers = new HashMap<>();
     headers.put("timestamp", record.timestamp());
     headers.put("timestamp-type", record.timestampType());
-    headers.put("record", record);
+    headers.put(ORIGINAL, record);
     headers.put("partition", record.partition());
     headers.put("checksum", record.checksum());
-    headers.put("key", record.key());
+    headers.put(KEY, record.key());
     headers.put("topic", record.topic());
 
     return new Data<>(record.value(), headers);
-
   }
 
   private static Map<String, String> toMap(JsonObject json) {
@@ -66,4 +68,5 @@ public class KafkaSource<T> extends SourceImpl<T> implements Source<T> {
   public String name() {
     return name;
   }
+
 }
