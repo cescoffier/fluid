@@ -39,12 +39,12 @@ public class FluidTest {
 
     List<String> list = new ArrayList<>();
     FluidRegistry.register("input", Source.from("a", "b", "c"));
-    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+    FluidRegistry.register("output", Sink.<String>forEachPayload(list::add));
 
     fluid.deploy(f -> {
       Sink<String> output = f.sink("output");
       f.<String>from("input")
-        .transform(String::toUpperCase)
+        .transformPayload(String::toUpperCase)
         .to(output);
     });
 
@@ -57,7 +57,7 @@ public class FluidTest {
 
     List<String> list = new ArrayList<>();
     FluidRegistry.register("input", Source.from("a", "b", "c"));
-    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+    FluidRegistry.register("output", Sink.<String>forEachPayload(list::add));
 
     Fluid fluid = new Fluid();
     assertThat(fluid.vertx()).isNotNull();
@@ -73,7 +73,7 @@ public class FluidTest {
 
     List<String> list = new ArrayList<>();
     FluidRegistry.register("input", Source.from("a", "b", "c"));
-    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+    FluidRegistry.register("output", Sink.<String>forEachPayload(list::add));
 
     Fluid fluid = new Fluid();
     assertThat(fluid.vertx()).isNotNull();
@@ -142,7 +142,7 @@ public class FluidTest {
 
     List<String> list = new ArrayList<>();
     FluidRegistry.register("input", Source.from("a", "b", "c"));
-    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+    FluidRegistry.register("output", Sink.<String>forEachPayload(list::add));
 
     Fluid fluid = new Fluid();
     assertThat(fluid.vertx()).isNotNull();
@@ -158,7 +158,7 @@ public class FluidTest {
 
     List<String> list = new ArrayList<>();
     FluidRegistry.register("input", Source.from("a", "b", "c"));
-    FluidRegistry.register("output", Sink.<String>forEach(list::add));
+    FluidRegistry.register("output", Sink.<String>forEachPayload(list::add));
 
     Fluid fluid = new Fluid();
     assertThat(fluid.vertx()).isNotNull();
@@ -223,7 +223,7 @@ public class FluidTest {
 
     @Transformation
     void transform() {
-      source.transform(String::toUpperCase).to(sink);
+      source.transformPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -238,7 +238,7 @@ public class FluidTest {
 
     @Transformation
     private void transform() {
-      source.transform(String::toUpperCase).to(sink);
+      source.transformPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -263,7 +263,7 @@ public class FluidTest {
 
     @Transformation
     void transform() {
-      source.transform(String::toUpperCase).to(sink);
+      source.transformPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -278,7 +278,7 @@ public class FluidTest {
 
     @Transformation
     void transform() {
-      source.transform(String::toUpperCase).to(sink);
+      source.transformPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -290,7 +290,7 @@ public class FluidTest {
                      Source<String> source,
                    @Port("output")
                      Sink<String> sink) {
-      source.transform(String::toUpperCase).to(sink);
+      source.transformPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -302,7 +302,7 @@ public class FluidTest {
                      Source<String> source,
                    @Port("missing-output")
                      Sink<String> sink) {
-      source.transform(String::toUpperCase).to(sink);
+      source.transformPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -314,7 +314,7 @@ public class FluidTest {
                      Source<String> source,
                    @Port("output")
                      Sink<String> sink) {
-      source.transform(String::toUpperCase).to(sink);
+      source.transformPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -328,7 +328,7 @@ public class FluidTest {
     void transform(@Port("output")
                      Sink<String> sink,
                    String foo) {
-      source.transform(String::toUpperCase).transform(s -> foo).to(sink);
+      source.transformPayload(String::toUpperCase).transformPayload(s -> foo).to(sink);
     }
 
   }

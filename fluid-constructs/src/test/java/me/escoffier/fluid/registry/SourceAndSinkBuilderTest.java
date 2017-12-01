@@ -69,7 +69,7 @@ public class SourceAndSinkBuilderTest {
     assertThat(sink1).isNotNull().isInstanceOf(ListSink.class);
     Sink<Integer> sink2 = sinks.get("sink2");
     assertThat(sink2).isNotNull().isInstanceOf(ListSink.class);
-    ;
+
 
     Source.from("1", "2", "3").to(sink1);
     Source.from(4, 5).to(sink2);

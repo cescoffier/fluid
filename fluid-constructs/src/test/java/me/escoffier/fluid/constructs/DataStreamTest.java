@@ -14,7 +14,7 @@ public class DataStreamTest {
     assertThat(stream.isConnectable()).isTrue();
     CacheSink<String> sink = new CacheSink<>();
     stream.connect(Source.from("a", "b", "c"));
-    stream.transform(String::toUpperCase).to(sink);
+    stream.transformPayload(String::toUpperCase).to(sink);
     assertThat(sink.buffer).containsExactly("A", "B", "C");
   }
 

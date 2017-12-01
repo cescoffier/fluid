@@ -11,12 +11,12 @@ public class HeadSink<OUT> implements Sink<OUT> {
   private OUT head;
 
   @Override
-  public Completable dispatch(OUT data) {
+  public Completable dispatch(Data<OUT> data) {
     return Completable.fromAction(() -> {
       synchronized (HeadSink.this) {
         if (head == null) {
           // TODO It would be nice to be able to cancel the subscription
-          head = data;
+          head = data.payload();
         }
       }
     });

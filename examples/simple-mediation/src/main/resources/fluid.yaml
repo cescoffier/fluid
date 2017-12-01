@@ -26,13 +26,11 @@ sinks:
   sensor:
       type: kafka
       topic: sensor
-      group.id: the_group
       bootstrap.servers: localhost:9092
       key.serializer: org.apache.kafka.common.serialization.StringSerializer
       key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
       value.deserializer: io.vertx.kafka.client.serialization.JsonObjectDeserializer
-      client.id: the_client
       acks: 1
 
   average:
@@ -43,8 +41,6 @@ sinks:
      key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
      value.serializer:  org.apache.kafka.common.serialization.DoubleSerializer
      value.deserializer: org.apache.kafka.common.serialization.DoubleDeserializer
-     client.id: the_client
-     group.id: the_group
 
   eb-average:
       type: eventbus

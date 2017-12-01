@@ -19,9 +19,9 @@ public class TupleTest {
     Tuple tuple = Tuple.tuple("a", "b", "c");
     assertThat(tuple.size()).isEqualTo(3);
     assertThat(tuple.asList()).containsExactly("a", "b", "c");
-    assertThat(tuple.<String>getNth(0)).isEqualTo("a");
-    assertThat(tuple.<String>getNth(1)).isEqualTo("b");
-    assertThat(tuple.<String>getNth(2)).isEqualTo("c");
+    assertThat(tuple.<String>nth(0)).isEqualTo("a");
+    assertThat(tuple.<String>nth(1)).isEqualTo("b");
+    assertThat(tuple.<String>nth(2)).isEqualTo("c");
     assertThat(tuple.contains("b")).isTrue();
     assertThat(tuple.containsAll("a", "c")).isTrue();
     assertThat(tuple.containsAll(Collections.singletonList("c"))).isTrue();
@@ -36,7 +36,7 @@ public class TupleTest {
     assertThat(tuple.containsAll("a", "c")).isFalse();
     assertThat(tuple.containsAll(Collections.singletonList("c"))).isFalse();
     try {
-      tuple.<String>getNth(0);
+      tuple.<String>nth(0);
       fail("Index Out Of Bound not detected");
     } catch (IndexOutOfBoundsException e) {
       // OK
@@ -52,7 +52,7 @@ public class TupleTest {
     assertThat(tuple.containsAll("a", "c")).isFalse();
     assertThat(tuple.containsAll(Collections.singletonList("c"))).isFalse();
     try {
-      tuple.<String>getNth(0);
+      tuple.<String>nth(0);
       fail("Index Out Of Bound not detected");
     } catch (IndexOutOfBoundsException e) {
       // OK
@@ -64,10 +64,10 @@ public class TupleTest {
     Tuple tuple = Tuple.tuple("a", 1, 25.6, "c");
     assertThat(tuple.size()).isEqualTo(4);
     assertThat(tuple.asList()).containsExactly("a", 1, 25.6, "c");
-    assertThat(tuple.<String>getNth(0)).isEqualTo("a");
-    assertThat(tuple.<Integer>getNth(1)).isEqualTo(1);
-    assertThat(tuple.<Double>getNth(2)).isEqualTo(25.6);
-    assertThat(tuple.<String>getNth(3)).isEqualTo("c");
+    assertThat(tuple.<String>nth(0)).isEqualTo("a");
+    assertThat(tuple.<Integer>nth(1)).isEqualTo(1);
+    assertThat(tuple.<Double>nth(2)).isEqualTo(25.6);
+    assertThat(tuple.<String>nth(3)).isEqualTo("c");
 
     assertThat(tuple.contains("b")).isFalse();
     assertThat(tuple.contains(1)).isTrue();

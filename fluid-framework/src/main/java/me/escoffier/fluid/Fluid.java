@@ -132,7 +132,7 @@ public class Fluid {
 
 
   public <T> Source<T> from(Flowable<T> flowable) {
-    return Source.from(flowable);
+    return Source.fromPayloads(flowable);
   }
 
   public <T> Source<T> from(String name) {

@@ -1,12 +1,11 @@
 package me.escoffier.fluid.constructs;
 
 import io.reactivex.Completable;
-import io.reactivex.Flowable;
 
 import java.util.Optional;
 
 /**
- * A sink allowing to retrieve the last item received by the sink. Items received before are discarded.
+ * A sink allowing to retrieve the last payload received by the sink. Payloads received before are discarded.
  *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
@@ -15,10 +14,10 @@ public class TailSink<OUT> implements Sink<OUT> {
   /**
    * The last received value.
    */
-  private OUT tail;
+  private Data<OUT> tail;
 
   @Override
-  public Completable dispatch(OUT data) {
+  public Completable dispatch(Data<OUT> data) {
     return Completable.fromAction(() -> {
       synchronized (TailSink.this) {
         tail = data;
@@ -27,9 +26,16 @@ public class TailSink<OUT> implements Sink<OUT> {
   }
 
   /**
-   * @return the stored value.
+   * @return the stored payload.
    */
   public synchronized OUT value() {
+    return Optional.ofNullable(tail).map(Data::payload).orElse(null);
+  }
+
+  /**
+   * @return the stored data
+   */
+  public synchronized Data<OUT> data() {
     return tail;
   }
 
@@ -38,6 +44,6 @@ public class TailSink<OUT> implements Sink<OUT> {
    * the value won't change even.
    */
   public synchronized Optional<OUT> optional() {
-    return Optional.ofNullable(tail);
+    return Optional.ofNullable(tail).map(Data::payload);
   }
 }

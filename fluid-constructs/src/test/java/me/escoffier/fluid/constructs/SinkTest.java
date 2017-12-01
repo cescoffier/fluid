@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -68,9 +69,9 @@ public class SinkTest {
   }
 
   @Test
-  public void testForEach() {
+  public void testForEachItem() {
     List<Integer> list = new ArrayList<>();
-    Sink<Integer> sink = Sink.forEach(list::add);
+    Sink<Integer> sink = Sink.forEachPayload(list::add);
     assertThat(sink.name()).isNull();
     Completable c1 = sink.dispatch(1);
     Completable c2 = sink.dispatch(2);
@@ -84,8 +85,26 @@ public class SinkTest {
   }
 
   @Test
+  public void testForEach() {
+    List<Data<Integer>> list = new ArrayList<>();
+    Sink<Integer> sink = Sink.forEach(list::add);
+    assertThat(sink.name()).isNull();
+    Completable c1 = sink.dispatch(1);
+    Completable c2 = sink.dispatch(2);
+    Completable c3 = sink.dispatch(3);
+
+    assertThat(c1.blockingGet()).isNull();
+    assertThat(c2.blockingGet()).isNull();
+    assertThat(c3.blockingGet()).isNull();
+
+    assertThat(list.stream().map(Data::payload).collect(Collectors.toList()))
+      .containsExactly(1, 2, 3);
+  }
+
+
+  @Test
   public void testForEachAsync() {
-    List<Integer> list = new ArrayList<>();
+    List<Data<Integer>> list = new ArrayList<>();
     Sink<Integer> sink = Sink.forEachAsync(i -> {
       list.add(i);
       return Completable.complete();
@@ -99,13 +118,14 @@ public class SinkTest {
     assertThat(c2.blockingGet()).isNull();
     assertThat(c3.blockingGet()).isNull();
 
-    assertThat(list).containsExactly(1, 2, 3);
+    assertThat(list.stream().map(Data::payload).collect(Collectors.toList()))
+      .containsExactly(1, 2, 3);
   }
 
   @Test
   public void testForEachWithFailure() {
     List<Integer> list = new ArrayList<>();
-    Sink<Integer> sink = Sink.forEach(i -> {
+    Sink<Integer> sink = Sink.forEachPayload(i -> {
       if (i == 2) {
         throw new IllegalArgumentException("No no no");
       } else {
@@ -134,7 +154,7 @@ public class SinkTest {
       counter.incrementAndGet();
     });
 
-    Source.from(publisher)
+    Source.fromPayloads(publisher)
       .transformFlow(f -> f
         .observeOn(Schedulers.computation()))
       .to(slow);
@@ -153,7 +173,7 @@ public class SinkTest {
       if (i == 3) {
         return null;
       }
-      return i.toString();
+      return new Data<>(i.toString());
     });
     assertThat(sink.dispatch(1).blockingGet()).isNull();
     assertThat(sink.dispatch(2).blockingGet()).isNull();
@@ -181,7 +201,7 @@ public class SinkTest {
       if (i == 3) {
         return null;
       }
-      return i.toString();
+      return new Data<>(i.toString());
     });
     assertThat(sink.dispatch(1).blockingGet()).isNull();
     assertThat(sink.dispatch(2).blockingGet()).isNull();
