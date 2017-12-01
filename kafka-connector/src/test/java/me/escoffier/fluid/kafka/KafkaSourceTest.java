@@ -3,7 +3,12 @@ package me.escoffier.fluid.kafka;
 import io.debezium.kafka.KafkaCluster;
 import io.debezium.util.Testing;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.unit.Async;
+import io.vertx.ext.unit.TestContext;
+import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
+import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
+import me.escoffier.fluid.constructs.CommonHeaders;
 import me.escoffier.fluid.constructs.Sink;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
@@ -15,6 +20,7 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,12 +31,15 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import static io.reactivex.Completable.complete;
+import static me.escoffier.fluid.constructs.CommonHeaders.key;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
+@RunWith(VertxUnitRunner.class)
 public class KafkaSourceTest {
 
     private Vertx vertx;
@@ -90,6 +99,32 @@ public class KafkaSourceTest {
         assertThat(results).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
 
     }
+
+  @Test
+  public void testCommonHeaders(TestContext context) throws InterruptedException {
+    Async async = context.async();
+    KafkaUsage usage = new KafkaUsage();
+    String topic = UUID.randomUUID().toString();
+
+    KafkaSource<Integer> source = new KafkaSource<>(vertx,
+      getKafkaConfig()
+        .put("topic", topic)
+        .put("value.serializer", IntegerSerializer.class.getName())
+        .put("value.deserializer", IntegerDeserializer.class.getName())
+    );
+
+    source
+      .to(data -> {
+        KafkaConsumerRecord record = CommonHeaders.original(data);
+        assertThat(record).isNotNull();
+        assertThat(key(data)).isNotNull();
+        async.complete();
+        return complete();
+      });
+
+    usage.produceIntegers(1, null,
+      () -> new ProducerRecord<>(topic, "key", 1));
+  }
 
 
     private JsonObject getKafkaConfig() {
