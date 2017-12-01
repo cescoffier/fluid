@@ -33,10 +33,10 @@ public class KafkaSource<T> extends DataStreamImpl<Void, T> implements Source<T>
   private static <T> Data<T> createDataFromRecord(KafkaConsumerRecord<String, T> record) {
     // TODO need another API to avoid creating so many objects.
     return new Data<>(record.value())
+      .with("record", record)
       .with(ORIGINAL, record)
       .with("timestamp", record.timestamp())
       .with("timestamp-type", record.timestampType())
-      .with("record", record)
       .with("partition", record.partition())
       .with("checksum", record.checksum())
       .with("key", record.key())
