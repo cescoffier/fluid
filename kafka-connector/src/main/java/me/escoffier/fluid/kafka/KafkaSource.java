@@ -11,6 +11,9 @@ import me.escoffier.fluid.constructs.impl.DataStreamImpl;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static me.escoffier.fluid.constructs.CommonHeaders.KEY;
+import static me.escoffier.fluid.constructs.CommonHeaders.ORIGINAL;
+
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
@@ -30,12 +33,14 @@ public class KafkaSource<T> extends DataStreamImpl<Void, T> implements Source<T>
   private static <T> Data<T> createDataFromRecord(KafkaConsumerRecord<String, T> record) {
     // TODO need another API to avoid creating so many objects.
     return new Data<>(record.value())
+      .with("record", record)
+      .with(ORIGINAL, record)
       .with("timestamp", record.timestamp())
       .with("timestamp-type", record.timestampType())
-      .with("record", record)
       .with("partition", record.partition())
       .with("checksum", record.checksum())
       .with("key", record.key())
+      .with(KEY, record.key())
       .with("topic", record.topic());
   }
 
@@ -49,4 +54,5 @@ public class KafkaSource<T> extends DataStreamImpl<Void, T> implements Source<T>
   public String name() {
     return name;
   }
+
 }
