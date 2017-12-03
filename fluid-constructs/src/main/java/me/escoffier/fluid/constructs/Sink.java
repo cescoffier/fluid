@@ -70,8 +70,7 @@ public interface Sink<OUT> {
    * @return the sink
    */
   static <T> Sink<T> discard() {
-    return x -> Completable.fromAction(() -> {
-    });
+    return x -> Completable.complete();
   }
 
   static <T> Sink<T> forEachAsync(Function<Data<T>, Completable> fun) {
