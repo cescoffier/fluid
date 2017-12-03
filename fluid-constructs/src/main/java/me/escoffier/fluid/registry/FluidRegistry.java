@@ -28,6 +28,10 @@ public class FluidRegistry {
     sources.putAll(SourceAndSinkBuilder.createSourcesFromConfiguration(vertx));
   }
 
+  private FluidRegistry() {
+    // Avoid direct instantiation.
+  }
+
   public static void reset() {
     sources.clear();
     sinks.clear();
@@ -49,11 +53,11 @@ public class FluidRegistry {
     sinks.put(Objects.requireNonNull(name, NAME_NOT_PROVIDED_MESSAGE), sink);
   }
 
-  public static synchronized <T> void unregisterSource(String name) {
+  public static synchronized void unregisterSource(String name) {
     sources.remove(Objects.requireNonNull(name, NAME_NOT_PROVIDED_MESSAGE));
   }
 
-  public static synchronized <T> void unregisterSink(String name) {
+  public static synchronized void unregisterSink(String name) {
     sinks.remove(Objects.requireNonNull(name, NAME_NOT_PROVIDED_MESSAGE));
   }
 
