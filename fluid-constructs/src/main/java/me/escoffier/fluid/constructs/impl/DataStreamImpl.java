@@ -11,7 +11,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static me.escoffier.fluid.constructs.Pair.pair;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -19,7 +22,7 @@ import java.util.stream.Collectors;
 public class DataStreamImpl<I, T> implements DataStream<T> {
   private static final String NULL_STREAM_MESSAGE = "The given stream cannot be `null`";
   private static final String NULL_STREAMS_MESSAGE = "The given streams cannot be `null`";
-  private Flowable<Data<T>> flow;
+  protected Flowable<Data<T>> flow;
   private final boolean connectable;
   private final DataStream<I> previous;
   private StreamConnector<T> connector;
@@ -102,7 +105,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   public <O> DataStream<Pair<T, O>> zipWith(DataStream<O> stream) {
     Objects.requireNonNull(stream, NULL_STREAM_MESSAGE);
     Flowable<Data<Pair<T, O>>> flowable = flow.zipWith(stream.flow(),
-      (d1, d2) -> new Data<>(Pair.pair(d1.item(), d2.item())));
+      (d1, d2) -> new Data<>(pair(d1.item(), d2.item())));
     return new DataStreamImpl<>(this, flowable);
   }
 
@@ -171,6 +174,73 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     return stream;
   }
 
+  @Override
+  public Pair<DataStream<T>, DataStream<T>> branch(Predicate<Data<T>> condition) {
+    DataStream<T> success = new DataStreamImpl<T, T>();
+    DataStream<T> failure = new DataStreamImpl<T, T>();
+
+    Branch<T> build = new Branch.BranchBuilder<T>().add(condition, success).addFallback(failure).build();
+    DataStream<T> stream = new DataStreamImpl<>(this, build);
+
+    success.connect(stream);
+    failure.connect(stream);
+    build.connect(this);
+
+    return pair(success, failure);
+  }
+
+  @Override
+  public Pair<DataStream<T>, DataStream<T>> branchOnItem(Predicate<T> condition) {
+    DataStream<T> success = new DataStreamImpl<T, T>();
+    DataStream<T> failure = new DataStreamImpl<T, T>();
+
+    Branch<T> build = new Branch.BranchBuilder<T>().add(x -> condition.test(x.item()), success)
+      .addFallback(failure).build();
+    DataStream<T> stream = new DataStreamImpl<>(this, build);
+
+    success.connect(stream);
+    failure.connect(stream);
+    build.connect(this);
+
+    return pair(success, failure);
+  }
+
+  @Override
+  public List<DataStream<T>> branch(Predicate<Data<T>>... conditions) {
+    List<DataStream<T>> branches = new ArrayList<>();
+    Branch.BranchBuilder<T> builder = new Branch.BranchBuilder<>();
+    for (Predicate<Data<T>> predicate : conditions) {
+      DataStream<T> stream = new DataStreamImpl<T, T>();
+      builder.add(predicate, stream);
+      branches.add(stream);
+    }
+    Branch<T> built = builder.build();
+    DataStream<T> stream = new DataStreamImpl<>(this, built);
+    for (DataStream<T> b : branches) {
+      b.connect(stream);
+    }
+    built.connect(this);
+    return branches;
+  }
+
+  @Override
+  public List<DataStream<T>> branchOnItem(Predicate<T>... conditions) {
+    List<DataStream<T>> branches = new ArrayList<>();
+    Branch.BranchBuilder<T> builder = new Branch.BranchBuilder<>();
+    for (Predicate<T> predicate : conditions) {
+      DataStream<T> stream = new DataStreamImpl<T, T>();
+      builder.add(x -> predicate.test(x.item()), stream);
+      branches.add(stream);
+    }
+    Branch<T> built = builder.build();
+    DataStream<T> stream = new DataStreamImpl<>(this, built);
+    for (DataStream<T> b : branches) {
+      b.connect(stream);
+    }
+    built.connect(this);
+    return branches;
+  }
+
   public void connect(DataStream<T> source) {
     this.connector.connectDownstream(source);
   }
@@ -215,5 +285,9 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       );
 
     return sink;
+  }
+
+  StreamConnector<T> connector() {
+    return connector;
   }
 }

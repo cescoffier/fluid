@@ -2,10 +2,11 @@ package me.escoffier.fluid.constructs;
 
 import io.reactivex.Flowable;
 import me.escoffier.fluid.constructs.impl.DataStreamImpl;
-import me.escoffier.fluid.constructs.impl.StreamConnector;
 
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Represents a Stream of Data. On this stream transit instances of {@link Data<T>}.
@@ -167,6 +168,67 @@ public interface DataStream<T> {
   boolean isConnectable();
 
   /**
+   * Splits the incoming stream in two branches. Data is routed towards one of the branch or the other based on the
+   * given predicate. If the predicate returns {@code true} for the incoming data, it is roted to the first branch
+   * (left). Otherwise it is routed to the second (right) branch.
+   * <p>
+   * This construct can be seen as an 'if-then-else' structure:
+   * <p>
+   * <code>
+   * <pre>
+   *         if (test(data)) {
+   *             => First branch (left)
+   *         } else {
+   *             => Second branch (right)
+   *         }
+   *     </pre>
+   * </code>
+   *
+   * @param condition the condition, must not be {@code null}
+   * @return the pair of stream representing the two branches.
+   */
+  Pair<DataStream<T>, DataStream<T>> branch(Predicate<Data<T>> condition);
+
+  /**
+   * Same as {@link #branch(Predicate)} but acts on the payload of the data.
+   *
+   * @param condition the condition, must not be {@code null}
+   * @return the pair of stream representing the two branches.
+   */
+  Pair<DataStream<T>, DataStream<T>> branchOnItem(Predicate<T> condition);
+
+  /**
+   * Splits the incoming stream in several branches (as many as the number of conditions). Data is routed towards on
+   * one of the branch based on the first condition returning {@code true} for the incoming data. It can be seen as a
+   * 'switch (without default case)'
+   * <p>
+   * <code>
+   * <pre>
+   *         switch(data) {
+   *             case c1: first branch (index 0); break;
+   *             case c2: second branch (index 0); break;
+   *             ...
+   *         }
+   *     </pre>
+   * </code>
+   * <p>
+   * Unlike {@link #branch(Predicate)}, data not matching any conditions are discarded.
+   *
+   * @param conditions the conditions, must not be {@code null}, must not be empty, none of the condition must be @{code null}
+   * @return the list of branches.
+   */
+  List<DataStream<T>> branch(Predicate<Data<T>>... conditions);
+
+  /**
+   * Same as {@link #branch(Predicate[])} but acts on the payload of the data.
+   *
+   * @param conditions the conditions, must not be {@code null}, must not be empty, none of the condition must be @{code null}
+   * @return the list of branches.
+   */
+  List<DataStream<T>> branchOnItem(Predicate<T>... conditions);
+
+
+  /**
    * Connects the current stream to the given <em>source</em>. The passed {@link DataStream} is not necessarily a
    * source, but is the stream that will push data to the current stream once connected.
    *
@@ -190,6 +252,4 @@ public interface DataStream<T> {
    */
   DataStream<T> onData(Consumer<? super Data<T>> consumer);
 
-
-  StreamConnector<T> connector();
 }
