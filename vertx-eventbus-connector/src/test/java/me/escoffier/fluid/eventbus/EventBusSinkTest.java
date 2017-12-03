@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,10 +41,10 @@ public class EventBusSinkTest {
     CountDownLatch latch = new CountDownLatch(1);
     List<Integer> list = new ArrayList<>();
     vertx.eventBus().consumer(topic).toFlowable().map(Message::body).cast(Integer.class).subscribe(i -> {
-      if (i == 11) {
+      list.add(i);
+      if (list.size() == 10) {
         latch.countDown();
       }
-      list.add(i);
     });
 
 
