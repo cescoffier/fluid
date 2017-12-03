@@ -21,10 +21,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class ReviewProducer {
 
-  @Port("reviews")
+  @Port("movies")
   Sink<JsonObject> sink;
-
-  private static final Logger logger = LogManager.getLogger(ReviewProducer.class);
 
   private int reviewCount = 0;
   private Random random = new Random();
@@ -35,12 +33,11 @@ public class ReviewProducer {
       .transform(x -> {
         reviewCount += 1;
         JsonObject review = new JsonObject()
-          .put("course", pickACourse())
-          .put("rating", rate());
+          .put("course", pickAMovie())
+          .put("rating", rate())
+          .put("review.id", reviewCount);
         return new Data<>(review).with("count", reviewCount);
       })
-      .onData(data ->
-        logger.info("Sending review " + data.get("count") + ": " + data.item().encode()))
       .to(sink);
   }
 
@@ -48,17 +45,22 @@ public class ReviewProducer {
     return random.nextInt(5) + 1;
   }
 
-  private String pickACourse() {
-    Collections.shuffle(courses);
-    return courses.get(0);
+  private String pickAMovie() {
+    Collections.shuffle(movies);
+    return movies.get(0);
   }
 
-  private static List<String> courses = Arrays.asList(
-    "Dead Learning 101",
-    "Python for nobody",
-    "Statistics with D",
-    "Convoluted Neural Network",
-    "Introduction to psychology"
+  private final static List<String> movies = Arrays.asList(
+    "The Shawshank Redemption",
+    "The Godfather",
+    "The Godfather: Part II",
+    "The Dark Knight",
+    "12 Angry Men",
+    "Schindler's List",
+    "Pulp Fiction",
+    "The Lord of the Rings: The Return of the King",
+    "The Good, the Bad and the Ugly",
+    "Fight Club"
   );
 
 }

@@ -25,8 +25,18 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId></groupId>
-      <artifactId>log4j</artifactId>
+      <groupId>com.github.akarnokd</groupId>
+      <artifactId>rxjava2-extensions</artifactId>
+      <version>0.17.8</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-jdbc-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>me.escoffier.fluid</groupId>
+      <artifactId>vertx-eventbus-connector</artifactId>
+      <version>${project.version}</version>
     </dependency>
   </dependencies>
 
