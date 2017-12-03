@@ -3,6 +3,7 @@ package me.escoffier.fluid.eventbus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.eventbus.Message;
+import me.escoffier.fluid.constructs.CommonHeaders;
 import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Source;
 import me.escoffier.fluid.constructs.impl.DataStreamImpl;
@@ -41,6 +42,7 @@ public class EventBusSource<T> extends DataStreamImpl<Void, T> implements Source
   private static <T> Data<T> createData(Message<T> msg) {
     Map<String, Object> map = new HashMap<>();
     msg.headers().names().forEach(s -> map.put(s, msg.headers().get(s)));
+    map.put(CommonHeaders.ORIGINAL, msg);
     return new Data<>(msg.body(), map);
   }
 
