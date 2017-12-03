@@ -9,6 +9,7 @@ import me.escoffier.fluid.constructs.impl.DataStreamImpl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -20,7 +21,20 @@ public class EventBusSource<T> extends DataStreamImpl<Void, T> implements Source
     super(null, vertx.eventBus()
       .<T>consumer(json.getString("address"))
       .toFlowable()
-      .map(EventBusSource::createData));
+      .map(EventBusSource::createData)
+      .compose(upstream -> {
+        Integer size = json.getInteger("multicast.buffer.size", -1);
+        if (size != -1) {
+          return upstream.replay(size).autoConnect();
+        }
+
+        Integer seconds = json.getInteger("multicast.buffer.period.ms", -1);
+        if (seconds != -1) {
+          return upstream.replay(seconds, TimeUnit.MILLISECONDS).autoConnect();
+        }
+
+        return upstream;
+      }));
     name = json.getString("name");
   }
 
