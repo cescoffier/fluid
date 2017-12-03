@@ -24,7 +24,7 @@ public class BranchTest {
 
     Pair<DataStream<Integer>, DataStream<Integer>> branch = Source
       .fromPayloads(Flowable.range(0, 10))
-      .branchOnItem(x -> x < 5);
+      .branchOnPayload(x -> x < 5);
 
     branch.left().transformPayload(i -> Integer.toString(i)).to(l1);
     branch.right().transformPayload(i -> i * 2.0).to(l2);
@@ -39,7 +39,7 @@ public class BranchTest {
 
     Pair<DataStream<Integer>, DataStream<Integer>> branch = Source
       .fromPayloads(Flowable.range(0, 10))
-      .branchOnItem(x -> x < 5);
+      .branchOnPayload(x -> x < 5);
 
 
     DataStream<Double> stream = branch.left().transformPayload(i -> i * 1.0);
@@ -54,7 +54,7 @@ public class BranchTest {
 
     List<DataStream<Integer>> branches = Source
       .fromPayloads(Flowable.range(0, 10))
-      .branchOnItem(x -> x < 3, x -> x < 8);
+      .branchOnPayload(x -> x < 3, x -> x < 8);
 
     DataStream<String> stream1 = branches.get(0).transformPayload(i -> Integer.toString(i));
     DataStream<String> stream2 = branches.get(1).transformPayload(i -> i * 2.0).transformPayload(x -> Double.toString(x));

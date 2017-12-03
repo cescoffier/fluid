@@ -195,7 +195,7 @@ public interface DataStream<T> {
    * @param condition the condition, must not be {@code null}
    * @return the pair of stream representing the two branches.
    */
-  Pair<DataStream<T>, DataStream<T>> branchOnItem(Predicate<T> condition);
+  Pair<DataStream<T>, DataStream<T>> branchOnPayload(Predicate<T> condition);
 
   /**
    * Splits the incoming stream in several branches (as many as the number of conditions). Data is routed towards on
@@ -225,7 +225,7 @@ public interface DataStream<T> {
    * @param conditions the conditions, must not be {@code null}, must not be empty, none of the condition must be @{code null}
    * @return the list of branches.
    */
-  List<DataStream<T>> branchOnItem(Predicate<T>... conditions);
+  List<DataStream<T>> branchOnPayload(Predicate<T>... conditions);
 
 
   /**

@@ -189,7 +189,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
-  public Pair<DataStream<T>, DataStream<T>> branchOnItem(Predicate<T> condition) {
+  public Pair<DataStream<T>, DataStream<T>> branchOnPayload(Predicate<T> condition) {
     DataStream<T> success = new DataStreamImpl<T, T>();
     DataStream<T> failure = new DataStreamImpl<T, T>();
 
@@ -223,7 +223,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
-  public List<DataStream<T>> branchOnItem(Predicate<T>... conditions) {
+  public List<DataStream<T>> branchOnPayload(Predicate<T>... conditions) {
     List<DataStream<T>> branches = new ArrayList<>();
     Branch.BranchBuilder<T> builder = new Branch.BranchBuilder<>();
     for (Predicate<T> predicate : conditions) {
