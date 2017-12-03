@@ -107,6 +107,8 @@ public class FluidRegistryTest {
   public void testInitialize() {
     Vertx vertx = Vertx.vertx();
     FluidRegistry.initialize(vertx);
+    assertThat(FluidRegistry.source("unknown")).isNull();
+    assertThat(FluidRegistry.sink("unknown")).isNull();
     vertx.close();
   }
 

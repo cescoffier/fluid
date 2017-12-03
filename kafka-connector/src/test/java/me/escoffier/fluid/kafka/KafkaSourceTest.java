@@ -132,6 +132,7 @@ public class KafkaSourceTest {
         .put("multicast.buffer.size", 20)
     );
 
+    assertThat(source).isNotNull();
     checkMulticast(usage, topic, source);
 
   }
@@ -169,7 +170,7 @@ public class KafkaSourceTest {
         .put("value.deserializer", IntegerDeserializer.class.getName())
         .put("multicast.buffer.period.ms", 2000)
     );
-
+    assertThat(source).isNotNull();
     checkMulticast(usage, topic, source);
 
   }

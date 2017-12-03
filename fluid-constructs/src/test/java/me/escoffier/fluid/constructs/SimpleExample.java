@@ -48,12 +48,15 @@ public class SimpleExample {
       .to(sink);
 
     await().until(() -> sink.buffer.size() == 10);
+    assertThat(sink.buffer.size()).isEqualTo(10);
   }
 
   @Test
   public void testWithRange2() {
+    List<Data<Integer>> list = new ArrayList<>();
     Source.from(Flowable.range(0, 10).map(Data::new))
-      .to(Sink.forEach(System.out::println));
+      .to(Sink.forEach(list::add));
+    assertThat(list).hasSize(10);
   }
 
   @Test
@@ -136,6 +139,7 @@ public class SimpleExample {
       .to(cache);
 
     await().until(() -> cache.buffer.size() >= 10);
+    assertThat(cache.buffer.size()).isGreaterThanOrEqualTo(10);
   }
 
   @Test
@@ -153,13 +157,6 @@ public class SimpleExample {
     quotes.add(new Quote("Rhinestones make everything better", "Piera Gelardi"));
     quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
 
-    DataStream<String> s1 = DataStream.of(Quote.class)
-      .transformPayloadFlow(toAuthor)
-      .transformPayloadFlow(Flowable::distinct);
-    DataStream<String> s2 = DataStream.of(Quote.class)
-      .transformPayloadFlow(toWords)
-      .transformPayloadFlow(Flowable::distinct);
-
     List<DataStream<Quote>> broadcast = Source.from(quotes.stream().map(Data::new)).broadcast(2);
 
     broadcast.get(0)
@@ -173,6 +170,8 @@ public class SimpleExample {
       .to(words);
 
     await().until(() -> authors.cache().size() == 4);
+    assertThat(authors.cache()).hasSize(4);
+    assertThat(words.cache()).isNotEmpty();
   }
 
   @Test
@@ -235,7 +234,7 @@ public class SimpleExample {
       .transformPayload(i -> ++i)
       .to(sink);
 
-    await().until(() -> sink.value() == 6);
+    assertThat(sink.value()).isEqualTo(6);
   }
 
   @Test
@@ -245,7 +244,7 @@ public class SimpleExample {
       .transformPayload(i -> ++i)
       .to(sink);
 
-    await().until(() -> sink.value() == 1);
+    assertThat(sink.value()).isEqualTo(1);
   }
 
 

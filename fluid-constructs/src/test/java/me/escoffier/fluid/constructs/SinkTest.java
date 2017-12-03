@@ -163,6 +163,7 @@ public class SinkTest {
       .atMost(1, TimeUnit.MINUTES)
       .untilAtomic(counter, is(greaterThan(4000)));
 
+    assertThat(counter.doubleValue()).isGreaterThan(4000.0);
   }
 
   @Test
