@@ -22,6 +22,8 @@ import static me.escoffier.fluid.constructs.Pair.pair;
 public class DataStreamImpl<I, T> implements DataStream<T> {
   private static final String NULL_STREAM_MESSAGE = "The given stream cannot be `null`";
   private static final String NULL_STREAMS_MESSAGE = "The given streams cannot be `null`";
+  private static final String NULL_FUNCTION_MESSAGE = "The given function must not be `null`";
+
   protected Flowable<Data<T>> flow;
   private final boolean connectable;
   private final DataStream<I> previous;
@@ -123,13 +125,13 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   @Override
   public <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function) {
-    Objects.requireNonNull(function, "The given function must not be `null`");
+    Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
     return new DataStreamImpl<>(this, flow.map(function::apply));
   }
 
   @Override
   public <OUT> DataStream<OUT> transformPayload(Function<T, OUT> function) {
-    Objects.requireNonNull(function, "The given function must not be `null`");
+    Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
     // TODO we are loosing the headers.
     return new DataStreamImpl<>(this,
       flow.map(Data::payload).map(function::apply).map(Data::new));
@@ -137,7 +139,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   @Override
   public <OUT> DataStream<OUT> transformPayloadFlow(Function<Flowable<T>, Flowable<OUT>> function) {
-    Objects.requireNonNull(function, "The given function must not be `null`");
+    Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
     // TODO we are loosing the headers.
 
     Flowable<Data<OUT>> flowable = function.apply(flow.map(Data::payload)).map(Data::new);
@@ -146,7 +148,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   @Override
   public <OUT> DataStream<OUT> transformFlow(Function<Flowable<Data<T>>, Flowable<Data<OUT>>> function) {
-    Objects.requireNonNull(function, "The given function must not be `null`");
+    Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
 
     return new DataStreamImpl<>(this, function.apply(flow));
 
