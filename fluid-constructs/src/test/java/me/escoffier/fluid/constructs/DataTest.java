@@ -55,4 +55,17 @@ public class DataTest {
     assertThat(y).isNull();
   }
 
+  @Test
+  public void testToString() {
+    Data<String> data = new Data<>("hello");
+    assertThat(data.toString()).contains("\"payload\":\"hello\"").contains("\"headers\":{}");
+    assertThat(data.with("key", "value").toString())
+      .contains("\"payload\":\"hello\"")
+      .contains("\"headers\":{\"key\":\"value\"}");
+
+    String actual = data.with("key", "value").with("foo", 25).toString();
+    assertThat(actual)
+      .isEqualTo("{\"payload\":\"hello\", \"headers\":{\"key\":\"value\",\"foo\":\"25\"}}");
+  }
+
 }

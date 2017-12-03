@@ -1,6 +1,10 @@
 package me.escoffier.fluid.constructs;
 
+import io.vertx.core.json.JsonObject;
+import org.apache.logging.log4j.util.Strings;
+
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Represents an item transiting on a stream.
@@ -120,4 +124,23 @@ public class Data<T> {
     return payload;
   }
 
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder("{\"payload\":\"" + payload.toString() + "\", \"headers\":");
+    if (! headers.isEmpty()) {
+      builder.append("{");
+      String h = headers.entrySet().stream()
+        .map(entry -> "\"" + entry.getKey() + "\":\""
+          + (entry.getValue() != null ? entry.getValue() + "\"" : "NULL")
+        )
+        .collect(Collectors.joining(","));
+      builder.append(h).append("}");
+    } else {
+      builder.append("{}");
+    }
+    builder.append("}");
+
+
+    return builder.toString();
+  }
 }
