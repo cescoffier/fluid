@@ -13,6 +13,10 @@
 
   <artifactId>review-example</artifactId>
 
+  <properties>
+    <sonar.skip>true</sonar.skip>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>me.escoffier.fluid</groupId>
