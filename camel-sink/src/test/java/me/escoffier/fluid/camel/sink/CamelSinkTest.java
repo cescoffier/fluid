@@ -25,6 +25,7 @@ public class CamelSinkTest {
             @Override public void configure() throws Exception {
                 from("direct:test").process(event -> {
                     if (event.getIn().getBody(Integer.class) == 10) {
+                        context.assertEquals(event.getIn().getBody(Integer.class), 10);
                         async.complete();
                     }
                 });
