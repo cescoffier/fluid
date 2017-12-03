@@ -6,37 +6,54 @@ import io.vertx.reactivex.kafka.client.consumer.KafkaConsumer;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
 import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Source;
-import me.escoffier.fluid.constructs.impl.DataStreamImpl;
+import me.escoffier.fluid.constructs.impl.SourceImpl;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class KafkaSource<T> extends DataStreamImpl<Void, T> implements Source<T> {
+public class KafkaSource<T> extends SourceImpl<T> implements Source<T> {
   private final String name;
 
   public KafkaSource(Vertx vertx, JsonObject json) {
-    super(null, KafkaConsumer.<String, T>create(vertx, toMap(json))
+    super(KafkaConsumer.<String, T>create(vertx, toMap(json))
       .subscribe(json.getString("topic", json.getString("name")))
       .toFlowable()
       .map(KafkaSource::createDataFromRecord)
+      .compose(upstream -> {
+        Integer size = json.getInteger("multicast.buffer.size", -1);
+        if (size != -1) {
+          return upstream.replay(size).autoConnect();
+        }
+
+        Integer seconds = json.getInteger("multicast.buffer.period.ms", -1);
+        if (seconds != -1) {
+          return upstream.replay(seconds, TimeUnit.MILLISECONDS).autoConnect();
+        }
+
+        return upstream;
+      })
     );
 
     name = json.getString("name");
   }
 
   private static <T> Data<T> createDataFromRecord(KafkaConsumerRecord<String, T> record) {
-    // TODO need another API to avoid creating so many objects.
-    return new Data<>(record.value())
-      .with("timestamp", record.timestamp())
-      .with("timestamp-type", record.timestampType())
-      .with("record", record)
-      .with("partition", record.partition())
-      .with("checksum", record.checksum())
-      .with("key", record.key())
-      .with("topic", record.topic());
+    Map<String, Object> headers = new HashMap<>();
+    headers.put("timestamp", record.timestamp());
+    headers.put("timestamp-type", record.timestampType());
+    headers.put("record", record);
+    headers.put("partition", record.partition());
+    headers.put("checksum", record.checksum());
+    headers.put("key", record.key());
+    headers.put("topic", record.topic());
+
+    return new Data<>(record.value(), headers);
+
   }
 
   private static Map<String, String> toMap(JsonObject json) {
