@@ -54,7 +54,6 @@ public class KafkaSource<T> extends SourceImpl<T> implements Source<T> {
     headers.put("checksum", record.checksum());
     headers.put(KEY, record.key());
     headers.put("topic", record.topic());
-
     return new Data<>(record.value(), headers);
   }
 

@@ -8,7 +8,6 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
-import me.escoffier.fluid.constructs.CommonHeaders;
 import me.escoffier.fluid.constructs.Sink;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
@@ -97,7 +96,6 @@ public class KafkaSourceTest {
   @Test
   public void testCommonHeaders(TestContext context) throws InterruptedException {
     Async async = context.async();
-
     KafkaUsage usage = new KafkaUsage();
     String topic = UUID.randomUUID().toString();
 
@@ -107,7 +105,6 @@ public class KafkaSourceTest {
         .put("value.serializer", IntegerSerializer.class.getName())
         .put("value.deserializer", IntegerDeserializer.class.getName())
     );
-
 
     source
       .to(data -> {

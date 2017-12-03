@@ -180,7 +180,6 @@ public class SimpleExample {
     Flowable<String> f1 = Flowable.fromArray("a", "b", "c")
       .delay(10, TimeUnit.MILLISECONDS);
 
-
     List<DataStream<String>> broadcast = Source.fromPayloads(f1).broadcast(2);
 
     DataStream<String> stream1 = broadcast.get(0)
@@ -202,7 +201,6 @@ public class SimpleExample {
 
     Flowable<String> f2 = Flowable.fromArray("d", "e", "f")
       .delay(10, TimeUnit.MILLISECONDS);
-
 
     CacheSink<String> cache = new CacheSink<>();
 
