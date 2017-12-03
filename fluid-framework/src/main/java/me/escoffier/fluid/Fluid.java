@@ -82,7 +82,7 @@ public class Fluid {
   private Source<Object> getSourceOrFail(String name) {
     Source<Object> src = FluidRegistry.source(Objects.requireNonNull(name));
     if (src == null) {
-      throw new IllegalArgumentException("Unable to find the sink " + name);
+      throw new IllegalArgumentException("Unable to find the source " + name);
     }
     return src;
   }
