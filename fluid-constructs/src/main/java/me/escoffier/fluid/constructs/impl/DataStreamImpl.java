@@ -93,7 +93,6 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     List<DataStream<T>> list = new ArrayList<>();
     list.add(this);
     list.add(stream);
-
     Flowable<Data<T>> merged = Flowable.concat(list.stream()
       .map(DataStream::flow)
       .collect(Collectors.toList())
@@ -154,25 +153,43 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
-  @SafeVarargs
-  public final DataStream<T> broadcastTo(DataStream... streams) {
-    ConnectableFlowable<Data<T>> publish = flow.replay();
+  public List<DataStream<T>> broadcast(int numberOfBranches) {
+    if (numberOfBranches <= 1) {
+      throw new IllegalArgumentException("The number of branch must be at least 2");
+    }
+
+    List<DataStream<T>> streams = new ArrayList<>(numberOfBranches);
+    Flowable<Data<T>> publish = flow.publish().autoConnect(numberOfBranches);
     DataStreamImpl<T, T> stream = new DataStreamImpl<>(this, publish);
 
-    for (DataStream s : streams) {
-      DataStream first = s;
-      while (first.previous() != null) {
-        first = first.previous();
-      }
-      if (first.isConnectable()) {
-        first.connect(stream);
-      } else {
-        throw new IllegalArgumentException("The stream head is not connectable");
-      }
+    for (int i = 0; i < numberOfBranches; i++) {
+      DataStream<T> branch = new DataStreamImpl<>();
+      streams.add(branch);
+      branch.connect(stream);
     }
-    publish.connect();
-    return stream;
+
+    return streams;
   }
+
+
+//  @SafeVarargs
+//  public final DataStream<T> broadcastTo(DataStream... streams) {
+//    ConnectableFlowable<Data<T>> publish = flow.replay();
+//
+//    for (DataStream s : streams) {
+//      DataStream first = s;
+//      while (first.previous() != null) {
+//        first = first.previous();
+//      }
+//      if (first.isConnectable()) {
+//        first.connect(stream);
+//      } else {
+//        throw new IllegalArgumentException("The stream head is not connectable");
+//      }
+//    }
+//    publish.connect();
+//    return stream;
+//  }
 
   @Override
   public Pair<DataStream<T>, DataStream<T>> branch(Predicate<Data<T>> condition) {

@@ -120,10 +120,10 @@ public interface DataStream<T> {
   /**
    * Fan-out operator dispatching the incoming {@link Data} to a set of streams.
    *
-   * @param streams the streams receiving the data, none of them can be {@code null}
+   * @param numberOfBranches the number of branch that will get the incoming data.
    * @return the resulting streams
    */
-  DataStream<T> broadcastTo(DataStream... streams);
+  List<DataStream<T>> broadcast(int numberOfBranches);
 
   /**
    * @return the underlying flow of {@link Data}.
