@@ -160,12 +160,17 @@ public class SimpleExample {
       .transformItemFlow(toWords)
       .transformItemFlow(Flowable::distinct);
 
-    // TODO Here we can't check the type connection, we may need to adapt s1 and s2 as sink.
-    Source.from(quotes.stream().map(Data::new))
-      .broadcastTo(s1, s2);
+    List<DataStream<Quote>> broadcast = Source.from(quotes.stream().map(Data::new)).broadcast(2);
 
-    s1.to(authors);
-    s2.to(words);
+    broadcast.get(0)
+      .transformItemFlow(toAuthor)
+      .transformItemFlow(Flowable::distinct)
+      .to(authors);
+
+    broadcast.get(1)
+      .transformItemFlow(toWords)
+      .transformItemFlow(Flowable::distinct)
+      .to(words);
 
     await().until(() -> authors.cache().size() == 4);
     System.out.println(authors.cache());
@@ -177,14 +182,15 @@ public class SimpleExample {
     Flowable<String> f1 = Flowable.fromArray("a", "b", "c")
       .delay(10, TimeUnit.MILLISECONDS);
 
-    DataStream<String> s1 = DataStream.of(String.class)
+    List<DataStream<String>> broadcast = Source.fromItems(f1).broadcast(2);
+
+    DataStream<String> stream1 = broadcast.get(0)
       .transformItem(String::toUpperCase);
-    DataStream<String> s2 = DataStream.of(String.class)
+    DataStream<String> stream2 = broadcast.get(1)
       .transformItem(s -> "FOO");
-    Source.fromItems(f1).broadcastTo(s1, s2);
 
     CacheSink<String> cache = new CacheSink<>();
-    s1.mergeWith(new DataStream[]{s2}).to(cache);
+    stream1.mergeWith(stream2).to(cache);
 
     await().until(() -> cache.cache().size() == 6);
     assertThat(cache.cache()).contains("A", "B", "C").contains("FOO");
@@ -195,14 +201,15 @@ public class SimpleExample {
     Flowable<String> f1 = Flowable.fromArray("a", "b", "c")
       .delay(10, TimeUnit.MILLISECONDS);
 
-    DataStream<String> s1 = DataStream.of(String.class)
-      .transformItem(String::toUpperCase);
-    DataStream<String> s2 = DataStream.of(String.class)
-      .transformItem(s -> "FOO");
-    Source.fromItems(f1).broadcastTo(s1, s2);
+    Flowable<String> f2 = Flowable.fromArray("d", "e", "f")
+      .delay(10, TimeUnit.MILLISECONDS);
 
     CacheSink<String> cache = new CacheSink<>();
-    s1.concatWith(new DataStream[]{s2}).to(cache);
+
+    Source.fromItems(f1)
+      .transformItem(String::toUpperCase)
+      .concatWith(Source.fromItems(f2).transformItem(s -> "FOO"))
+      .to(cache);
 
     await().until(() -> cache.cache().size() == 6);
     assertThat(cache.cache()).containsExactly("A", "B", "C", "FOO", "FOO", "FOO");
