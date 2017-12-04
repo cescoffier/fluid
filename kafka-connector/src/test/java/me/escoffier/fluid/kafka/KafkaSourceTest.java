@@ -13,7 +13,6 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
 import org.junit.*;
 import org.junit.runner.RunWith;
 
@@ -29,6 +28,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import static io.reactivex.Completable.complete;
 import static me.escoffier.fluid.constructs.CommonHeaders.key;
 import static me.escoffier.fluid.constructs.CommonHeaders.original;
+import static me.escoffier.fluid.kafka.KafkaSourceConfig.kafkaSourceConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -177,12 +177,13 @@ public class KafkaSourceTest {
 
   private JsonObject getKafkaConfig() {
     String randomId = UUID.randomUUID().toString();
-    return new JsonObject()
-      .put("bootstrap.servers", "localhost:9092")
-      .put("enable.auto.commit", false)
-      .put("group.id", randomId)
-      .put("auto.offset.reset", "earliest")
-      .put("key.serializer", StringSerializer.class.getName())
-      .put("key.deserializer", StringDeserializer.class.getName());
+    return kafkaSourceConfig("name").
+      bootstrapServers("localhost:9092").
+      enableAutoCommit(false).
+      groupId(randomId).
+      autoOffsetReset("earliest").
+      keyDeserializer(StringDeserializer.class).
+      valueDeserializer(StringDeserializer.class).
+      build();
   }
 }
