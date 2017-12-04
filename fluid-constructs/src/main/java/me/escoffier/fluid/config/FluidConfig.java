@@ -154,7 +154,7 @@ public class FluidConfig {
         return Optional.empty();
     }
 
-    private synchronized static Optional<JsonNode> traverse(JsonNode node, String path) {
+    private static synchronized Optional<JsonNode> traverse(JsonNode node, String path) {
         String[] segments = path.split("\\.");
         JsonNode current = node;
         for (String seg : segments) {
