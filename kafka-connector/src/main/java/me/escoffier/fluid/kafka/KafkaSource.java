@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static me.escoffier.fluid.constructs.CommonHeaders.ADDRESS;
 import static me.escoffier.fluid.constructs.CommonHeaders.KEY;
 import static me.escoffier.fluid.constructs.CommonHeaders.ORIGINAL;
 
@@ -53,7 +54,7 @@ public class KafkaSource<T> extends SourceImpl<T> implements Source<T> {
     headers.put("partition", record.partition());
     headers.put("checksum", record.checksum());
     headers.put(KEY, record.key());
-    headers.put("topic", record.topic());
+    headers.put(ADDRESS, record.topic());
     return new Data<>(record.value(), headers);
   }
 
