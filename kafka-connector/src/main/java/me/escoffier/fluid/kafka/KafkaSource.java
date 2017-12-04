@@ -28,8 +28,8 @@ public class KafkaSource<T> extends SourceImpl<T> implements Source<T> {
       .toFlowable()
       .map(KafkaSource::createDataFromRecord)
       .compose(upstream -> {
-        Integer size = json.getInteger("multicast.buffer.size", -1);
-        if (size != -1) {
+        int size = json.getInteger("multicast.buffer.size", 0);
+        if (size > 0) {
           return upstream.replay(size).autoConnect();
         }
 
