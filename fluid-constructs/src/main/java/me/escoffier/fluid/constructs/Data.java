@@ -1,9 +1,10 @@
 package me.escoffier.fluid.constructs;
 
-import io.vertx.core.json.JsonObject;
-import org.apache.logging.log4j.util.Strings;
-
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
