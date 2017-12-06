@@ -153,14 +153,6 @@ public interface DataStream<T> {
   }
 
   /**
-   * Internal API allowing to retrieves the stream on which the current stream is connected to.
-   *
-   * @param <I> the type of data received by the previous stream.
-   * @return the previous stream, may be {@code null} if the current stream is a {@link Source}.
-   */
-  <I> DataStream<I> previous();
-
-  /**
    * Checks whether or not the current stream can be connected.
    *
    * @return {@code true} if the stream can be connected, {@code false} otherwise

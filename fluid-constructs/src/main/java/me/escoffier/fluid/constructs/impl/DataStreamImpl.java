@@ -1,7 +1,6 @@
 package me.escoffier.fluid.constructs.impl;
 
 import io.reactivex.Flowable;
-import io.reactivex.flowables.ConnectableFlowable;
 import me.escoffier.fluid.constructs.*;
 import org.reactivestreams.Publisher;
 
@@ -26,20 +25,17 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   protected Flowable<Data<T>> flow;
   private final boolean connectable;
-  private final DataStream<I> previous;
   private StreamConnector<T> connector;
 
-  public DataStreamImpl(DataStream<I> previous, Publisher<Data<T>> flow) {
+  public DataStreamImpl(Publisher<Data<T>> flow) {
     Objects.requireNonNull(flow, "The flow passed to the stream cannot be `null`");
     this.flow = Flowable.fromPublisher(flow);
-    this.previous = previous;
     this.connectable = false;
   }
 
   public DataStreamImpl() {
     connector = new StreamConnector<>();
     this.flow = Flowable.fromPublisher(connector);
-    this.previous = null;
     this.connectable = true;
   }
 
@@ -56,7 +52,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       .map(DataStream::flow)
       .collect(Collectors.toList())
     );
-    return new DataStreamImpl<>(this, merged);
+    return new DataStreamImpl<>(merged);
   }
 
   @Override
@@ -70,7 +66,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       .map(DataStream::flow)
       .collect(Collectors.toList())
     );
-    return new DataStreamImpl<>(this, merged);
+    return new DataStreamImpl<>(merged);
 
   }
 
@@ -86,7 +82,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       .map(DataStream::flow)
       .collect(Collectors.toList())
     );
-    return new DataStreamImpl<>(this, merged);
+    return new DataStreamImpl<>(merged);
   }
 
   @Override
@@ -99,7 +95,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       .map(DataStream::flow)
       .collect(Collectors.toList())
     );
-    return new DataStreamImpl<>(this, merged);
+    return new DataStreamImpl<>(merged);
   }
 
   @Override
@@ -107,7 +103,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     Objects.requireNonNull(stream, NULL_STREAM_MESSAGE);
     Flowable<Data<Pair<T, O>>> flowable = flow.zipWith(stream.flow(),
       (d1, d2) -> new Data<>(pair(d1.payload(), d2.payload())));
-    return new DataStreamImpl<>(this, flowable);
+    return new DataStreamImpl<>(flowable);
   }
 
   @Override
@@ -117,7 +113,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     Flowable<Data<Tuple>> flowable = Flowable
       .zip(flow, stream1.flow(), stream2.flow(),
         (a, b, c) -> new Data<>(Tuple.tuple(a.payload(), b.payload(), c.payload())));
-    return new DataStreamImpl<>(this, flowable);
+    return new DataStreamImpl<>(flowable);
   }
 
   // TODO Zip up to 7 streams.
@@ -126,14 +122,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   @Override
   public <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
-    return new DataStreamImpl<>(this, flow.map(function::apply));
+    return new DataStreamImpl<>(flow.map(function::apply));
   }
 
   @Override
   public <OUT> DataStream<OUT> transformPayload(Function<T, OUT> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
     // TODO we are loosing the headers.
-    return new DataStreamImpl<>(this,
+    return new DataStreamImpl<>(
       flow.map(Data::payload).map(function::apply).map(Data::new));
   }
 
@@ -143,14 +139,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     // TODO we are loosing the headers.
 
     Flowable<Data<OUT>> flowable = function.apply(flow.map(Data::payload)).map(Data::new);
-    return new DataStreamImpl<>(this, flowable);
+    return new DataStreamImpl<>(flowable);
   }
 
   @Override
   public <OUT> DataStream<OUT> transformFlow(Function<Flowable<Data<T>>, Flowable<Data<OUT>>> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
 
-    return new DataStreamImpl<>(this, function.apply(flow));
+    return new DataStreamImpl<>(function.apply(flow));
 
   }
 
@@ -162,7 +158,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
     List<DataStream<T>> streams = new ArrayList<>(numberOfBranches);
     Flowable<Data<T>> publish = flow.publish().autoConnect(numberOfBranches);
-    DataStreamImpl<T, T> stream = new DataStreamImpl<>(this, publish);
+    DataStreamImpl<T, T> stream = new DataStreamImpl<>(publish);
 
     for (int i = 0; i < numberOfBranches; i++) {
       DataStream<T> branch = new DataStreamImpl<>();
@@ -179,7 +175,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     DataStream<T> failure = new DataStreamImpl<T, T>();
 
     Branch<T> build = new Branch.BranchBuilder<T>().add(condition, success).addFallback(failure).build();
-    DataStream<T> stream = new DataStreamImpl<>(this, build);
+    DataStream<T> stream = new DataStreamImpl<>(build);
 
     success.connect(stream);
     failure.connect(stream);
@@ -195,7 +191,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
     Branch<T> build = new Branch.BranchBuilder<T>().add(x -> condition.test(x.payload()), success)
       .addFallback(failure).build();
-    DataStream<T> stream = new DataStreamImpl<>(this, build);
+    DataStream<T> stream = new DataStreamImpl<>(build);
 
     success.connect(stream);
     failure.connect(stream);
@@ -214,7 +210,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       branches.add(stream);
     }
     Branch<T> built = builder.build();
-    DataStream<T> stream = new DataStreamImpl<>(this, built);
+    DataStream<T> stream = new DataStreamImpl<>(built);
     for (DataStream<T> b : branches) {
       b.connect(stream);
     }
@@ -232,7 +228,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       branches.add(stream);
     }
     Branch<T> built = builder.build();
-    DataStream<T> stream = new DataStreamImpl<>(this, built);
+    DataStream<T> stream = new DataStreamImpl<>(built);
     for (DataStream<T> b : branches) {
       b.connect(stream);
     }
@@ -246,17 +242,13 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   @Override
   public DataStream<T> onData(Consumer<? super Data<T>> consumer) {
-    return new DataStreamImpl<>(this, flow.doOnNext(consumer::accept));
+    return new DataStreamImpl<>(flow.doOnNext(consumer::accept));
   }
 
   @Override
   public DataStream<T> onPayload(Consumer<? super T> consumer) {
-    return new DataStreamImpl<>(this,
+    return new DataStreamImpl<>(
       flow.doOnNext(d -> consumer.accept(d.payload())));
-  }
-
-  public DataStream<I> previous() {
-    return previous;
   }
 
   public boolean isConnectable() {
