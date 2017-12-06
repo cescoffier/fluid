@@ -6,7 +6,7 @@ import io.vertx.reactivex.kafka.client.consumer.KafkaConsumer;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
 import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Source;
-import me.escoffier.fluid.constructs.impl.SourceImpl;
+import me.escoffier.fluid.constructs.AbstractSource;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -19,7 +19,7 @@ import static me.escoffier.fluid.constructs.CommonHeaders.ORIGINAL;
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class KafkaSource<T> extends SourceImpl<T> implements Source<T> {
+public class KafkaSource<T> extends AbstractSource<T> implements Source<T> {
   private final String name;
 
   KafkaSource(Vertx vertx, JsonObject json) {

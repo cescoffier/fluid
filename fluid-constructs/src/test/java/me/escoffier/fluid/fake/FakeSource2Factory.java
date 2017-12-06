@@ -4,6 +4,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.constructs.AbstractSource;
 import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Source;
 import me.escoffier.fluid.constructs.impl.DataStreamImpl;
@@ -26,13 +27,13 @@ public class FakeSource2Factory implements SourceFactory {
     return Single.just(new FakeSourceImpl(json));
   }
 
-  private class FakeSourceImpl extends DataStreamImpl<Void, Integer>
+  private class FakeSourceImpl extends AbstractSource<Integer>
     implements Source<Integer> {
 
     private String name;
 
     public FakeSourceImpl(JsonObject json) {
-      super(null, Flowable.fromIterable(
+      super(Flowable.fromIterable(
         json.getJsonArray("items").getList()).map(Data::new)
       );
       name = json.getString("name");

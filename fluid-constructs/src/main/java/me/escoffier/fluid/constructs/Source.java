@@ -3,10 +3,10 @@ package me.escoffier.fluid.constructs;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
-import me.escoffier.fluid.constructs.impl.SourceImpl;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Represents a data source. It emits {@link Data<T>}.
@@ -15,7 +15,7 @@ public interface Source<T> extends DataStream<T> {
 
   default Source<T> orElse(Source<T> alt) {
     return
-      new SourceImpl<>(this.flow().switchIfEmpty(alt.flow()));
+      new AbstractSource<>(this.flow().switchIfEmpty(alt.flow()));
   }
 
   static <T> Source<T> from(Publisher<Data<T>> flow) {
@@ -27,11 +27,11 @@ public interface Source<T> extends DataStream<T> {
   }
 
   static <T> Source<T> from(Flowable<Data<T>> flow) {
-    return new SourceImpl<>(Objects.requireNonNull(flow));
+    return new AbstractSource<>(Objects.requireNonNull(flow));
   }
 
   static <T> Source<T> fromPayloads(Flowable<T> flow) {
-    return new SourceImpl<>(Objects.requireNonNull(flow).map(Data::new));
+    return new AbstractSource<>(Objects.requireNonNull(flow).map(Data::new));
   }
 
   static <T> Source<T> from(Single<Data<T>> single) {
@@ -43,7 +43,7 @@ public interface Source<T> extends DataStream<T> {
   }
 
   static <T> Source<T> from(Maybe<Data<T>> maybe) {
-    return new SourceImpl<>(Objects.requireNonNull(maybe).toFlowable());
+    return new AbstractSource<>(Objects.requireNonNull(maybe).toFlowable());
   }
 
   static <T> Source<T> fromPayload(Maybe<T> maybe) {
