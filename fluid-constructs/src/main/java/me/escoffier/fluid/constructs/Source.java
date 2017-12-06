@@ -100,4 +100,10 @@ public interface Source<T> extends DataStream<T> {
     return null;
   }
 
+  Source<T> windowBySize(int size);
+
+  Source<T> windowByTime(long duration, TimeUnit unit);
+
+  Source<T> windowBySizeAndTime(int size, long duration, TimeUnit unit);
+
 }
