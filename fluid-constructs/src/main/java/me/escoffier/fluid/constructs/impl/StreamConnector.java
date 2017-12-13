@@ -13,46 +13,62 @@ import org.reactivestreams.Subscription;
  */
 public class StreamConnector<T> implements Processor<Data<T>, Data<T>> {
 
-    private Flowable<Data<T>> source;
-    private Subscriber<? super Data<T>> sub;
+  private Flowable<Data<T>> source;
+  private Subscriber<? super Data<T>> sub;
 
-    public synchronized void connectDownstream(DataStream<T> src) {
-        if (source != null) {
-            throw new IllegalStateException("Connectable stream already connected");
-        } else {
-            source = src.flow();
-        }
+  public synchronized void connectDownstream(DataStream<T> src) {
+//        if (source != null) {
+//            throw new IllegalStateException("Connectable stream already connected");
+//        } else {
+    source = src.flow();
+    if (sub != null) {
+      source.subscribe(this);
     }
+//        }
+  }
 
-    @Override
-    public void subscribe(Subscriber<? super Data<T>> s) {
-        synchronized (this) {
-            if (source == null) {
-                s.onError(new Exception("Connectable stream not connected"));
-                return;
-            }
-        }
-        sub = s;
-        source.subscribe(this);
+  public synchronized void connectDownstream(Flowable<Data<T>> src) {
+//    if (source != null) {
+//      throw new IllegalStateException("Connectable stream already connected");
+//    } else {
+    this.source = src;
+    if (sub != null) {
+      source.subscribe(this);
     }
+//    }
+  }
 
-    @Override
-    public void onSubscribe(Subscription s) {
-        sub.onSubscribe(s);
+  @Override
+  public synchronized void subscribe(Subscriber<? super Data<T>> s) {
+//    synchronized (this) {
+//      if (source == null) {
+//        s.onError(new Exception("Connectable stream not connected"));
+//        return;
+//      }
+//    }
+    sub = s;
+    if (source != null) {
+      source.subscribe(this);
     }
+  }
 
-    @Override
-    public void onNext(Data<T> s) {
-        sub.onNext(s);
-    }
+  @Override
+  public void onSubscribe(Subscription s) {
+    sub.onSubscribe(s);
+  }
 
-    @Override
-    public void onError(Throwable t) {
-        sub.onError(t);
-    }
+  @Override
+  public void onNext(Data<T> s) {
+    sub.onNext(s);
+  }
 
-    @Override
-    public void onComplete() {
-        sub.onComplete();
-    }
+  @Override
+  public void onError(Throwable t) {
+    sub.onError(t);
+  }
+
+  @Override
+  public void onComplete() {
+    sub.onComplete();
+  }
 }

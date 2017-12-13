@@ -105,5 +105,4 @@ public interface Source<T> extends DataStream<T> {
   Source<T> windowByTime(long duration, TimeUnit unit);
 
   Source<T> windowBySizeAndTime(int size, long duration, TimeUnit unit);
-
 }

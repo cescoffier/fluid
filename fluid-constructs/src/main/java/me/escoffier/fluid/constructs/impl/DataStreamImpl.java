@@ -4,10 +4,8 @@ import io.reactivex.Flowable;
 import me.escoffier.fluid.constructs.*;
 import org.reactivestreams.Publisher;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -23,20 +21,55 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   private static final String NULL_STREAMS_MESSAGE = "The given streams cannot be `null`";
   private static final String NULL_FUNCTION_MESSAGE = "The given function must not be `null`";
 
-  protected Flowable<Data<T>> flow;
   private final boolean connectable;
+  private final Flowable<Data<T>> flow;
   private StreamConnector<T> connector;
 
-  public DataStreamImpl(Publisher<Data<T>> flow) {
-    Objects.requireNonNull(flow, "The flow passed to the stream cannot be `null`");
-    this.flow = Flowable.fromPublisher(flow);
+  private Collection<DataStream> downstreams;
+  private Collection<DataStream> upstreams = Collections.emptyList();
+
+  private AtomicInteger upstreamReady = new AtomicInteger();
+
+  public DataStreamImpl(Flowable<Data<T>> flowable) {
+    this(Collections.emptyList(), flowable);
+  }
+
+  public DataStreamImpl(DataStream<T> previous) {
+    this();
+    this.downstreams = Collections.singletonList(previous);
+  }
+
+  public void setNext(DataStream... next) {
+    upstreams = Arrays.asList(next);
+  }
+
+  public DataStreamImpl(DataStream previous, Publisher<Data<T>> flowable) {
+    Objects.requireNonNull(flowable, "The flowable passed to the stream cannot be `null`");
     this.connectable = false;
+
+    if (previous == null) {
+      this.downstreams = Collections.emptyList();
+    } else {
+      this.downstreams = Collections.singletonList(previous);
+    }
+
+    this.flow = Flowable.fromPublisher(flowable);
+
+  }
+
+  public DataStreamImpl(Collection<DataStream> previous, Flowable<Data<T>> flowable) {
+    Objects.requireNonNull(flowable, "The flowable passed to the stream cannot be `null`");
+    this.connectable = false;
+    this.downstreams = Collections.unmodifiableList(new ArrayList<>(previous));
+
+    this.flow = flowable;
   }
 
   public DataStreamImpl() {
-    connector = new StreamConnector<>();
-    this.flow = Flowable.fromPublisher(connector);
+    this.connector = new StreamConnector<>();
     this.connectable = true;
+    this.downstreams = Collections.emptyList();
+    this.flow = Flowable.fromPublisher(connector);
   }
 
 
@@ -52,7 +85,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       .map(DataStream::flow)
       .collect(Collectors.toList())
     );
-    return new DataStreamImpl<>(merged);
+
+    Collection<DataStream> previous = new ArrayList<>();
+    previous.add(this);
+    previous.addAll(Arrays.asList(streams));
+
+    Arrays.stream(streams).forEach(d -> ((DataStreamImpl) d).setNext(this));
+
+    return new DataStreamImpl<>(previous, merged);
   }
 
   @Override
@@ -66,8 +106,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       .map(DataStream::flow)
       .collect(Collectors.toList())
     );
-    return new DataStreamImpl<>(merged);
+    Collection<DataStream> previous = new ArrayList<>();
+    previous.add(this);
+    previous.add(stream);
 
+    ((DataStreamImpl) stream).setNext(this);
+    DataStreamImpl<Object, T> next = new DataStreamImpl<>(previous, merged);
+    this.setNext(next);
+    return next;
   }
 
   @Override
@@ -82,7 +128,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       .map(DataStream::flow)
       .collect(Collectors.toList())
     );
-    return new DataStreamImpl<>(merged);
+
+    Collection<DataStream> previous = new ArrayList<>();
+    previous.add(this);
+    previous.addAll(Arrays.asList(streams));
+
+    DataStreamImpl<Object, T> next = new DataStreamImpl<>(previous, merged);
+    setNext(next);
+    return next;
   }
 
   @Override
@@ -95,7 +148,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       .map(DataStream::flow)
       .collect(Collectors.toList())
     );
-    return new DataStreamImpl<>(merged);
+
+    Collection<DataStream> previous = new ArrayList<>();
+    previous.add(this);
+    previous.add(stream);
+
+    DataStreamImpl<Object, T> next = new DataStreamImpl<>(previous, merged);
+    setNext(next);
+    return next;
   }
 
   @Override
@@ -103,7 +163,16 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     Objects.requireNonNull(stream, NULL_STREAM_MESSAGE);
     Flowable<Data<Pair<T, O>>> flowable = flow.zipWith(stream.flow(),
       (d1, d2) -> new Data<>(pair(d1.payload(), d2.payload())));
-    return new DataStreamImpl<>(flowable);
+
+    Collection<DataStream> previous = new ArrayList<>();
+    previous.add(this);
+    previous.add(stream);
+
+    DataStreamImpl<Object, Pair<T, O>> next = new DataStreamImpl<>(previous, flowable);
+    setNext(next);
+    ((DataStreamImpl) stream).setNext(next);
+
+    return next;
   }
 
   @Override
@@ -113,7 +182,15 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     Flowable<Data<Tuple>> flowable = Flowable
       .zip(flow, stream1.flow(), stream2.flow(),
         (a, b, c) -> new Data<>(Tuple.tuple(a.payload(), b.payload(), c.payload())));
-    return new DataStreamImpl<>(flowable);
+
+    Collection<DataStream> previous = new ArrayList<>();
+    previous.add(this);
+    previous.add(stream1);
+    previous.add(stream2);
+
+    DataStreamImpl<Object, Tuple> next = new DataStreamImpl<>(previous, flowable);
+    this.setNext(next);
+    return next;
   }
 
   // TODO Zip up to 7 streams.
@@ -122,15 +199,19 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   @Override
   public <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
-    return new DataStreamImpl<>(flow.map(function::apply));
+    DataStreamImpl<Object, OUT> next = new DataStreamImpl<>(this, flow.map(function::apply));
+    setNext(next);
+    return next;
   }
 
   @Override
   public <OUT> DataStream<OUT> transformPayload(Function<T, OUT> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
     // TODO we are loosing the headers.
-    return new DataStreamImpl<>(
+    DataStreamImpl<Object, OUT> next = new DataStreamImpl<>(this,
       flow.map(Data::payload).map(function::apply).map(Data::new));
+    setNext(next);
+    return next;
   }
 
   @Override
@@ -139,14 +220,18 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     // TODO we are loosing the headers.
 
     Flowable<Data<OUT>> flowable = function.apply(flow.map(Data::payload)).map(Data::new);
-    return new DataStreamImpl<>(flowable);
+    DataStreamImpl<Object, OUT> next = new DataStreamImpl<>(this, flowable);
+    setNext(next);
+    return next;
   }
 
   @Override
   public <OUT> DataStream<OUT> transformFlow(Function<Flowable<Data<T>>, Flowable<Data<OUT>>> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
 
-    return new DataStreamImpl<>(function.apply(flow));
+    DataStreamImpl<Object, OUT> next = new DataStreamImpl<>(this, function.apply(flow));
+    setNext(next);
+    return next;
 
   }
 
@@ -158,13 +243,17 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
     List<DataStream<T>> streams = new ArrayList<>(numberOfBranches);
     Flowable<Data<T>> publish = flow.publish().autoConnect(numberOfBranches);
-    DataStreamImpl<T, T> stream = new DataStreamImpl<>(publish);
+    DataStreamImpl<T, T> stream = new DataStreamImpl<>(this, publish);
+
 
     for (int i = 0; i < numberOfBranches; i++) {
       DataStream<T> branch = new DataStreamImpl<>();
       streams.add(branch);
       branch.connect(stream);
     }
+
+    stream.setNext(streams.toArray(new DataStream[streams.size()]));
+    this.setNext(stream);
 
     return streams;
   }
@@ -175,11 +264,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     DataStream<T> failure = new DataStreamImpl<T, T>();
 
     Branch<T> build = new Branch.BranchBuilder<T>().add(condition, success).addFallback(failure).build();
-    DataStream<T> stream = new DataStreamImpl<>(build);
+    DataStreamImpl<T, T> stream = new DataStreamImpl<>(this, build);
 
     success.connect(stream);
     failure.connect(stream);
     build.connect(this);
+
+    stream.setNext(success, failure);
+    this.setNext(stream);
 
     return pair(success, failure);
   }
@@ -191,11 +283,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
     Branch<T> build = new Branch.BranchBuilder<T>().add(x -> condition.test(x.payload()), success)
       .addFallback(failure).build();
-    DataStream<T> stream = new DataStreamImpl<>(build);
+    DataStreamImpl<T, T> stream = new DataStreamImpl<>(this, build);
 
     success.connect(stream);
     failure.connect(stream);
     build.connect(this);
+
+    stream.setNext(success, failure);
+    this.setNext(stream);
 
     return pair(success, failure);
   }
@@ -210,11 +305,16 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       branches.add(stream);
     }
     Branch<T> built = builder.build();
-    DataStream<T> stream = new DataStreamImpl<>(built);
+    DataStreamImpl<T, T> stream = new DataStreamImpl<>(this, built);
+
     for (DataStream<T> b : branches) {
       b.connect(stream);
     }
     built.connect(this);
+
+    stream.setNext(branches.toArray(new DataStream[branches.size()]));
+    this.setNext(stream);
+
     return branches;
   }
 
@@ -228,27 +328,37 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
       branches.add(stream);
     }
     Branch<T> built = builder.build();
-    DataStream<T> stream = new DataStreamImpl<>(built);
+    DataStreamImpl<T, T> stream = new DataStreamImpl<>(this, built);
     for (DataStream<T> b : branches) {
       b.connect(stream);
     }
     built.connect(this);
+    stream.setNext(branches.toArray(new DataStream[branches.size()]));
+    this.setNext(stream);
+
     return branches;
   }
 
   public void connect(DataStream<T> source) {
+    downstreams = Collections.singletonList(source);
+    System.out.println("Connector: " + this + ", upstreams: " + upstreams);
     this.connector.connectDownstream(source);
   }
 
   @Override
   public DataStream<T> onData(Consumer<? super Data<T>> consumer) {
-    return new DataStreamImpl<>(flow.doOnNext(consumer::accept));
+    DataStreamImpl<Object, T> next = new DataStreamImpl<>(this, flow
+      .doOnNext(consumer::accept));
+    this.setNext(next);
+    return next;
   }
 
   @Override
   public DataStream<T> onPayload(Consumer<? super T> consumer) {
-    return new DataStreamImpl<>(
+    DataStreamImpl<Object, T> next = new DataStreamImpl<>(this,
       flow.doOnNext(d -> consumer.accept(d.payload())));
+    this.setNext(next);
+    return next;
   }
 
   public boolean isConnectable() {
@@ -260,25 +370,46 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     return flow;
   }
 
+  @Override
+  public Collection<DataStream> downtreams() {
+    return downstreams;
+  }
+
+  @Override
+  public Collection<DataStream> upstreams() {
+    return upstreams;
+  }
+
   // TODO What should be the return type of the "to" operation
   // Sink can produce one result, so maybe a Future. Not a single as it would delay the subscription.
 
+  public void ready(DataStream upstream) {
+    int i = upstreamReady.incrementAndGet();
+    if (i >= upstreams.size()) {
+      System.out.println(this + " downstreams: " + downstreams);
+      downstreams.forEach(d -> d.ready(this));
+    }
+  }
+
   @Override
   public Sink<T> to(Sink<T> sink) {
-    // TODO Error management
-    flow
-      .flatMapCompletable(sink::dispatch)
-      .subscribe(
-        () -> {
+    // Notify ready
+    DataStreamImpl last = new DataStreamImpl(
+      this,
+      flow
+        .toList()
+        .flatMapCompletable(sink::dispatch)
+        .toFlowable()
+    );
+    this.setNext(last);
 
-        },
-        Throwable::printStackTrace // TODO Error management
-      );
+    System.out.println("Sink is " + last);
 
+    ready(this);
     return sink;
   }
 
-  StreamConnector<T> connector() {
+  public StreamConnector<T> connector() {
     return connector;
   }
 }

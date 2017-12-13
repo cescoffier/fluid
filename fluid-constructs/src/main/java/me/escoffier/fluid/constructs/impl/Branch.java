@@ -31,23 +31,16 @@ public class Branch<IN> implements Processor<Data<IN>, Data<IN>> {
 
 
   public synchronized void connect(DataStream<IN> src) {
-    if (source != null) {
-      throw new IllegalStateException("Connectable stream already connected");
-    } else {
-      source = src.flow();
-    }
+    source = src.flow();
+    subscriptionCount.set(0);
   }
 
   @Override
-  public void subscribe(Subscriber<? super Data<IN>> s) {
-    synchronized (this) {
-      if (source == null) {
-        s.onError(new Exception("Connectable stream not connected"));
-        return;
-      }
-    }
+  public synchronized void subscribe(Subscriber<? super Data<IN>> s) {
     if (subscriptionCount.incrementAndGet() == branches.size()) {
       source.subscribe(this);
+      // Reset counter, for next window.
+      subscriptionCount.set(0);
     }
   }
 
@@ -83,17 +76,17 @@ public class Branch<IN> implements Processor<Data<IN>, Data<IN>> {
 
     private List<BranchLogic<IN>> branches = new ArrayList<>();
 
-    BranchBuilder<IN> add(Predicate<Data<IN>> predicate, DataStream<IN> stream) {
+    public BranchBuilder<IN> add(Predicate<Data<IN>> predicate, DataStream<IN> stream) {
       branches.add(new BranchLogic<>(predicate, stream));
       return this;
     }
 
-    BranchBuilder<IN> addFallback(DataStream<IN> stream) {
+    public BranchBuilder<IN> addFallback(DataStream<IN> stream) {
       branches.add(new BranchLogic<>((x) -> true, stream));
       return this;
     }
 
-    Branch<IN> build() {
+    public Branch<IN> build() {
       return new me.escoffier.fluid.constructs.impl.Branch<>(branches);
     }
 

@@ -41,10 +41,7 @@ public class SimpleExample {
   public void testWithRange() {
     CacheSink<Integer> sink = new CacheSink<>();
     Source.from(Flowable.range(0, 10).map(Data::new))
-      .transformPayload(i -> {
-        System.out.println("Item: " + i);
-        return i;
-      })
+      .transformPayload(i -> i + 1)
       .to(sink);
 
     await().until(() -> sink.buffer.size() == 10);

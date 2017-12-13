@@ -3,6 +3,7 @@ package me.escoffier.fluid.constructs;
 import io.reactivex.Completable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
@@ -17,8 +18,13 @@ public class ListSink<OUT> implements Sink<OUT> {
 
   @Override
   public Completable dispatch(Data<OUT> data) {
-    return Completable.fromAction(() ->
-      values.add(data));
+    return Completable.fromAction(() -> values.add(data));
+
+  }
+
+  @Override
+  public Completable dispatch(Collection<Data<OUT>> window) {
+    return Completable.fromAction(() -> values.addAll(window));
   }
 
   public synchronized List<OUT> values() {

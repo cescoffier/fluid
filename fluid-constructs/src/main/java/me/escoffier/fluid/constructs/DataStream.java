@@ -3,6 +3,7 @@ package me.escoffier.fluid.constructs;
 import io.reactivex.Flowable;
 import me.escoffier.fluid.constructs.impl.DataStreamImpl;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -244,4 +245,15 @@ public interface DataStream<T> {
    */
   DataStream<T> onData(Consumer<? super Data<T>> consumer);
 
+  /**
+   * @return the collection, potentially empty of the previous data streams.
+   */
+  Collection<DataStream> downtreams();
+
+  /**
+   * @return the collection, potentially empty of the next data streams.
+   */
+  Collection<DataStream> upstreams();
+
+  void ready(DataStream upstream);
 }

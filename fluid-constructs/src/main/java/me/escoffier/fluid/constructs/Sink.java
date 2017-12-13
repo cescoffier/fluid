@@ -1,7 +1,9 @@
 package me.escoffier.fluid.constructs;
 
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -18,6 +20,12 @@ public interface Sink<OUT> {
   default Completable dispatch(OUT data) {
     return dispatch(new Data<>(data));
   }
+
+  default Completable dispatch(Collection<Data<OUT>> window) {
+    return Flowable.fromIterable(window)
+      .flatMapCompletable(this::dispatch);
+  }
+
 
   default String name() {
     return null;

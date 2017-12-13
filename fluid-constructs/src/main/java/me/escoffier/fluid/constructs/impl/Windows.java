@@ -1,6 +1,7 @@
 package me.escoffier.fluid.constructs.impl;
 
 import io.reactivex.Flowable;
+import io.reactivex.FlowableTransformer;
 import io.reactivex.schedulers.Schedulers;
 import io.vertx.reactivex.RxHelper;
 import io.vertx.reactivex.core.Context;
@@ -19,41 +20,25 @@ public class Windows {
 
   public static final String WINDOW_DATA = "window-data-list";
 
-  public static <T> Flowable<Data<T>> windowBySize(Flowable<Data<T>> flowable, int size) {
-    return
-      flowable
-        .window(size)
-        .flatMap(f ->
-          f.toList()
+  /*
+       f.toList()
             .doOnSuccess(list -> FlowContext.set(WINDOW_DATA, list))
             .flatMapPublisher(Flowable::fromIterable));
+   */
+
+  public static <T> FlowableTransformer<Data<T>, Flowable<Data<T>>> windowBySize(int size) {
+    return upstream -> upstream.window(size);
   }
 
-  public static <T> Flowable<Data<T>> windowByTime(Flowable<Data<T>> flowable, long time, TimeUnit unit) {
+  public static <T> FlowableTransformer<Data<T>, Flowable<Data<T>>> windowByTime(long time, TimeUnit unit) {
+    return upstream -> upstream.window(time, unit);
+  }
+
+  public static <T> FlowableTransformer<Data<T>, Flowable<Data<T>>> windowBySizeOrTime(int size, long time, TimeUnit unit) {
     Context context = Vertx.currentContext();
-    return
-      flowable
-        .window(time, unit,
-          (context != null ? RxHelper.scheduler(context.getDelegate()) : Schedulers.computation()))
-        .flatMap(f ->
-          f.toList()
-            .doOnSuccess(list -> FlowContext.set(WINDOW_DATA, list))
-            .flatMapPublisher(Flowable::fromIterable));
+    return upstream -> upstream.window(time, unit,
+      (context != null ? RxHelper.scheduler(context.getDelegate()) : Schedulers.computation()),
+      size,
+      true);
   }
-
-  public static <T> Flowable<Data<T>> windowBySizeOrTime(Flowable<Data<T>> flowable, int size, long time, TimeUnit
-    unit) {
-    Context context = Vertx.currentContext();
-    return
-      flowable
-        .window(time, unit,
-          (context != null ? RxHelper.scheduler(context.getDelegate()) : Schedulers.computation()),
-          size,
-          true)
-        .flatMap(f ->
-          f.toList()
-            .doOnSuccess(list -> FlowContext.set(WINDOW_DATA, list))
-            .flatMapPublisher(Flowable::fromIterable));
-  }
-
 }
