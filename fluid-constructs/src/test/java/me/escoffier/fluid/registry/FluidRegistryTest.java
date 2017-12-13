@@ -6,7 +6,7 @@ import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Sink;
 import me.escoffier.fluid.constructs.Source;
-import me.escoffier.fluid.constructs.impl.SourceImpl;
+import me.escoffier.fluid.constructs.impl.AbstractSource;
 import org.junit.After;
 import org.junit.Test;
 
@@ -53,7 +53,7 @@ public class FluidRegistryTest {
 
   @Test
   public void testRegistrationOfNamedSource() {
-    Source<String> source = new SourceImpl<String>(Flowable.empty()) {
+    Source<String> source = new AbstractSource<String>(Flowable.empty()) {
       @Override
       public String name() {
         return "my-source";

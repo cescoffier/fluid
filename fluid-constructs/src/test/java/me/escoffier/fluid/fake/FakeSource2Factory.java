@@ -6,10 +6,8 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Source;
-import me.escoffier.fluid.constructs.impl.DataStreamImpl;
+import me.escoffier.fluid.constructs.impl.AbstractSource;
 import me.escoffier.fluid.spi.SourceFactory;
-
-import java.util.stream.Collectors;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -26,13 +24,13 @@ public class FakeSource2Factory implements SourceFactory {
     return Single.just(new FakeSourceImpl(json));
   }
 
-  private class FakeSourceImpl extends DataStreamImpl<Void, Integer>
-    implements Source<Integer> {
+  private class FakeSourceImpl extends AbstractSource<Integer> {
 
     private String name;
 
+    @SuppressWarnings("unchecked")
     public FakeSourceImpl(JsonObject json) {
-      super(null, Flowable.fromIterable(
+      super(Flowable.fromIterable(
         json.getJsonArray("items").getList()).map(Data::new)
       );
       name = json.getString("name");
