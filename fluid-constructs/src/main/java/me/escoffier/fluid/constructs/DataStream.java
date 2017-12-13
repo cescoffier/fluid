@@ -129,6 +129,13 @@ public interface DataStream<T> {
   Flowable<Data<T>> flow();
 
   /**
+   * Sets the downstream data stream of the current data stream.
+   *
+   * @param next the next data streams.
+   */
+  void setDownstreams(DataStream... next);
+
+  /**
    * Operator terminating the transformation. It sends the incoming data to a {@link Sink} that will dispatch the
    * data to the next node, message broker....
    *
@@ -151,12 +158,19 @@ public interface DataStream<T> {
   }
 
   /**
-   * Internal API allowing to retrieves the stream on which the current stream is connected to.
+   * Internal API allowing to retrieve the streams on which the current stream is connected to (its sources).
    *
    * @param <I> the type of data received by the previous stream.
-   * @return the previous stream, may be {@code null} if the current stream is a {@link Source}.
+   * @return the previous streams, may be {@code empty} if the current stream is a {@link Source}.
    */
   <I> Collection<DataStream<I>> upstreams();
+
+  /**
+   * Internal API allowing to retrieves the stream on which the current stream is forwarding to (its sinks).
+   *
+   * @return the next streams, may be {@code empty} if the current stream is a {@link Sink}.
+   */
+  Collection<DataStream> downstreams();
 
   /**
    * Checks whether or not the current stream can be connected.
@@ -166,9 +180,9 @@ public interface DataStream<T> {
   boolean isConnectable();
 
   /**
-   * Splits the incoming stream in two branches. Data is routed towards one of the branch or the other based on the
-   * given predicate. If the predicate returns {@code true} for the incoming data, it is roted to the first branch
-   * (left). Otherwise it is routed to the second (right) branch.
+   * Fan-out operator splitting the incoming stream in two branches. Data is routed towards one of the branch or the other
+   * based on the given predicate. If the predicate returns {@code true} for the incoming data, it is roted to the first
+   * branch (left). Otherwise it is routed to the second (right) branch.
    * <p>
    * This construct can be seen as an 'if-then-else' structure:
    * <p>
@@ -196,7 +210,8 @@ public interface DataStream<T> {
   Pair<DataStream<T>, DataStream<T>> branchOnPayload(Predicate<T> condition);
 
   /**
-   * Splits the incoming stream in several branches (as many as the number of conditions). Data is routed towards on
+   * Fan-out operator splitting the incoming stream in several branches (as many as the number of conditions). Data is
+   * routed towards on
    * one of the branch based on the first condition returning {@code true} for the incoming data. It can be seen as a
    * 'switch (without default case)'
    * <p>
