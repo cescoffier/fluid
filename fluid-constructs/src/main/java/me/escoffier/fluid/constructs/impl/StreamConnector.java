@@ -2,6 +2,7 @@ package me.escoffier.fluid.constructs.impl;
 
 
 import io.reactivex.Flowable;
+import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.DataStream;
 import org.reactivestreams.Processor;
 import org.reactivestreams.Subscriber;
@@ -10,10 +11,10 @@ import org.reactivestreams.Subscription;
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class StreamConnector<T> implements Processor<T, T> {
+public class StreamConnector<T> implements Processor<Data<T>, Data<T>> {
 
-    private Flowable<T> source;
-    private Subscriber<? super T> sub;
+    private Flowable<Data<T>> source;
+    private Subscriber<? super Data<T>> sub;
 
     public synchronized void connectDownstream(DataStream<T> src) {
         if (source != null) {
@@ -24,26 +25,24 @@ public class StreamConnector<T> implements Processor<T, T> {
     }
 
     @Override
-    public void subscribe(Subscriber<? super T> s) {
+    public void subscribe(Subscriber<? super Data<T>> s) {
         synchronized (this) {
             if (source == null) {
                 s.onError(new Exception("Connectable stream not connected"));
                 return;
             }
         }
-        System.out.println("Subscription on the processor");
         sub = s;
         source.subscribe(this);
     }
 
     @Override
     public void onSubscribe(Subscription s) {
-        System.out.println("Processor subscribed to the upstream");
         sub.onSubscribe(s);
     }
 
     @Override
-    public void onNext(T s) {
+    public void onNext(Data<T> s) {
         sub.onNext(s);
     }
 

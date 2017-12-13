@@ -11,9 +11,12 @@ import java.util.TreeSet;
 import static java.util.Optional.empty;
 import static me.escoffier.fluid.spi.DataExpressionFactoryPriority.priority;
 
-public class DataExpressionFactories {
+public final class DataExpressionFactories {
 
-    public static Optional<DataExpression> eventExpression(Object expression) {
+  private DataExpressionFactories() {
+  }
+
+  public static Optional<DataExpression> eventExpression(Object expression) {
         Set<DataExpressionFactory> factories = new TreeSet<>((firstFactory, secondFactory) -> priority(secondFactory) - priority(firstFactory));
         ServiceLoader.load(DataExpressionFactory.class).iterator().forEachRemaining(factories::add);
         for (DataExpressionFactory factory : factories) {

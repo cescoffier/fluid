@@ -1,0 +1,17 @@
+sources:
+  source1:
+    param: 0
+    type: fake-source
+  source2:
+    items:
+      - 0
+      - 1
+      - 2
+      - 3
+    type: fake-source-2
+
+sinks:
+  sink1:
+    type: fake-sink
+  sink2:
+    type: fake-sink

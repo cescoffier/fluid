@@ -1,0 +1,67 @@
+sinks:
+  movies:
+    type: kafka
+    bootstrap.servers: localhost:9092
+    acks: all
+    retries: 10000
+    max.in.flight.requests.per.connection: 1
+    key.serializer: org.apache.kafka.common.serialization.LongSerializer
+    value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
+    topic: movies
+
+  reviews:
+    type: kafka
+    bootstrap.servers: localhost:9092
+    acks: all
+    retries: 10000
+    max.in.flight.requests.per.connection: 1
+    key.serializer: org.apache.kafka.common.serialization.LongSerializer
+    value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
+    topic: reviews
+
+  fraud:
+    type: kafka
+    bootstrap.servers: localhost:9092
+    acks: all
+    retries: 10000
+    max.in.flight.requests.per.connection: 1
+    key.serializer: org.apache.kafka.common.serialization.LongSerializer
+    value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
+    topic: fraud
+
+  long-term-ratings:
+    type: kafka
+    bootstrap.servers: localhost:9092
+    acks: all
+    retries: 10000
+    max.in.flight.requests.per.connection: 1
+    key.serializer: org.apache.kafka.common.serialization.LongSerializer
+    value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
+    topic: long-term-ratings
+
+  recent-ratings:
+    type: eventbus
+    address: recent-rating
+
+sources:
+  movies:
+    type: kafka
+    bootstrap.servers: localhost:9092
+    key.deserializer: org.apache.kafka.common.serialization.LongDeserializer
+    value.deserializer: io.vertx.kafka.client.serialization.JsonObjectDeserializer
+    topic: movies
+    acks: 1
+    group.id: the_group
+
+  reviews:
+    type: kafka
+    bootstrap.servers: localhost:9092
+    key.deserializer: org.apache.kafka.common.serialization.LongDeserializer
+    value.deserializer: io.vertx.kafka.client.serialization.JsonObjectDeserializer
+    multicast.buffer.size: 100
+    topic: reviews
+    acks: 1
+    group.id: the_group
+
+
+

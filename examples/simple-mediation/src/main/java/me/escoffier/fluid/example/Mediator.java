@@ -12,22 +12,16 @@ import me.escoffier.fluid.constructs.Source;
  */
 public class Mediator {
 
-//    @Port("sensor")
-//    Source<JsonObject> input;
-//
-//    @Port("eb-average")
-//    Sink<Double> output;
-    
-    @Transformation
-    public void mediation(@Port("sensor") Source<JsonObject> input, @Port("eb-average") Sink<Double> output) {
-        input
-            .transform(json -> json.getDouble("data"))
-            .transformFlow(flow ->
-                flow.window(5)
-                    .flatMap(MathFlowable::averageDouble)
-            )
+  @Transformation
+  public void mediation(@Port("sensor") Source<JsonObject> input, @Port("eb-average") Sink<Double> output) {
+    input
+      .transformPayload(json -> json.getDouble("data"))
+      .transformPayloadFlow(flow ->
+        flow.window(5)
+          .flatMap(MathFlowable::averageDouble)
+      )
 
-            .to(output);
-    }
+      .to(output);
+  }
 
 }

@@ -23,11 +23,6 @@
       <artifactId>vertx-kafka-client</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter-api</artifactId>
-      <version>5.0.1</version>
-    </dependency>
-    <dependency>
       <groupId>io.debezium</groupId>
       <artifactId>debezium-core</artifactId>
       <version>${debezium.version}</version>
@@ -66,13 +61,10 @@
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-unit</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-surefire-plugin</artifactId>
-      </plugin>
-    </plugins>
-  </build>
 </project>

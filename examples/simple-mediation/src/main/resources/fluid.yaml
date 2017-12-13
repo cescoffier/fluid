@@ -1,0 +1,51 @@
+# Configure the sources
+sources:
+   sensor:
+      type: kafka
+      topic: sensor
+      bootstrap.servers: localhost:9092
+      key.serializer: org.apache.kafka.common.serialization.StringSerializer
+      key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
+      value.deserializer: io.vertx.kafka.client.serialization.JsonObjectDeserializer
+      acks: 1
+      group.id: the_group
+
+   average:
+      type: kafka
+      topic: average
+      bootstrap.servers: localhost:9092
+      group.id: the_group
+      key.serializer: org.apache.kafka.common.serialization.StringSerializer
+      key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value.serializer:  org.apache.kafka.common.serialization.DoubleSerializer
+      value.deserializer: org.apache.kafka.common.serialization.DoubleDeserializer
+
+# Configure the sinks
+sinks:
+  sensor:
+      type: kafka
+      topic: sensor
+      bootstrap.servers: localhost:9092
+      key.serializer: org.apache.kafka.common.serialization.StringSerializer
+      key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
+      value.deserializer: io.vertx.kafka.client.serialization.JsonObjectDeserializer
+      acks: 1
+
+  average:
+     type: kafka
+     topic: average
+     bootstrap.servers: localhost:9092
+     key.serializer: org.apache.kafka.common.serialization.StringSerializer
+     key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+     value.serializer:  org.apache.kafka.common.serialization.DoubleSerializer
+     value.deserializer: org.apache.kafka.common.serialization.DoubleDeserializer
+
+  eb-average:
+      type: eventbus
+      address: average
+
+
+
+

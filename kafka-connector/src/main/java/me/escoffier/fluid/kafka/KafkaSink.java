@@ -1,10 +1,12 @@
 package me.escoffier.fluid.kafka;
 
 import io.reactivex.Completable;
+import io.vertx.core.Future;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaWriteStream;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.impl.AsyncResultCompletable;
+import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Sink;
 import me.escoffier.fluid.spi.DataExpression;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -19,39 +21,48 @@ import static me.escoffier.fluid.constructs.impl.DataExpressionFactories.require
  */
 public class KafkaSink<T> implements Sink<T> {
 
-    private final KafkaWriteStream<String, T> stream;
-    private final String topic;
-    private final Integer partition;
-    private final DataExpression key;
-    private final String name;
-    private Long timestamp;
+  private final KafkaWriteStream<String, T> stream;
+  private final String topic;
+  private final Integer partition;
+  private final DataExpression key;
+  private final String name;
+  private Long timestamp;
 
-    public KafkaSink(Vertx vertx, JsonObject json) {
-        stream = KafkaWriteStream.create(vertx.getDelegate(), toMap(json));
-        topic = json.getString("topic");
-        partition = json.getInteger("partition");
-        timestamp = json.getLong("timestamp");
-        key = requiredEventExpression(json.getString("key"));
-        name = json.getString("name");
-    }
+  public KafkaSink(Vertx vertx, JsonObject json) {
+    stream = KafkaWriteStream.create(vertx.getDelegate(), toMap(json));
+    topic = json.getString("topic");
+    partition = json.getInteger("partition");
+    timestamp = json.getLong("timestamp");
+    key = requiredEventExpression(json.getString("key"));
+    name = json.getString("name");
+  }
 
-    private static Map<String, Object> toMap(JsonObject json) {
-        Map<String, Object> map = new LinkedHashMap<>();
-        json.forEach(entry -> map.put(entry.getKey(), entry.getValue().toString()));
-        return map;
-    }
+  private static Map<String, Object> toMap(JsonObject json) {
+    Map<String, Object> map = new LinkedHashMap<>();
+    json.forEach(entry -> map.put(entry.getKey(), entry.getValue().toString()));
+    return map;
+  }
 
 
-    @Override
-    public Completable dispatch(T data) {
-        ProducerRecord<String, T> record
-            = new ProducerRecord(topic, partition, timestamp, key.evaluate(data), data);
-        return new AsyncResultCompletable(
-            handler -> stream.write(record, x -> handler.handle(x.mapEmpty())));
-    }
+  @Override
+  public Completable dispatch(Data<T> data) {
+    // TODO Override publication configuration using headers
+    // TODO Modify the evaluation to support Data<T>
+    ProducerRecord<String, T> record
+      = new ProducerRecord(topic, partition, timestamp, key.evaluate(data), data.payload());
+    return new AsyncResultCompletable(
+      handler ->
+        stream.write(record, x -> {
+          if (x.succeeded()) {
+            handler.handle(Future.succeededFuture());
+          } else {
+            handler.handle(Future.failedFuture(x.cause()));
+          }
+        }));
+  }
 
-    @Override
-    public String name() {
-        return name;
-    }
+  @Override
+  public String name() {
+    return name;
+  }
 }

@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
@@ -76,11 +78,10 @@ public class KafkaSinkTest {
 
 
         Source.from(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-            .transform(i -> i + 1)
+            .transformPayload(i -> i + 1)
             .to(sink);
 
-
-        latch.await();
+        assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
     }
 
     @Test
@@ -102,12 +103,11 @@ public class KafkaSinkTest {
 
 
         Stream<String> stream = new Random().longs(10).mapToObj(Long::toString);
-        Source.from(stream)
-            .onData(values::add)
+        Source.fromPayloads(stream)
+            .onPayload(values::add)
             .to(sink);
 
-
-        latch.await();
+      assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
     }
 
 

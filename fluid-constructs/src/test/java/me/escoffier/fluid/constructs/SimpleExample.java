@@ -4,9 +4,9 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.reactivex.core.Vertx;
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,6 +14,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -24,230 +25,227 @@ import static org.awaitility.Awaitility.await;
 public class SimpleExample {
 
 
-    private Vertx vertx;
+  private Vertx vertx;
 
-    @BeforeEach
-    public void setup() {
-        vertx = Vertx.vertx();
+  @Before
+  public void setup() {
+    vertx = Vertx.vertx();
+  }
+
+  @After
+  public void teardown() {
+    vertx.close();
+  }
+
+  @Test
+  public void testWithRange() {
+    CacheSink<Integer> sink = new CacheSink<>();
+    Source.from(Flowable.range(0, 10).map(Data::new))
+      .transformPayload(i -> {
+        System.out.println("Item: " + i);
+        return i;
+      })
+      .to(sink);
+
+    await().until(() -> sink.buffer.size() == 10);
+    assertThat(sink.buffer.size()).isEqualTo(10);
+  }
+
+  @Test
+  public void testWithRange2() {
+    List<Data<Integer>> list = new ArrayList<>();
+    Source.from(Flowable.range(0, 10).map(Data::new))
+      .to(Sink.forEach(list::add));
+    assertThat(list).hasSize(10);
+  }
+
+  @Test
+  public void testWithFactorial() throws IOException {
+    String path = "target/test-classes/factorial.txt";
+    FileSink sink = new FileSink(vertx, path);
+    getFactorialFlow()
+      .transformPayload(i -> i.toString() + "\n")
+      .to(sink);
+
+    await().until(() -> FileUtils.readLines(new File(path), "UTF-8").size() >= 10);
+    assertThat(FileUtils.readLines(new File(path), "UTF-8")).contains("3628800");
+  }
+
+  @Test
+  public void testQuotes() {
+    CacheSink<String> cache = new CacheSink<>();
+    List<Quote> quotes = new ArrayList<>();
+    quotes.add(new Quote("Attitude is everything", "Diane Von Furstenberg"));
+    quotes.add(new Quote("Life is short, heels shouldn't be", "Brian Atwood"));
+    quotes.add(new Quote("Red is the color for fall", "Piera Gelardi"));
+    quotes.add(new Quote("Rhinestones make everything better", "Piera Gelardi"));
+    quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
+
+    Source.fromPayloads(quotes.stream())
+      .transformPayload(q -> q.author)
+      .transformPayloadFlow(Flowable::distinct)
+      .transformPayload(String::toUpperCase)
+      .to(cache);
+
+    await().until(() -> cache.cache().size() == 4);
+    assertThat(cache.cache()).contains("PAUL RAND", "PIERA GELARDI");
+
+
+  }
+
+  private class Quote {
+    final String quote;
+    final String author;
+
+    Quote(String quote, String author) {
+      this.author = author;
+      this.quote = quote;
     }
+  }
 
-    @AfterEach
-    public void teardown() {
-        vertx.close();
-    }
+  private Sink<BigInteger> toLineInFile() {
+    String path = "target/test-classes/factorial-2.txt";
+    FileSink sink = new FileSink(vertx, path);
+    return data ->
+      Single.just(data)
+        .map(d -> d.with(d.payload().toString() + "\n"))
+        .flatMapCompletable(sink::dispatch);
+  }
 
-    @Test
-    void testWithRange() {
-        CacheSink<Integer> sink = new CacheSink<>();
-        Source.from(Flowable.range(0, 10))
-            .transform(i -> {
-                System.out.println("Item: " + i);
-                return i;
-            })
-            .to(sink);
+  @Test
+  public void testWithFactorialUsingBuiltSink() throws IOException {
+    String path = "target/test-classes/factorial-2.txt";
+    getFactorialFlow()
+      .to(toLineInFile());
 
-        await().until(() -> sink.buffer.size() == 10);
-    }
+    await().until(() -> FileUtils.readLines(new File(path), "UTF-8").size() >= 10);
+    assertThat(FileUtils.readLines(new File(path), "UTF-8")).contains("3628800");
+  }
 
-    @Test
-    void testWithRange2() {
-        Source.from(Flowable.range(0, 10))
-            .to(Sink.forEach(System.out::println));
-    }
+  private DataStream<BigInteger> getFactorialFlow() {
+    return Source.fromPayloads(Flowable.range(1, 10))
+      .transformPayloadFlow(flow -> flow.scan(BigInteger.ONE,
+        (acc, next) -> acc.multiply(BigInteger.valueOf(next))));
+  }
 
-    @Test
-    void testWithFactorial() throws IOException {
-        FileSink sink = new FileSink(vertx, "factorial.txt");
-        getFactorialFlow()
-            .transform(i -> i.toString() + "\n")
-            .to(sink);
+  @Test
+  public void testTimeBasedManipulation() {
+    CacheSink<String> cache = new CacheSink<>();
+    getFactorialFlow()
+      .transformPayloadFlow(flow ->
+        flow.zipWith(Flowable.range(0, 99),
+          (num, idx) -> String.format("%d! = %s", idx, num))
+          .delay(1, TimeUnit.SECONDS))
+      .to(cache);
 
-        await().until(() -> FileUtils.readLines(new File("factorial.txt"), "UTF-8").size() >= 10);
-        assertThat(FileUtils.readLines(new File("factorial.txt"), "UTF-8")).contains("3628800");
-    }
+    await().until(() -> cache.buffer.size() >= 10);
+    assertThat(cache.buffer.size()).isGreaterThanOrEqualTo(10);
+  }
 
-    @Test
-    void testQuotes() {
-        CacheSink<String> cache = new CacheSink<>();
-        List<Quote> quotes = new ArrayList<>();
-        quotes.add(new Quote("Attitude is everything", "Diane Von Furstenberg"));
-        quotes.add(new Quote("Life is short, heels shouldn't be", "Brian Atwood"));
-        quotes.add(new Quote("Red is the color for fall", "Piera Gelardi"));
-        quotes.add(new Quote("Rhinestones make everything better", "Piera Gelardi"));
-        quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
+  @Test
+  public void testComplexShaping() {
+    Function<Flowable<Quote>, Flowable<String>> toAuthor = flow -> flow.map(q -> q.author);
+    Function<Flowable<Quote>, Flowable<String>> toWords = flow -> flow
+      .concatMap(q -> Flowable.fromArray(q.quote.split(" ")));
+    CacheSink<String> authors = new CacheSink<>();
+    CacheSink<String> words = new CacheSink<>();
 
-        //TODO What is this generic issue?
-        Source.from(quotes.stream())
-            .transform(q -> q.author)
-            .transformFlow(Flowable::distinct)
-            .transform(String::toUpperCase)
-            .broadcastTo(Sink.forEach(System.out::println), cache);
+    List<Quote> quotes = new ArrayList<>();
+    quotes.add(new Quote("Attitude is everything", "Diane Von Furstenberg"));
+    quotes.add(new Quote("Life is short, heels shouldn't be", "Brian Atwood"));
+    quotes.add(new Quote("Red is the color for fall", "Piera Gelardi"));
+    quotes.add(new Quote("Rhinestones make everything better", "Piera Gelardi"));
+    quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
 
-        await().until(() -> cache.cache().size() == 4);
-        assertThat(cache.cache()).contains("PAUL RAND", "PIERA GELARDI");
+    List<DataStream<Quote>> broadcast = Source.from(quotes.stream().map(Data::new)).broadcast(2);
 
+    broadcast.get(0)
+      .transformPayloadFlow(toAuthor)
+      .transformPayloadFlow(Flowable::distinct)
+      .to(authors);
 
-    }
+    broadcast.get(1)
+      .transformPayloadFlow(toWords)
+      .transformPayloadFlow(Flowable::distinct)
+      .to(words);
 
-    private class Quote {
-        public final String quote;
-        public final String author;
+    await().until(() -> authors.cache().size() == 4);
+    assertThat(authors.cache()).hasSize(4);
+    assertThat(words.cache()).isNotEmpty();
+  }
 
-        public Quote(String quote, String author) {
-            this.author = author;
-            this.quote = quote;
-        }
-    }
+  @Test
+  public void testMerge() {
+    Flowable<String> f1 = Flowable.fromArray("a", "b", "c")
+      .delay(10, TimeUnit.MILLISECONDS);
 
-    Sink<BigInteger> toLineInFile() {
-        FileSink sink = new FileSink(vertx, "factorial-2.txt");
-        return data ->
-            Single.just(data)
-                .map(d -> d.toString() + "\n")
-                .flatMapCompletable(sink::dispatch);
-    }
+    List<DataStream<String>> broadcast = Source.fromPayloads(f1).broadcast(2);
 
-    @Test
-    void testWithFactorialUsingBuiltSink() throws IOException {
-        getFactorialFlow()
-            .to(toLineInFile());
+    DataStream<String> stream1 = broadcast.get(0)
+      .transformPayload(String::toUpperCase);
+    DataStream<String> stream2 = broadcast.get(1)
+      .transformPayload(s -> "FOO");
 
-        await().until(() -> FileUtils.readLines(new File("factorial-2.txt"), "UTF-8").size() >= 10);
-        assertThat(FileUtils.readLines(new File("factorial-2.txt"), "UTF-8")).contains("3628800");
-    }
+    CacheSink<String> cache = new CacheSink<>();
+    stream1.mergeWith(stream2).to(cache);
 
-    private DataStream<BigInteger> getFactorialFlow() {
-        return Source.from(Flowable.range(1, 10))
-            .transformFlow(flow -> flow.scan(BigInteger.ONE, (acc, next) -> acc.multiply(BigInteger.valueOf(next))));
-    }
+    await().until(() -> cache.cache().size() == 6);
+    assertThat(cache.cache()).contains("A", "B", "C").contains("FOO");
+  }
 
-    @Test
-    void testTimeBasedManipulation() {
-        CacheSink<String> cache = new CacheSink<>();
-        getFactorialFlow()
-            .transformFlow(flow ->
-                flow.zipWith(Flowable.range(0, 99), (num, idx) -> String.format("%d! = %s", idx, num))
-                    .delay(1, TimeUnit.SECONDS))
-            .broadcastTo(Sink.forEach(System.out::println), cache);
+  @Test
+  public void testConcat() {
+    Flowable<String> f1 = Flowable.fromArray("a", "b", "c")
+      .delay(10, TimeUnit.MILLISECONDS);
 
-        await().until(() -> cache.buffer.size() >= 10);
-    }
+    Flowable<String> f2 = Flowable.fromArray("d", "e", "f")
+      .delay(10, TimeUnit.MILLISECONDS);
 
-    @Test
-    void testComplexShaping() {
-        /*
-        final UniformFanOutShape<Tweet, Tweet> bcast = b.add(Broadcast.create(2));
-  final FlowShape<Tweet, Author> toAuthor =
-	  b.add(Flow.of(Tweet.class).map(t -> t.author));
-  final FlowShape<Tweet, Hashtag> toTags =
-      b.add(Flow.of(Tweet.class).mapConcat(t -> new ArrayList<Hashtag>(t.hashtags())));
-  final SinkShape<Author> authors = b.add(writeAuthors);
-  final SinkShape<Hashtag> hashtags = b.add(writeHashtags);
+    CacheSink<String> cache = new CacheSink<>();
 
-  b.from(b.add(tweets)).viaFanOut(bcast).via(toAuthor).to(authors);
-                             b.from(bcast).via(toTags).to(hashtags);
-  return ClosedShape.getInstance();
-         */
+    Source.fromPayloads(f1)
+      .transformPayload(String::toUpperCase)
+      .concatWith(Source.fromPayloads(f2).transformPayload(s -> "FOO"))
+      .to(cache);
 
-        Transformer<Quote, String> toAuthor = flow -> flow.map(q -> q.author);
-        Transformer<Quote, String> toWords = flow -> flow
-            .concatMap(q -> Flowable.fromArray(q.quote.split(" ")));
-        CacheSink<String> authors = new CacheSink<>();
-        CacheSink<String> words = new CacheSink<>();
+    await().until(() -> cache.cache().size() == 6);
+    assertThat(cache.cache()).containsExactly("A", "B", "C", "FOO", "FOO", "FOO");
+  }
 
-        List<Quote> quotes = new ArrayList<>();
-        quotes.add(new Quote("Attitude is everything", "Diane Von Furstenberg"));
-        quotes.add(new Quote("Life is short, heels shouldn't be", "Brian Atwood"));
-        quotes.add(new Quote("Red is the color for fall", "Piera Gelardi"));
-        quotes.add(new Quote("Rhinestones make everything better", "Piera Gelardi"));
-        quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
+  @Test
+  public void testZip() {
+    Flowable<String> f1 = Flowable.fromArray("a", "b", "c");
 
-        DataStream<String> s1 = DataStream.of(Quote.class).transformWith(toAuthor)
-            .transformFlow(Flowable::distinct);
-        DataStream<String> s2 = DataStream.of(Quote.class).transformWith(toWords)
-            .transformFlow(Flowable::distinct);
+    Flowable<String> f2 = Flowable.fromArray("1", "2", "3");
 
-        Source.from(quotes.stream())
-            .broadcastTo(s1, s2);
+    CacheSink<String> cache = new CacheSink<>();
+    Source.fromPayloads(f1).transformPayload(String::toUpperCase).zipWith(Source.fromPayloads(f2))
+      .transformPayload(pair -> pair.left() + ":" + pair.right() + "\n")
+      .to(cache);
 
-        s1.to(authors);
-        s2.to(words);
+    await().until(() -> cache.cache().size() == 3);
+    assertThat(cache.cache()).containsExactly("A:1\n", "B:2\n", "C:3\n");
+  }
 
-        await().until(() -> authors.cache().size() == 4);
-        System.out.println(authors.cache());
-        System.out.println(words.cache());
-    }
+  @Test
+  public void testFold() {
+    ScanSink<Integer, Integer> sink = Sink.fold(0, (i, v) -> i + v);
+    Source.fromPayloads(Flowable.range(0, 3))
+      .transformPayload(i -> ++i)
+      .to(sink);
 
-    @Test
-    void testMerge() {
-        Flowable<String> f1 = Flowable.fromArray("a", "b", "c")
-            .delay(10, TimeUnit.MILLISECONDS);
+    assertThat(sink.value()).isEqualTo(6);
+  }
 
-        DataStream<String> s1 = DataStream.of(String.class)
-            .transform(String::toUpperCase);
-        DataStream<String> s2 = DataStream.of(String.class)
-            .transform(s -> "FOO");
-        Source.from(f1).broadcastTo(s1, s2);
+  @Test
+  public void testHead() {
+    HeadSink<Integer> sink = Sink.head();
+    Source.fromPayloads(Flowable.range(0, 3))
+      .transformPayload(i -> ++i)
+      .to(sink);
 
-        CacheSink<String> cache = new CacheSink<>();
-        s1.mergeWith(s2).to(cache);
-
-        await().until(() -> cache.cache().size() == 6);
-        assertThat(cache.cache()).contains("A", "B", "C").contains("FOO");
-    }
-
-    @Test
-    void testConcat() {
-        Flowable<String> f1 = Flowable.fromArray("a", "b", "c")
-            .delay(10, TimeUnit.MILLISECONDS);
-
-        DataStream<String> s1 = DataStream.of(String.class)
-            .transform(String::toUpperCase);
-        DataStream<String> s2 = DataStream.of(String.class)
-            .transform(s -> "FOO");
-        Source.from(f1).broadcastTo(s1, s2);
-
-        CacheSink<String> cache = new CacheSink<>();
-        s1.concatWith(s2).to(cache);
-
-        await().until(() -> cache.cache().size() == 6);
-        assertThat(cache.cache()).containsExactly("A", "B", "C", "FOO", "FOO", "FOO");
-    }
-
-    @Test
-    void testZip() {
-        Flowable<String> f1 = Flowable.fromArray("a", "b", "c");
-
-        Flowable<String> f2 = Flowable.fromArray("1", "2", "3");
-
-        CacheSink<String> cache = new CacheSink<>();
-        Source.from(f1).transform(String::toUpperCase).zipWith(Source.from(f2))
-            .transform(pair -> pair.left() + ":" + pair.right() + "\n")
-            .to(cache);
-
-        await().until(() -> cache.cache().size() == 3);
-        assertThat(cache.cache()).containsExactly("A:1\n", "B:2\n", "C:3\n");
-    }
-
-    @Test
-    void testFold() {
-        Sink.ScanSink<Integer, Integer> sink = Sink.fold(0, (i, v) -> i + v);
-        Source.from(Flowable.range(0, 3))
-            .transform(i -> ++i)
-            .to(sink);
-
-        await().until(() -> sink.value() == 6);
-    }
-
-    @Test
-    void testHead() {
-        Sink.HeadSink<Integer> sink = Sink.head();
-        Source.from(Flowable.range(0, 3))
-            .transform(i -> ++i)
-            .to(sink);
-
-        await().until(() -> sink.value() == 1);
-    }
+    assertThat(sink.value()).isEqualTo(1);
+  }
 
 
 }
