@@ -21,7 +21,7 @@
     <module>fluid-framework</module>
     <module>camel-sink</module>
     <module>expression-groovy</module>
-    <module>view</module>
+    <module>data-view</module>
     <module>examples/simple-mediation</module>
     <module>examples/review-example</module>
   </modules>
