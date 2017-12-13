@@ -1,0 +1,23 @@
+spec:
+  template:
+    spec:
+      volumes:
+        - configMap:
+            name: my-fluid-config
+            items:
+            - key: fluid-config-map.yaml
+              path: fluid.yaml
+          name: my-fluid-config
+      containers:
+        - name: vertx
+          env:
+            - name: KUBERNETES_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: JAVA_OPTIONS
+              value: '-Dvertx.cacheDirBase=/tmp -Dfluid-config=config/fluid.yaml'
+          volumeMounts:
+            - name: my-fluid-config
+              mountPath: /deployments/config
