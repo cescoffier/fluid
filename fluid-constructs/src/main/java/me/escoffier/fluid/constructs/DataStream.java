@@ -3,6 +3,7 @@ package me.escoffier.fluid.constructs;
 import io.reactivex.Flowable;
 import me.escoffier.fluid.constructs.impl.DataStreamImpl;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -16,7 +17,7 @@ import java.util.function.Predicate;
 public interface DataStream<T> {
 
   /**
-   * Operator merging the current stream with a set of other streams. All the streams must convey the same type of
+   * Fan-In operator merging the current stream with a set of other streams. All the streams must convey the same type of
    * {@link Data}.
    *
    * @param streams the set of streams to merge. None of them can be {@code null}.
@@ -26,7 +27,7 @@ public interface DataStream<T> {
   DataStream<T> mergeWith(DataStream<T>... streams);
 
   /**
-   * Operator merging the current stream with another stream. The stream must convey the same type of {@link Data}.
+   * Fan-In operator merging the current stream with another stream. The stream must convey the same type of {@link Data}.
    *
    * @param stream the stream to merge. None of them can be {@code null}.
    * @return the new {@link DataStream}.
@@ -34,7 +35,7 @@ public interface DataStream<T> {
   DataStream<T> mergeWith(DataStream<T> stream);
 
   /**
-   * Operator concatenating the current stream with a set of other streams. All the streams must convey the same type of
+   * Fan-In operator concatenating the current stream with a set of other streams. All the streams must convey the same type of
    * {@link Data}.
    *
    * @param streams the set of streams to merge. None of them can be {@code null}.
@@ -44,7 +45,7 @@ public interface DataStream<T> {
   DataStream<T> concatWith(DataStream<T>... streams);
 
   /**
-   * Operator concatenating the current stream with another stream. The stream must convey the same type of
+   * Fan-In operator concatenating the current stream with another stream. The stream must convey the same type of
    * {@link Data}.
    *
    * @param stream the stream to merge. None of them can be {@code null}.
@@ -53,7 +54,7 @@ public interface DataStream<T> {
   DataStream<T> concatWith(DataStream<T> stream);
 
   /**
-   * Operator associating each {@link Data} transiting on the current stream with a {@link Data} transiting on the
+   * Fan-in operator associating each {@link Data} transiting on the current stream with a {@link Data} transiting on the
    * given stream. The resulting stream conveys {@link Pair}.
    *
    * @param stream the stream associated with the current one, must not be {@code null}
@@ -63,16 +64,13 @@ public interface DataStream<T> {
   <O> DataStream<Pair<T, O>> zipWith(DataStream<O> stream);
 
   /**
-   * Operator associating each {@link Data} transiting on the current stream with a {@link Data} transiting on the two
+   * Fan-in operator associating each {@link Data} transiting on the current stream with a {@link Data} transiting on the two
    * given streams. The resulting stream conveys {@link Tuple}.
    *
-   * @param stream1 the first stream associated with the current one, must not be {@code null}
-   * @param stream2 the second stream associated with the current one, must not be {@code null}
-   * @param <O1>    the type of {@link Data} transiting in the <code>stream1</code> data stream.
-   * @param <O2>    the type of {@link Data} transiting in the <code>stream2</code> data stream.
+   * @param streams the first stream associated with the current one, must not be {@code null}
    * @return the new {@link DataStream}.
    */
-  <O1, O2> DataStream<Tuple> zipWith(DataStream<O1> stream1, DataStream<O2> stream2);
+  DataStream<Tuple> zipWith(DataStream... streams);
 
   /**
    * Operator transforming each incoming {@code Data} into another {@code Data}.
@@ -158,7 +156,7 @@ public interface DataStream<T> {
    * @param <I> the type of data received by the previous stream.
    * @return the previous stream, may be {@code null} if the current stream is a {@link Source}.
    */
-  <I> DataStream<I> previous();
+  <I> Collection<DataStream<I>> upstreams();
 
   /**
    * Checks whether or not the current stream can be connected.
