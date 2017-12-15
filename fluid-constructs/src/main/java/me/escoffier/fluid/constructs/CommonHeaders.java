@@ -10,6 +10,8 @@ public final class CommonHeaders {
 
   public static final String KEY = "fluid.key";
 
+  public static final String RESPONSE_CALLBACK = "fluid.response.callback";
+
 
   private CommonHeaders() {
     // Avoid direct instantiation.
@@ -42,6 +44,14 @@ public final class CommonHeaders {
   @SuppressWarnings("unchecked")
   public static Optional<String> keyOpt(Data data) {
     return data.getOpt(KEY);
+  }
+
+  public static ResponseCallback responseCallback(Data data) {
+    return (ResponseCallback) data.get(RESPONSE_CALLBACK);
+  }
+
+  public static Optional<ResponseCallback> responseCallbackOpt(Data data) {
+    return (Optional<ResponseCallback>) data.getOpt(RESPONSE_CALLBACK);
   }
 
 }
