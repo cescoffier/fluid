@@ -1,7 +1,9 @@
 package me.escoffier.fluid.constructs;
 
+import io.reactivex.Completable;
+
 public interface ResponseCallback {
 
-    void respond(Object response);
+    Completable reply(Object response);
 
 }
