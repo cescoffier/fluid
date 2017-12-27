@@ -329,6 +329,12 @@
                 </goals>
               </execution>
             </executions>
+            <configuration>
+              <detectLinks>true</detectLinks>
+              <detectJavaApiLink>true</detectJavaApiLink>
+              <show>private</show>
+              <additionalparam>-Xdoclint:none</additionalparam>
+            </configuration>
           </plugin>
 
           <plugin>
