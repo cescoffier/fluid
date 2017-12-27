@@ -132,7 +132,7 @@ public class Data<T> {
       builder.append("{");
       String h = headers.entrySet().stream()
         .map(entry -> "\"" + entry.getKey() + "\":\""
-          + (entry.getValue() != null ? entry.getValue() + "\"" : "NULL")
+          + (entry.getValue() != null ? (entry.getValue() + "\"") : "NULL")
         )
         .collect(Collectors.joining(","));
       builder.append(h).append("}");
