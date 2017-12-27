@@ -5,8 +5,8 @@ import me.escoffier.fluid.constructs.*;
 import org.reactivestreams.Publisher;
 
 import java.util.*;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -126,7 +126,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   public <O> DataStream<Pair<T, O>> zipWith(DataStream<O> stream) {
     Objects.requireNonNull(stream, NULL_STREAM_MESSAGE);
     Flowable<Data<Pair<T, O>>> flowable = flow.zipWith(stream.flow(),
-      (d1, d2) -> new Data<>(pair(d1.payload(), d2.payload())));
+      (d1, d2) -> d1.with(pair(d1.payload(), d2.payload())));
 
     List<DataStream> previous = new ArrayList<>();
     previous.add(this);
@@ -155,15 +155,22 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
     Flowable<Data<Tuple>> flowable = Flowable.zip(toBeZipped, objects -> {
       List<Object> payloads = new ArrayList<>();
+      Data<?> first = null;
       for (Object o : objects) {
         if (!(o instanceof Data)) {
           throw new IllegalArgumentException("Invalid incoming item - " + Data.class.getName() + " expected, received " +
             o.getClass().getName());
         } else {
+          if (first == null) {
+            first = ((Data) o);
+          }
           payloads.add(((Data) o).payload());
         }
       }
-      return new Data<>(Tuple.tuple(payloads.toArray(new Object[payloads.size()])));
+      if (first == null) {
+        throw new IllegalStateException("Invalid set of stream");
+      }
+      return first.with(Tuple.tuple(payloads.toArray(new Object[payloads.size()])));
     });
 
     DataStreamImpl<Object, Tuple> next = new DataStreamImpl<>(previous, flowable);
@@ -184,9 +191,10 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   @Override
   public <OUT> DataStream<OUT> transformPayload(Function<T, OUT> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
-    // TODO we are loosing the headers.
     DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this,
-      flow.map(Data::payload).map(function::apply).map(Data::new));
+      flow
+        .flatMap(data -> Flowable.just(data.payload()).map(function::apply).map(data::with))
+    );
     this.setDownstreams(next);
     return next;
   }
@@ -194,10 +202,12 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   @Override
   public <OUT> DataStream<OUT> transformPayloadFlow(Function<Flowable<T>, Flowable<OUT>> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
-    // TODO we are loosing the headers.
-
-    Flowable<Data<OUT>> flowable = function.apply(flow.map(Data::payload)).map(Data::new);
-    DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this, flowable);
+    DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this,
+      flow.compose(upstream -> Flowable.defer(() -> {
+        AtomicReference<Data<T>> current = new AtomicReference<>();
+        return function.apply(upstream.doOnNext(current::set).map(Data::payload))
+          .map(s -> current.get().with(s));
+      })));
     this.setDownstreams(next);
     return next;
   }
