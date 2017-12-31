@@ -132,10 +132,11 @@ public class SimpleExample {
   public void testTimeBasedManipulation() {
     CacheSink<String> cache = new CacheSink<>();
     getFactorialFlow()
-      .transformPayloadFlow(flow ->
-        flow.zipWith(Flowable.range(0, 99),
+      .transformPayloadFlow(flow -> {
+        return flow.zipWith(Flowable.range(0, 99),
           (num, idx) -> String.format("%d! = %s", idx, num))
-          .delay(1, TimeUnit.SECONDS))
+          .delay(1, TimeUnit.SECONDS);
+        })
       .to(cache);
 
     await().until(() -> cache.buffer.size() >= 10);

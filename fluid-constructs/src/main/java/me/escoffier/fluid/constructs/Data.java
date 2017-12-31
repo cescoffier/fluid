@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
  */
 public class Data<T> {
 
+  private static final Object STUB = new Object();
   /**
    * The payload, must not be {@code null}
    */
@@ -45,6 +46,10 @@ public class Data<T> {
     this.payload = Objects.requireNonNull(payload);
     this.headers = Collections
       .unmodifiableMap(new HashMap<>(Objects.requireNonNull(headers)));
+  }
+
+  protected Data() {
+    this((T) STUB, Collections.emptyMap());
   }
 
   /**
@@ -140,7 +145,6 @@ public class Data<T> {
       builder.append("{}");
     }
     builder.append("}");
-
 
     return builder.toString();
   }

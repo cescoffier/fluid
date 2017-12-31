@@ -64,14 +64,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   @SafeVarargs
   public final DataStream<T> mergeWith(DataStream<T>... streams) {
     Objects.requireNonNull(streams, NULL_STREAMS_MESSAGE);
-    List<DataStream<T>> list = new ArrayList<>();
-    list.add(this);
-    list.addAll(Arrays.asList(streams));
 
-    Flowable<Data<T>> merged = Flowable.merge(list.stream()
-      .map(DataStream::flow)
-      .collect(Collectors.toList())
-    );
+    List<Flowable<Data<T>>> toBeMerged = new ArrayList<>();
+    toBeMerged.add(this.flow);
+    for (DataStream<T> stream : streams) {
+      toBeMerged.add(stream.flow().filter(d -> !ControlData.isControl(d)));
+    }
+
+    Flowable<Data<T>> merged = Flowable.merge(toBeMerged);
 
     List<DataStream> previous = new ArrayList<>();
     previous.add(this);
@@ -93,6 +93,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   @Override
   @SafeVarargs
+  @Deprecated
   public final DataStream<T> concatWith(DataStream<T>... streams) {
     Objects.requireNonNull(streams, NULL_STREAMS_MESSAGE);
     List<DataStream<T>> list = new ArrayList<>();
@@ -117,6 +118,7 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
 
   @SuppressWarnings("unchecked")
   @Override
+  @Deprecated
   public final DataStream<T> concatWith(DataStream<T> stream) {
     DataStream[] array = {stream};
     return concatWith(array);
@@ -125,14 +127,23 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   @Override
   public <O> DataStream<Pair<T, O>> zipWith(DataStream<O> stream) {
     Objects.requireNonNull(stream, NULL_STREAM_MESSAGE);
-    Flowable<Data<Pair<T, O>>> flowable = flow.zipWith(stream.flow(),
-      (d1, d2) -> d1.with(pair(d1.payload(), d2.payload())));
+
+    Flowable<Data<Pair<T, O>>> fusion =
+      flow.groupBy(ControlData::isControl)
+        .flatMap(f -> {
+          if (f.getKey()) {
+            return f.<Data<Pair<T, O>>>map(ControlData.class::cast);
+          } else {
+            return f.zipWith(stream.flow().filter(d -> !ControlData.isControl(d)),
+              (a, b) -> a.with(pair(a.payload(), b.payload())));
+          }
+        });
 
     List<DataStream> previous = new ArrayList<>();
     previous.add(this);
     previous.add(stream);
 
-    DataStreamImpl<Object, Pair<T, O>> next = new DataStreamImpl<>(previous, flowable);
+    DataStreamImpl<Object, Pair<T, O>> next = new DataStreamImpl<>(previous, fusion);
     this.setDownstreams(next);
     stream.setDownstreams(next);
 
@@ -143,37 +154,48 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   public DataStream<Tuple> zipWith(DataStream... streams) {
     Objects.requireNonNull(streams, NULL_STREAM_MESSAGE);
 
-    List<Flowable<?>> toBeZipped = new ArrayList<>();
     List<DataStream> previous = new ArrayList<>();
-    toBeZipped.add(this.flow);
     previous.add(this);
     for (DataStream d : streams) {
       Objects.requireNonNull(d, NULL_STREAM_MESSAGE);
-      toBeZipped.add(d.flow());
       previous.add(d);
     }
 
-    Flowable<Data<Tuple>> flowable = Flowable.zip(toBeZipped, objects -> {
-      List<Object> payloads = new ArrayList<>();
-      Data<?> first = null;
-      for (Object o : objects) {
-        if (!(o instanceof Data)) {
-          throw new IllegalArgumentException("Invalid incoming item - " + Data.class.getName() + " expected, received " +
-            o.getClass().getName());
-        } else {
-          if (first == null) {
-            first = ((Data) o);
+    Flowable<Data<Tuple>> fusion =
+      flow.groupBy(ControlData::isControl)
+        .flatMap(f -> {
+          if (f.getKey()) {
+            return f.<Data<Tuple>>map(ControlData.class::cast);
+          } else {
+            List<Flowable<?>> toBeZipped = new ArrayList<>();
+            toBeZipped.add(f);
+            for (DataStream d : streams) {
+              toBeZipped.add(d.flow().filter(ControlData::isNotControl));
+            }
+            return Flowable.zip(toBeZipped, objects -> {
+              List<Object> payloads = new ArrayList<>();
+              Data<?> first = null;
+              for (Object o : objects) {
+                if (!(o instanceof Data)) {
+                  throw new IllegalArgumentException("Invalid incoming item - "
+                    + Data.class.getName() + " expected, received " +
+                    o.getClass().getName());
+                } else {
+                  if (first == null) {
+                    first = ((Data) o);
+                  }
+                  payloads.add(((Data) o).payload());
+                }
+              }
+              if (first == null) {
+                throw new IllegalStateException("Invalid set of stream");
+              }
+              return first.with(Tuple.tuple(payloads.toArray(new Object[payloads.size()])));
+            });
           }
-          payloads.add(((Data) o).payload());
-        }
-      }
-      if (first == null) {
-        throw new IllegalStateException("Invalid set of stream");
-      }
-      return first.with(Tuple.tuple(payloads.toArray(new Object[payloads.size()])));
-    });
+        });
 
-    DataStreamImpl<Object, Tuple> next = new DataStreamImpl<>(previous, flowable);
+    DataStreamImpl<Object, Tuple> next = new DataStreamImpl<>(previous, fusion);
     this.setDownstreams(next);
     Arrays.stream(streams).forEach(d -> d.setDownstreams(next));
     return next;
@@ -183,7 +205,33 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   @Override
   public <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
-    DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this, flow.map(function::apply));
+    DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this, flow.map(d -> {
+      if (ControlData.isControl(d)) {
+        return (ControlData) d;
+      }
+      return function.apply(d);
+    }));
+    this.setDownstreams(next);
+    return next;
+  }
+
+  //  @Override
+  public <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function,
+                                         boolean includeControl) {
+    Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
+    DataStreamImpl<T, OUT> next;
+    if (includeControl) {
+      next = new DataStreamImpl<>(this, flow.map(function::apply));
+    } else {
+      next = new DataStreamImpl<>(this, flow
+        .map(d -> {
+          if (ControlData.isControl(d)) {
+            return (ControlData) d;
+          } else {
+            return function.apply(d);
+          }
+        }));
+    }
     this.setDownstreams(next);
     return next;
   }
@@ -193,7 +241,14 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
     DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this,
       flow
-        .flatMap(data -> Flowable.just(data.payload()).map(function::apply).map(data::with))
+        .flatMap(data -> {
+          if (!ControlData.isControl(data)) {
+            return Flowable.just(data).map(Data::payload).map(function::apply).map(data::with);
+          } else {
+            ControlData<OUT> control = (ControlData) data;
+            return Flowable.just(control);
+          }
+        })
     );
     this.setDownstreams(next);
     return next;
@@ -202,12 +257,30 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   @Override
   public <OUT> DataStream<OUT> transformPayloadFlow(Function<Flowable<T>, Flowable<OUT>> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
-    DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this,
-      flow.compose(upstream -> Flowable.defer(() -> {
-        AtomicReference<Data<T>> current = new AtomicReference<>();
-        return function.apply(upstream.doOnNext(current::set).map(Data::payload))
-          .map(s -> current.get().with(s));
-      })));
+
+    Flowable<Data<OUT>> fusion =
+      flow.groupBy(ControlData::isControl)
+        .flatMap(f -> {
+          if (f.getKey()) {
+            return f.<Data<OUT>>map(ControlData.class::cast);
+          } else {
+            return f.compose(upstream -> Flowable.defer(() -> {
+              AtomicReference<Data<T>> current = new AtomicReference<>();
+              Flowable<T> flowable = upstream.doOnNext(current::set).map(Data::payload);
+              return function.apply(flowable)
+                .map(s -> {
+                  if (current.get() == null) {
+                    // The famous "scan" case where an item can be emitted without passing in the upstream processing, as
+                    // it emits the root value.
+                    return new Data<>(s);
+                  }
+                  return current.get().with(s);
+                });
+            }));
+          }
+        });
+
+    DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this, fusion);
     this.setDownstreams(next);
     return next;
   }
@@ -216,7 +289,17 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   public <OUT> DataStream<OUT> transformFlow(Function<Flowable<Data<T>>, Flowable<Data<OUT>>> function) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
 
-    DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this, function.apply(flow));
+    Flowable<Data<OUT>> fusion =
+      flow.groupBy(ControlData::isControl)
+        .flatMap(f -> {
+          if (f.getKey()) {
+            return f.<Data<OUT>>map(x -> (ControlData) x);
+          } else {
+            return function.apply(f);
+          }
+        });
+
+    DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this, fusion);
     this.setDownstreams(next);
     return next;
 

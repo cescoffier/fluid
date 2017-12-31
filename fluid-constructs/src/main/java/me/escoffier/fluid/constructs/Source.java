@@ -34,6 +34,8 @@ public interface Source<T> extends DataStream<T> {
     return new AbstractSource<>(Objects.requireNonNull(flow).map(Data::new));
   }
 
+  Source<T> withWindow(WindowOperator<T> operator);
+
   static <T> Source<T> from(Single<Data<T>> single) {
     return from(Objects.requireNonNull(single).toFlowable());
   }

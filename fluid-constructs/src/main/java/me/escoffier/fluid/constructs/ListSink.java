@@ -17,8 +17,11 @@ public class ListSink<OUT> implements Sink<OUT> {
 
   @Override
   public Completable dispatch(Data<OUT> data) {
-    return Completable.fromAction(() ->
-      values.add(data));
+    return Completable.fromAction(() -> {
+      if (!(ControlData.isControl(data))) {
+        values.add(data);
+      }
+    });
   }
 
   public synchronized List<OUT> values() {
