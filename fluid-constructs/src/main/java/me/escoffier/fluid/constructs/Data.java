@@ -148,4 +148,8 @@ public class Data<T> {
 
     return builder.toString();
   }
+
+  public boolean isControl() {
+    return ControlData.isControl(this);
+  }
 }
