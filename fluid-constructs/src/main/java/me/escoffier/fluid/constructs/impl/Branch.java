@@ -1,6 +1,7 @@
 package me.escoffier.fluid.constructs.impl;
 
 import io.reactivex.Flowable;
+import me.escoffier.fluid.constructs.ControlData;
 import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.DataStream;
 import org.reactivestreams.Processor;
@@ -62,6 +63,10 @@ public class Branch<IN> implements Processor<Data<IN>, Data<IN>> {
 
   @Override
   public void onNext(Data<IN> s) {
+    if (ControlData.isControl(s)) {
+      branches.forEach(b -> b.dispatch(s));
+      return;
+    }
     for (BranchLogic branch : branches) {
       if (branch.acceptAndDispatch(s)) {
         return;
@@ -105,7 +110,7 @@ public class Branch<IN> implements Processor<Data<IN>, Data<IN>> {
 
     private final DataStream<IN> output;
 
-    public BranchLogic(Predicate<Data<IN>> filter, DataStream<IN> output) {
+    BranchLogic(Predicate<Data<IN>> filter, DataStream<IN> output) {
       this.filter = Objects.requireNonNull(filter);
       this.output = Objects.requireNonNull(output);
     }
@@ -116,19 +121,23 @@ public class Branch<IN> implements Processor<Data<IN>, Data<IN>> {
 
     boolean acceptAndDispatch(Data<IN> data) {
       if (accept(data)) {
-        // TODO What is we don't have a connector...
-        ((DataStreamImpl<IN, IN>) output).connector().onNext(data);
+        dispatch(data);
         return true;
       }
       return false;
     }
 
-    public void propagateError(Throwable err) {
+    void dispatch(Data<IN> data) {
+      // TODO What is we don't have a connector...
+      ((DataStreamImpl<IN, IN>) output).connector().onNext(data);
+    }
+
+    void propagateError(Throwable err) {
       ((DataStreamImpl<IN, IN>) output).connector().onError(err);
     }
 
 
-    public void propagateCompletion() {
+    void propagateCompletion() {
       ((DataStreamImpl<IN, IN>) output).connector().onComplete();
     }
   }
