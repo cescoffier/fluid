@@ -1,10 +1,14 @@
 package me.escoffier.fluid.constructs;
 
+import io.reactivex.BackpressureStrategy;
 import io.reactivex.Flowable;
+import io.reactivex.FlowableEmitter;
+import io.reactivex.FlowableOnSubscribe;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -474,5 +478,68 @@ public class WindowingTest {
 
     assertThat(seenInOnData).hasSize(10);
     assertThat(seenInOnPayload).hasSize(10);
+  }
+
+  @Test
+  public void testAll() {
+    List<ControlData> control = new ArrayList<>();
+    List<Integer> seenInOnData = new ArrayList<>();
+
+    Source<Integer> numbers = Source.fromPayloads(Flowable.range(0, 10)).withWindow(Windowing.all());
+    numbers
+      .onData(d -> {
+        if (ControlData.isControl(d)) {
+          control.add((ControlData) d);
+        } else {
+          seenInOnData.add(d.payload());
+        }
+      })
+      .to(Sink.discard());
+
+    assertThat(control).hasSize(1);
+    assertThat(seenInOnData).hasSize(10);
+  }
+
+  @Test
+  public void testAllAndOpen() {
+    List<ControlData> control = new ArrayList<>();
+    List<Integer> seenInOnData = new ArrayList<>();
+
+    AtomicReference<FlowableEmitter<Integer>> reference = new AtomicReference<>();
+    Flowable<Integer> flowable = Flowable.create(reference::set, BackpressureStrategy.BUFFER);
+
+    Source<Integer> numbers = Source.fromPayloads(flowable).withWindow(Windowing.all(true));
+    AtomicReference<Data<Integer>> last = new AtomicReference<>();
+    numbers
+      .onData(d -> {
+        if (ControlData.isControl(d)) {
+          control.add((ControlData) d);
+        } else {
+          seenInOnData.add(d.payload());
+          last.set(d);
+        }
+      })
+      .to(Sink.discard());
+
+    reference.get().onNext(0);
+    reference.get().onNext(1);
+    reference.get().onNext(2);
+    Window<Integer> window = last.get().get("fluid-window");
+    assertThat(window.data().stream().map(Data::payload).collect(Collectors.toList())).containsExactly(0, 1, 2);
+    reference.get().onNext(3);
+    reference.get().onNext(4);
+    reference.get().onNext(5);
+
+    assertThat(control).hasSize(0);
+    assertThat(seenInOnData).hasSize(6);
+    window = last.get().get("fluid-window");
+    assertThat(window.data().stream().map(Data::payload).collect(Collectors.toList())).containsExactly(0, 1, 2, 3, 4, 5);
+
+    reference.get().onNext(6);
+    reference.get().onNext(7);
+    reference.get().onComplete();
+
+    assertThat(control).hasSize(1);
+    assertThat(seenInOnData).hasSize(8);
   }
 }
