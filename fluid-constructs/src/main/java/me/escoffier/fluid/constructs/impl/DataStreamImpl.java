@@ -215,25 +215,16 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     return next;
   }
 
-  //  @Override
-  public <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function,
-                                         boolean includeControl) {
+  @Override
+  public <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function, boolean includeControl) {
     Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
-    DataStreamImpl<T, OUT> next;
     if (includeControl) {
-      next = new DataStreamImpl<>(this, flow.map(function::apply));
+      DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this, flow.map(function::apply));
+      this.setDownstreams(next);
+      return next;
     } else {
-      next = new DataStreamImpl<>(this, flow
-        .map(d -> {
-          if (ControlData.isControl(d)) {
-            return (ControlData) d;
-          } else {
-            return function.apply(d);
-          }
-        }));
+      return transform(function);
     }
-    this.setDownstreams(next);
-    return next;
   }
 
   @Override
@@ -303,6 +294,20 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
     this.setDownstreams(next);
     return next;
 
+  }
+
+  @Override
+  public <OUT> DataStream<OUT> transformFlow(Function<Flowable<Data<T>>, Flowable<Data<OUT>>> function, boolean
+    includeControlData) {
+    Objects.requireNonNull(function, NULL_FUNCTION_MESSAGE);
+    if (!includeControlData) {
+      return transformFlow(function);
+    } else {
+      Flowable<Data<OUT>> fusion = function.apply(flow);
+      DataStreamImpl<T, OUT> next = new DataStreamImpl<>(this, fusion);
+      this.setDownstreams(next);
+      return next;
+    }
   }
 
   @Override
@@ -427,9 +432,28 @@ public class DataStreamImpl<I, T> implements DataStream<T> {
   }
 
   @Override
+  public DataStream<T> onData(Consumer<? super Data<T>> consumer, boolean includeControlData) {
+    if (includeControlData) {
+      return onData(consumer);
+    } else {
+      DataStreamImpl<T, T> next = new DataStreamImpl<>(this, flow.doOnNext(d -> {
+        if (!d.isControl()) {
+          consumer.accept(d);
+        }
+      }));
+      this.setDownstreams(next);
+      return next;
+    }
+  }
+
+  @Override
   public DataStream<T> onPayload(Consumer<? super T> consumer) {
     DataStreamImpl<T, T> next = new DataStreamImpl<>(this,
-      flow.doOnNext(d -> consumer.accept(d.payload())));
+      flow.doOnNext(d -> {
+        if (!d.isControl()) {
+          consumer.accept(d.payload());
+        }
+      }));
     this.setDownstreams(next);
     return next;
   }

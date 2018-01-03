@@ -19,6 +19,9 @@ public interface DataStream<T> {
   /**
    * Fan-In operator merging the current stream with a set of other streams. All the streams must convey the same type of
    * {@link Data}.
+   * <p>
+   * {@code Control Data} are propagated from the current flow. {@code Control Data} from the streams passed in parameters
+   * are discarded.
    *
    * @param streams the set of streams to merge. None of them can be {@code null}.
    * @return the new {@link DataStream}.
@@ -28,6 +31,9 @@ public interface DataStream<T> {
 
   /**
    * Fan-In operator merging the current stream with another stream. The stream must convey the same type of {@link Data}.
+   * <p>
+   * {@code Control Data} are propagated from the current flow. {@code Control Data} from the stream passed in parameters
+   * are discarded.
    *
    * @param stream the stream to merge. None of them can be {@code null}.
    * @return the new {@link DataStream}.
@@ -40,6 +46,7 @@ public interface DataStream<T> {
    *
    * @param streams the set of streams to merge. None of them can be {@code null}.
    * @return the new {@link DataStream}.
+   * @deprecated
    */
   @SuppressWarnings("unchecked")
   DataStream<T> concatWith(DataStream<T>... streams);
@@ -50,12 +57,16 @@ public interface DataStream<T> {
    *
    * @param stream the stream to merge. None of them can be {@code null}.
    * @return the new {@link DataStream}.
+   * @deprecated
    */
   DataStream<T> concatWith(DataStream<T> stream);
 
   /**
    * Fan-in operator associating each {@link Data} transiting on the current stream with a {@link Data} transiting on the
    * given stream. The resulting stream conveys {@link Pair}.
+   * <p>
+   * {@code Control Data} are propagated from the current flow. {@code Control Data} from the stream passed in parameters
+   * are discarded.
    *
    * @param stream the stream associated with the current one, must not be {@code null}
    * @param <O>    the type of {@link Data} transiting in the <code>stream</code> data stream.
@@ -66,6 +77,9 @@ public interface DataStream<T> {
   /**
    * Fan-in operator associating each {@link Data} transiting on the current stream with a {@link Data} transiting on the two
    * given streams. The resulting stream conveys {@link Tuple}.
+   * <p>
+   * {@code Control Data} are propagated from the current flow. {@code Control Data} from the streams passed in parameters
+   * are discarded.
    *
    * @param streams the first stream associated with the current one, must not be {@code null}
    * @return the new {@link DataStream}.
@@ -76,6 +90,8 @@ public interface DataStream<T> {
    * Operator transforming each incoming {@code Data} into another {@code Data}.
    * <p>
    * This method is synchronous, for asynchronous processing, use {@link #transformFlow(Function)}.
+   * <p>
+   * {@code Control Data} are not passed to the given function, they are simply forwarded.
    *
    * @param function the function applied to each incoming {@code Data} and producing another {@link Data}.
    * @param <OUT>    the type of the resulting data.
@@ -84,10 +100,26 @@ public interface DataStream<T> {
   <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function);
 
   /**
+   * Operator transforming each incoming {@code Data} into another {@code Data}.
+   * <p>
+   * This method is synchronous, for asynchronous processing, use {@link #transformFlow(Function)}.
+   * <p>
+   * {@code Control Data} are passed to the given function if the {@code includeControl} parameter is set to {@code true}.
+   *
+   * @param function       the function applied to each incoming {@code Data} and producing another {@link Data}.
+   * @param includeControl whether or not control data are passed to the function
+   * @param <OUT>          the type of the resulting data.
+   * @return the new {@link DataStream}.
+   */
+  <OUT> DataStream<OUT> transform(Function<Data<T>, Data<OUT>> function, boolean includeControl);
+
+  /**
    * Operator transforming each incoming payload into another payload. This method acts on the payloads encapsulated
    * in the transiting {@link Data}.
    * <p>
    * This method is synchronous, for asynchronous processing, use {@link #transformPayloadFlow(Function)}.
+   * <p>
+   * {@code Control Data} are not passed to the given function, they are simply forwarded.
    *
    * @param function the function transforming the incoming payload into another payload
    * @param <OUT>    the type of the returned payload
@@ -98,6 +130,8 @@ public interface DataStream<T> {
   /**
    * Operator transforming the flow of incoming payloads. This method acts on the payloads encapsulated in a
    * {@link Data}.
+   * <p>
+   * {@code Control Data} are not passed to the given function, they are simply forwarded.
    *
    * @param function the function transforming the incoming flow of payload into another flow of payload
    * @param <OUT>    the type of payload contained into the resulting flow
@@ -108,6 +142,8 @@ public interface DataStream<T> {
   /**
    * Operator transforming the flow of incoming {@link Data}. This method acts on the {@link Data}, unlike
    * {@link #transformPayloadFlow(Function)} processing the payloads (the encapsulated payloads).
+   * <p>
+   * {@code Control Data} are not passed to the given function, they are simply forwarded.
    *
    * @param function the function transforming the incoming flow into another flow
    * @param <OUT>    the type of the data contained into the resulting flow
@@ -116,7 +152,23 @@ public interface DataStream<T> {
   <OUT> DataStream<OUT> transformFlow(Function<Flowable<Data<T>>, Flowable<Data<OUT>>> function);
 
   /**
+   * Operator transforming the flow of incoming {@link Data}. This method acts on the {@link Data}, unlike
+   * {@link #transformPayloadFlow(Function)} processing the payloads (the encapsulated payloads).
+   * <p>
+   * {@code Control Data} are passed to the given function if the {@code includeControl} parameter is set to {@code true}.
+   *
+   * @param function           the function transforming the incoming flow into another flow
+   * @param includeControlData whether or not control data are passed to the function
+   * @param <OUT>              the type of the data contained into the resulting flow
+   * @return the new {@link DataStream}.
+   */
+  <OUT> DataStream<OUT> transformFlow(Function<Flowable<Data<T>>, Flowable<Data<OUT>>> function, boolean
+    includeControlData);
+
+  /**
    * Fan-out operator dispatching the incoming {@link Data} to a set of streams.
+   * <p>
+   * {@code Control Data} are forwarded to all branches.
    *
    * @param numberOfBranches the number of branch that will get the incoming data.
    * @return the resulting streams
@@ -124,7 +176,7 @@ public interface DataStream<T> {
   List<DataStream<T>> broadcast(int numberOfBranches);
 
   /**
-   * @return the underlying flow of {@link Data}.
+   * @return the underlying flow of {@link Data}. The flow also contains the {@code Control Data}.
    */
   Flowable<Data<T>> flow();
 
@@ -195,6 +247,8 @@ public interface DataStream<T> {
    *         }
    *     </pre>
    * </code>
+   * <p>
+   * {@code Control Data} are forwarded to all branches.
    *
    * @param condition the condition, must not be {@code null}
    * @return the pair of stream representing the two branches.
@@ -203,6 +257,8 @@ public interface DataStream<T> {
 
   /**
    * Same as {@link #branch(Predicate)} but acts on the payload of the data.
+   * <p>
+   * {@code Control Data} are forwarded to all branches.
    *
    * @param condition the condition, must not be {@code null}
    * @return the pair of stream representing the two branches.
@@ -226,6 +282,8 @@ public interface DataStream<T> {
    * </code>
    * <p>
    * Unlike {@link #branch(Predicate)}, data not matching any conditions are discarded.
+   * <p>
+   * {@code Control Data} are forwarded to all branches.
    *
    * @param conditions the conditions, must not be {@code null}, must not be empty, none of the condition must be @{code null}
    * @return the list of branches.
@@ -234,6 +292,8 @@ public interface DataStream<T> {
 
   /**
    * Same as {@link #branch(Predicate[])} but acts on the payload of the data.
+   * <p>
+   * {@code Control Data} are forwarded to all branches.
    *
    * @param conditions the conditions, must not be {@code null}, must not be empty, none of the condition must be @{code null}
    * @return the list of branches.
@@ -250,6 +310,17 @@ public interface DataStream<T> {
   void connect(DataStream<T> source);
 
   /**
+   * NOOP operator invoked on every incoming data. Useful for tracing, debugging....
+   * <p>
+   * {@code Control Data} are passed to the given function if the {@code includeControl} parameter is set to {@code true}.
+   *
+   * @param consumer           the consumer, must not be {@code null}, should be side-effect free
+   * @param includeControlData whether or not control data are passed to the function
+   * @return the new {@link DataStream}
+   */
+  DataStream<T> onData(Consumer<? super Data<T>> consumer, boolean includeControlData);
+
+  /**
    * NOOP operator invoked on every incoming payload. Useful for tracing, debugging....
    *
    * @param consumer the consumer, must not be {@code null}, should be side-effect free
@@ -259,6 +330,8 @@ public interface DataStream<T> {
 
   /**
    * NOOP operator invoked on every incoming data. Useful for tracing, debugging....
+   * <p>
+   * {@code Control Data} are passed to the consumer.
    *
    * @param consumer the consumer, must not be {@code null}, should be side-effect free
    * @return the new {@link DataStream}
