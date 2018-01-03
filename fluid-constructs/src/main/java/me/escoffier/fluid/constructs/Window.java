@@ -2,10 +2,8 @@ package me.escoffier.fluid.constructs;
 
 import io.reactivex.Flowable;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
@@ -13,12 +11,23 @@ import java.util.stream.Collectors;
  */
 public class Window<T> {
 
+  private final Flowable<Data<T>> flow;
   private List<Data<T>> data;
 
   public Window(Collection<Data<T>> items) {
     data = Collections.unmodifiableList(items.stream().map(d -> d.with("fluid-window", this))
       .collect(Collectors.toList())
     );
+    flow = null;
+  }
+
+  public Window(Flowable<Data<T>> items) {
+    this.data = new CopyOnWriteArrayList<>();
+    this.flow = Objects.requireNonNull(items).map(d -> {
+      Data<T> u = d.with("fluid-window", this);
+      data.add(u);
+      return u;
+    });
   }
 
   public List<Data<T>> data() {
@@ -26,7 +35,11 @@ public class Window<T> {
   }
 
   public Flowable<Data<T>> flow() {
-    return Flowable.fromIterable(data);
+    if (flow != null) {
+      return flow;
+    } else {
+      return Flowable.fromIterable(data);
+    }
   }
 
 }

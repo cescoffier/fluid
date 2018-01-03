@@ -9,6 +9,4 @@ public interface WindowOperator<T> {
 
   Flowable<Window<T>> window(Flowable<Data<T>> source);
 
-
-
 }

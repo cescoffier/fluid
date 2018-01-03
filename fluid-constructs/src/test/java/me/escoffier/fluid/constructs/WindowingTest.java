@@ -15,11 +15,38 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class WindowingTest {
 
   @Test
-  public void simple() {
+  public void testClosedWindow() {
     List<Data<String>> watermarks = new ArrayList<>();
     ListSink<String> list = Sink.list();
     Source.from("a", "b", "c", "d", "e")
       .withWindow(Windowing.bySize(2))
+      .onData(v -> {
+        if (Watermark.isWatermark(v)) {
+          watermarks.add(v);
+        }
+      })
+      .to(list);
+
+    assertThat(list.data()).hasSize(5);
+    assertThat(watermarks).hasSize(3);
+    List<Window> windows = watermarks.stream()
+      .map(d -> ((Window) d.get("fluid-window")))
+      .collect(Collectors.toList());
+    assertThat(windows).hasSize(3);
+    assertThat(list.values()).containsExactly("a", "b", "c", "d", "e");
+    assertThat(list.data()).allSatisfy(data -> {
+      Window window = data.get("fluid-window");
+      assertThat(window).isNotNull();
+      assertThat(windows).contains(window);
+    });
+  }
+
+  @Test
+  public void testOpenWindow() {
+    List<Data<String>> watermarks = new ArrayList<>();
+    ListSink<String> list = Sink.list();
+    Source.from("a", "b", "c", "d", "e")
+      .withWindow(Windowing.bySize(2, false))
       .onData(v -> {
         if (Watermark.isWatermark(v)) {
           watermarks.add(v);

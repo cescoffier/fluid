@@ -9,4 +9,13 @@ public class Windowing {
     return source -> source.buffer(size)
         .map(Window::new);
   }
+
+  public static <T> WindowOperator<T> bySize(int size, boolean open) {
+    if (! open) {
+      return bySize(size);
+    } else {
+      return source -> source.window(size)
+        .map(Window::new);
+    }
+  }
 }
