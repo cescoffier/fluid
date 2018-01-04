@@ -5,7 +5,7 @@ import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.eventbus.Message;
 import me.escoffier.fluid.constructs.CommonHeaders;
 import me.escoffier.fluid.constructs.Data;
-import me.escoffier.fluid.constructs.impl.AbstractSource;
+import me.escoffier.fluid.constructs.AbstractSource;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -6,7 +6,7 @@ import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.constructs.Data;
 import me.escoffier.fluid.constructs.Sink;
 import me.escoffier.fluid.constructs.Source;
-import me.escoffier.fluid.constructs.impl.AbstractSource;
+import me.escoffier.fluid.constructs.AbstractSource;
 import org.junit.After;
 import org.junit.Test;
 

@@ -1,6 +1,7 @@
 package me.escoffier.fluid.constructs;
 
 import io.reactivex.Completable;
+import io.reactivex.Flowable;
 
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -15,9 +16,10 @@ public interface Sink<OUT> {
 
   Completable dispatch(Data<OUT> data);
 
-  default Completable dispatch(OUT data) {
-    return dispatch(new Data<>(data));
+  default Completable dispatch(OUT payload) {
+    return dispatch(new Data<>(payload));
   }
+
 
   default String name() {
     return null;
@@ -51,12 +53,29 @@ public interface Sink<OUT> {
   }
 
   static <T> Sink<T> forEach(Consumer<Data<T>> consumer) {
-    // TODO here we could detect if the consumer wants data or just the payload.
-    return data -> Completable.fromAction(() -> consumer.accept(data));
+    return forEach(consumer, false);
+  }
+
+  static <T> Sink<T> forEach(Consumer<Data<T>> consumer, boolean onWatermark) {
+    return new AbstractSink<T>(onWatermark) {
+      @Override
+      public void process(Data<T> data) {
+        consumer.accept(data);
+      }
+    };
   }
 
   static <T> Sink<T> forEachPayload(Consumer<T> consumer) {
-    return data -> Completable.fromAction(() -> consumer.accept(data.payload()));
+    return forEachPayload(consumer, false);
+  }
+
+  static <T> Sink<T> forEachPayload(Consumer<T> consumer, boolean onWatermark) {
+    return new AbstractSink<T>(onWatermark) {
+      @Override
+      public void process(Data<T> data) {
+        consumer.accept(data.payload());
+      }
+    };
   }
 
   static <T> ListSink<T> list() {
@@ -73,9 +92,37 @@ public interface Sink<OUT> {
     return x -> Completable.complete();
   }
 
+  static <T> Sink<T> forEachAsync(Function<Data<T>, Completable> fun, boolean onWatermark) {
+    return new AbstractSink<T>() {
+
+      @Override
+      public Completable dispatch(Data<T> data) {
+        if (! onWatermark) {
+          return fun.apply(data);
+        } else {
+          Window<T> window = data.get("fluid-window");
+          if (Watermark.isWatermark(data)) {
+            return Flowable.fromIterable(getAndClear(window))
+              .flatMapCompletable(fun::apply);
+          } else {
+            addToStorage(window, data);
+            return Completable.complete();
+          }
+        }
+      }
+
+      @Override
+      public void process(Data<T> data) {
+        // Do nothing, won't be called anyway.
+      }
+    };
+  }
+
   static <T> Sink<T> forEachAsync(Function<Data<T>, Completable> fun) {
     return fun::apply;
   }
+
+  // TODO
 
   static <OUT, RES> ScanSink<OUT, RES> fold(RES init, BiFunction<OUT, RES, RES> mapper) {
     return new ScanSink<>(Objects.requireNonNull(init), Objects.requireNonNull(mapper));

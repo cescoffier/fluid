@@ -3,7 +3,6 @@ package me.escoffier.fluid.constructs;
 import io.reactivex.Flowable;
 import io.reactivex.Maybe;
 import io.reactivex.Single;
-import me.escoffier.fluid.constructs.impl.AbstractSource;
 import org.reactivestreams.Publisher;
 
 import java.util.Objects;

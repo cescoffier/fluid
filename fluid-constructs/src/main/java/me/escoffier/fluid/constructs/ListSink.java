@@ -13,7 +13,16 @@ import java.util.stream.Collectors;
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
 public class ListSink<OUT> implements Sink<OUT> {
-  private List<Data<OUT>> values = new CopyOnWriteArrayList<>();
+  private final List<Data<OUT>> values = new CopyOnWriteArrayList<>();
+  private final boolean dispatchOnWatermark;
+
+  public ListSink() {
+    this.dispatchOnWatermark = false;
+  }
+
+  public ListSink(boolean dispatchOnWatermark) {
+    this.dispatchOnWatermark = dispatchOnWatermark;
+  }
 
   @Override
   public Completable dispatch(Data<OUT> data) {

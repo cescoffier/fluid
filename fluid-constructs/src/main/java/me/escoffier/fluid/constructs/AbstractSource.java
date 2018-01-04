@@ -1,10 +1,7 @@
-package me.escoffier.fluid.constructs.impl;
+package me.escoffier.fluid.constructs;
 
 import io.reactivex.Flowable;
-import me.escoffier.fluid.constructs.Data;
-import me.escoffier.fluid.constructs.Source;
-import me.escoffier.fluid.constructs.Watermark;
-import me.escoffier.fluid.constructs.WindowOperator;
+import me.escoffier.fluid.constructs.impl.DataStreamImpl;
 import org.reactivestreams.Publisher;
 
 import java.util.Collections;
