@@ -2,7 +2,7 @@ package me.escoffier.fluid.examples.review;
 
 import io.reactivex.functions.BiFunction;
 import io.vertx.core.json.JsonObject;
-import me.escoffier.fluid.annotations.Port;
+import me.escoffier.fluid.annotations.Inbound;
 import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.models.*;
 
@@ -11,7 +11,7 @@ import me.escoffier.fluid.models.*;
  */
 public class ReviewGlobalRating {
 
-  @Port("reviews")
+  @Inbound("reviews")
   Source<JsonObject> reviews;
 
 

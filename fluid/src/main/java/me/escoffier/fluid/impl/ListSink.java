@@ -19,12 +19,12 @@ public class ListSink<OUT> implements Sink<OUT> {
 
   @Override
   public Completable dispatch(Data<OUT> data) {
-    return Completable.fromAction(() ->
-      values.add(data));
+    return Completable.fromAction(() -> values.add(data));
   }
 
   public synchronized List<OUT> values() {
-    return values.stream().map(Data::payload).collect(Collectors.toList());
+    return values.stream().map(Data::payload)
+      .collect(Collectors.toList());
   }
 
   public synchronized List<Data<OUT>> data() {

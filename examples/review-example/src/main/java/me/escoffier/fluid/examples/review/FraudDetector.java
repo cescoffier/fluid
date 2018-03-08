@@ -1,7 +1,7 @@
 package me.escoffier.fluid.examples.review;
 
 import io.vertx.core.json.JsonObject;
-import me.escoffier.fluid.annotations.Port;
+import me.escoffier.fluid.annotations.Inbound;
 import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.models.Data;
 import me.escoffier.fluid.models.Pair;
@@ -13,13 +13,13 @@ import me.escoffier.fluid.models.Source;
  */
 public class FraudDetector {
 
-  @Port("movies")
+  @Inbound("movies")
   Source<JsonObject> reviews;
 
-  @Port("reviews")
+  @Inbound("reviews")
   Sink<JsonObject> valid;
 
-  @Port("fraud")
+  @Inbound("fraud")
   Sink<JsonObject> fraud;
 
   @Transformation

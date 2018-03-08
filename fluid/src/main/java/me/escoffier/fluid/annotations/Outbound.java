@@ -6,12 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Injects a port. Depending on the type, it will looks for a {@link me.escoffier.fluid.constructs.Sink} or a
- * {@link me.escoffier.fluid.constructs.Source}.
+ * On fields, in inject a {@link me.escoffier.fluid.models.Sink}.
  */
-@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Port {
+public @interface Outbound {
 
     /**
      * @return the port name.

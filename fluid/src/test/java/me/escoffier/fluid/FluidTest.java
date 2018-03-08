@@ -1,7 +1,7 @@
 package me.escoffier.fluid;
 
 import io.vertx.core.Vertx;
-import me.escoffier.fluid.annotations.Port;
+import me.escoffier.fluid.annotations.Inbound;
 import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.framework.Fluid;
 import me.escoffier.fluid.models.Sink;
@@ -216,10 +216,10 @@ public class FluidTest {
 
   public static class MyMediator1 {
 
-    @Port("input")
+    @Inbound("input")
     Source<String> source;
 
-    @Port("output")
+    @Inbound("output")
     Sink<String> sink;
 
     @Transformation
@@ -231,10 +231,10 @@ public class FluidTest {
 
   public static class MyMediator2 {
 
-    @Port("input")
+    @Inbound("input")
     private Source<String> source;
 
-    @Port("output")
+    @Inbound("output")
     private Sink<String> sink;
 
     @Transformation
@@ -246,20 +246,20 @@ public class FluidTest {
 
   static class MyMediator3 {
 
-    @Port("input")
+    @Inbound("input")
     Source<String> source;
 
-    @Port("output")
+    @Inbound("output")
     Sink<String> sink;
 
   }
 
   static class MyMediator4 {
 
-    @Port("missing-input")
+    @Inbound("missing-input")
     Source<String> source;
 
-    @Port("output")
+    @Inbound("output")
     Sink<String> sink;
 
     @Transformation
@@ -271,10 +271,10 @@ public class FluidTest {
 
   static class MyMediator5 {
 
-    @Port("input")
+    @Inbound("input")
     Source<String> source;
 
-    @Port("missing-output")
+    @Inbound("missing-output")
     Sink<String> sink;
 
     @Transformation
@@ -287,9 +287,9 @@ public class FluidTest {
   public static class MyMediator6 {
 
     @Transformation
-    void transform(@Port("input")
+    void transform(@Inbound("input")
                      Source<String> source,
-                   @Port("output")
+                   @Inbound("output")
                      Sink<String> sink) {
       source.mapItem(String::toUpperCase).to(sink);
     }
@@ -299,9 +299,9 @@ public class FluidTest {
   static class MyMediator7 {
 
     @Transformation
-    void transform(@Port("input")
+    void transform(@Inbound("input")
                      Source<String> source,
-                   @Port("missing-output")
+                   @Inbound("missing-output")
                      Sink<String> sink) {
       source.mapItem(String::toUpperCase).to(sink);
     }
@@ -311,9 +311,9 @@ public class FluidTest {
   static class MyMediator8 {
 
     @Transformation
-    void transform(@Port("missing-input")
+    void transform(@Inbound("missing-input")
                      Source<String> source,
-                   @Port("output")
+                   @Inbound("output")
                      Sink<String> sink) {
       source.mapItem(String::toUpperCase).to(sink);
     }
@@ -322,11 +322,11 @@ public class FluidTest {
 
   static class MyMediator9 {
 
-    @Port("input")
+    @Inbound("input")
     Source<String> source;
 
     @Transformation
-    void transform(@Port("output")
+    void transform(@Inbound("output")
                      Sink<String> sink,
                    String foo) {
       source.mapItem(String::toUpperCase).mapItem(s -> foo).to(sink);

@@ -2,7 +2,7 @@ package me.escoffier.fluid.examples.review;
 
 import io.reactivex.Flowable;
 import io.vertx.core.json.JsonObject;
-import me.escoffier.fluid.annotations.Port;
+import me.escoffier.fluid.annotations.Inbound;
 import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.models.Data;
 import me.escoffier.fluid.models.Sink;
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ReviewProducer {
 
-  @Port("movies")
+  @Inbound("movies")
   Sink<JsonObject> sink;
 
   private int reviewCount = 0;

@@ -2,18 +2,19 @@ package me.escoffier.fluid.framework;
 
 import io.reactivex.Flowable;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.annotations.Port;
+import me.escoffier.fluid.annotations.Inbound;
+import me.escoffier.fluid.annotations.Outbound;
 import me.escoffier.fluid.annotations.Transformation;
+import me.escoffier.fluid.models.Data;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
 import me.escoffier.fluid.reflect.ReflectionHelper;
 import me.escoffier.fluid.registry.FluidRegistry;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
+import org.reactivestreams.Publisher;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -92,43 +93,113 @@ public class Fluid {
 
     List<Object> values = new ArrayList<>();
     for (Parameter param : method.getParameters()) {
-      Port port = param.getAnnotation(Port.class);
-      if (port != null) {
-        String name = port.value();
-        if (param.getType().isAssignableFrom(Sink.class)) {
-          values.add(getSinkOrFail(name));
-        } else if (param.getType().isAssignableFrom(Source.class)) {
-          values.add(getSourceOrFail(name));
-        }
+      Inbound inbound = param.getAnnotation(Inbound.class);
+      Outbound outbound = param.getAnnotation(Outbound.class);
+
+      if (inbound != null) {
+        String name = inbound.value();
+        Source<Object> source = getSourceOrFail(name);
+        Object inject = getSourceToInject(param.getType(), param.getParameterizedType(), source);
+        values.add(inject);
+      } else if (outbound != null) {
+        String name = outbound.value();
+        Sink<Object> sink = getSinkOrFail(name);
+        values.add(sink);
       } else {
         throw new IllegalArgumentException("Invalid parameter - one parameter of " + method.getName()
-          + " is not annotated with @Port");
+          + " is not annotated with @Outbound or @Inbound");
       }
     }
 
     try {
-      method.invoke(mediator, values.toArray());
+      Class<?> returnType = method.getReturnType();
+      Outbound outbound = method.getAnnotation(Outbound.class);
+      if (returnType.equals(Void.TYPE)) {
+        method.invoke(mediator, values.toArray());
+      } else {
+        if (outbound == null) {
+          throw new IllegalStateException("The method " + method.getName() + " from "
+            + mediator.getClass() + " needs to be annotated with @Outbound indicating the sink");
+        } else {
+          Sink<Object> sink = getSinkOrFail(outbound.value());
+          Flowable<Object> flowable;
+          if (returnType.isAssignableFrom(Flowable.class)) {
+            flowable = (Flowable) method.invoke(mediator, values.toArray());
+          } else if (returnType.isAssignableFrom(Publisher.class)) {
+            flowable = Flowable.fromPublisher(
+              (Publisher) method.invoke(mediator, values.toArray()));
+          } else {
+            throw new IllegalStateException("The method " + method.getName() + " from "
+              + mediator.getClass() + " does not return a valid type");
+          }
+
+          Type type = method.getGenericReturnType();
+          if (type instanceof ParameterizedType) {
+            Type enclosed = ((ParameterizedType) type).getActualTypeArguments()[0];
+            if (!enclosed.getTypeName().startsWith(Data.class.getName())) {
+              flowable.flatMapCompletable(sink::dispatch).subscribe();
+            } else {
+              flowable
+                .flatMapCompletable(d -> sink.dispatch((Data) d)).subscribe();
+            }
+          } else {
+            flowable.flatMapCompletable(sink::dispatch).subscribe();
+          }
+        }
+      }
     } catch (Exception e) {
       throw new IllegalStateException("Unable to invoke " + method.getName() + " from " + mediator.getClass()
         .getName(), e);
     }
   }
 
+  private Object getSourceToInject(Class<?> clazz, Type type, Source<Object> source) {
+    if (clazz.isAssignableFrom(Publisher.class)) {
+      if (type instanceof ParameterizedType) {
+        Type enclosed = ((ParameterizedType) type).getActualTypeArguments()[0];
+        if (!enclosed.getTypeName().startsWith(Data.class.getName())) {
+          return Flowable.fromPublisher(source).map(Data::payload);
+        } else {
+          return source;
+        }
+      } else {
+        return source;
+      }
+    } else if (clazz.isAssignableFrom(Flowable.class)) {
+      Flowable<Data<Object>> flowable = Flowable.fromPublisher(source);
+      if (type instanceof ParameterizedType) {
+        Type enclosed = ((ParameterizedType) type).getActualTypeArguments()[0];
+        if (!enclosed.getTypeName().startsWith(Data.class.getName())) {
+          return flowable.map(Data::payload);
+        } else {
+          return flowable;
+        }
+      } else {
+        return flowable;
+      }
+    } else if (clazz.isAssignableFrom(Source.class)) {
+      return source;
+    }
+    return source;
+  }
+
   private void inject(Object mediator) {
-    List<Field> list = FieldUtils.getFieldsListWithAnnotation(mediator.getClass(), Port.class);
+    List<Field> list = FieldUtils.getFieldsListWithAnnotation(mediator.getClass(), Inbound.class);
     for (Field field : list) {
-      Port annotation = field.getAnnotation(Port.class);
+      Inbound annotation = field.getAnnotation(Inbound.class);
+      Source<Object> source = getSourceOrFail(annotation.value());
+      ReflectionHelper.set(mediator, field, getSourceToInject(field.getType(), field.getGenericType(), source));
+    }
+
+    list = FieldUtils.getFieldsListWithAnnotation(mediator.getClass(), Outbound.class);
+    for (Field field : list) {
+      Outbound annotation = field.getAnnotation(Outbound.class);
       if (field.getType().isAssignableFrom(Sink.class)) {
         Sink<Object> sink = getSinkOrFail(annotation.value());
         ReflectionHelper.set(mediator, field, sink);
-      } else if (field.getType().isAssignableFrom(Source.class)) {
-        Source<Object> source = getSourceOrFail(annotation.value());
-        ReflectionHelper.set(mediator, field, source);
       }
     }
   }
-
-
 
 
   public <T> Source<T> from(Flowable<T> flowable) {

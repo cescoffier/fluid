@@ -3,7 +3,7 @@ package me.escoffier.fluid.examples.review;
 import hu.akarnokd.rxjava2.math.MathFlowable;
 import io.reactivex.Flowable;
 import io.vertx.core.json.JsonObject;
-import me.escoffier.fluid.annotations.Port;
+import me.escoffier.fluid.annotations.Inbound;
 import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.models.Pair;
 import me.escoffier.fluid.models.Sink;
@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ReviewRecentRating {
 
-  @Port("reviews")
+  @Inbound("reviews")
   Source<JsonObject> reviews;
 
 
