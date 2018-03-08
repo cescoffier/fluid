@@ -1,6 +1,7 @@
 package me.escoffier.fluid;
 
 import me.escoffier.fluid.annotations.Inbound;
+import me.escoffier.fluid.annotations.Outbound;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
 
@@ -12,7 +13,7 @@ public class MyChildMediator extends MyParentMediator {
   @Inbound("input")
   Source<String> source;
 
-  @Inbound("output")
+  @Outbound("output")
   Sink<String> sink;
 
   @Override

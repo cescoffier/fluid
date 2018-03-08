@@ -2,6 +2,7 @@ package me.escoffier.fluid;
 
 import io.vertx.core.Vertx;
 import me.escoffier.fluid.annotations.Inbound;
+import me.escoffier.fluid.annotations.Outbound;
 import me.escoffier.fluid.annotations.Transformation;
 import me.escoffier.fluid.framework.Fluid;
 import me.escoffier.fluid.models.Sink;
@@ -219,7 +220,7 @@ public class FluidTest {
     @Inbound("input")
     Source<String> source;
 
-    @Inbound("output")
+    @Outbound("output")
     Sink<String> sink;
 
     @Transformation
@@ -234,7 +235,7 @@ public class FluidTest {
     @Inbound("input")
     private Source<String> source;
 
-    @Inbound("output")
+    @Outbound("output")
     private Sink<String> sink;
 
     @Transformation
@@ -249,7 +250,7 @@ public class FluidTest {
     @Inbound("input")
     Source<String> source;
 
-    @Inbound("output")
+    @Outbound("output")
     Sink<String> sink;
 
   }
@@ -259,7 +260,7 @@ public class FluidTest {
     @Inbound("missing-input")
     Source<String> source;
 
-    @Inbound("output")
+    @Outbound("output")
     Sink<String> sink;
 
     @Transformation
@@ -274,7 +275,7 @@ public class FluidTest {
     @Inbound("input")
     Source<String> source;
 
-    @Inbound("missing-output")
+    @Outbound("missing-output")
     Sink<String> sink;
 
     @Transformation
@@ -289,7 +290,7 @@ public class FluidTest {
     @Transformation
     void transform(@Inbound("input")
                      Source<String> source,
-                   @Inbound("output")
+                   @Outbound("output")
                      Sink<String> sink) {
       source.mapItem(String::toUpperCase).to(sink);
     }
@@ -301,7 +302,7 @@ public class FluidTest {
     @Transformation
     void transform(@Inbound("input")
                      Source<String> source,
-                   @Inbound("missing-output")
+                   @Outbound("missing-output")
                      Sink<String> sink) {
       source.mapItem(String::toUpperCase).to(sink);
     }
@@ -313,7 +314,7 @@ public class FluidTest {
     @Transformation
     void transform(@Inbound("missing-input")
                      Source<String> source,
-                   @Inbound("output")
+                   @Outbound("output")
                      Sink<String> sink) {
       source.mapItem(String::toUpperCase).to(sink);
     }
@@ -326,8 +327,7 @@ public class FluidTest {
     Source<String> source;
 
     @Transformation
-    void transform(@Inbound("output")
-                     Sink<String> sink,
+    void transform(@Outbound("output") Sink<String> sink,
                    String foo) {
       source.mapItem(String::toUpperCase).mapItem(s -> foo).to(sink);
     }
