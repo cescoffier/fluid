@@ -4,11 +4,9 @@ import io.reactivex.Flowable;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.fluid.annotations.Port;
 import me.escoffier.fluid.annotations.Transformation;
-import me.escoffier.fluid.constructs.Data;
-import me.escoffier.fluid.constructs.Sink;
-import me.escoffier.fluid.constructs.Source;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Sink;
+import me.escoffier.fluid.models.Source;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,7 +28,7 @@ public class ReviewProducer {
   @Transformation
   public void generateReviews() {
     Source.fromPayloads(Flowable.interval(1, TimeUnit.SECONDS))
-      .transform(x -> {
+      .map(x -> {
         reviewCount += 1;
         JsonObject review = new JsonObject()
           .put("course", pickAMovie())

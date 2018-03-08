@@ -5,9 +5,9 @@ import io.reactivex.Flowable;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.fluid.annotations.Port;
 import me.escoffier.fluid.annotations.Transformation;
-import me.escoffier.fluid.constructs.Pair;
-import me.escoffier.fluid.constructs.Sink;
-import me.escoffier.fluid.constructs.Source;
+import me.escoffier.fluid.models.Pair;
+import me.escoffier.fluid.models.Sink;
+import me.escoffier.fluid.models.Source;
 
 import java.util.concurrent.TimeUnit;
 
@@ -23,7 +23,7 @@ public class ReviewRecentRating {
   @Transformation
   public void computeStatistics() {
     reviews
-      .transformPayloadFlow(flow ->
+      .composeItemFlowable(flow ->
         flow
           .groupBy(data -> data.getString("course"))
           .flatMap(group ->

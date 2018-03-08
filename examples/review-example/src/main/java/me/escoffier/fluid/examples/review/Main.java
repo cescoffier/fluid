@@ -1,6 +1,7 @@
 package me.escoffier.fluid.examples.review;
 
-import me.escoffier.fluid.Fluid;
+
+import me.escoffier.fluid.framework.Fluid;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>

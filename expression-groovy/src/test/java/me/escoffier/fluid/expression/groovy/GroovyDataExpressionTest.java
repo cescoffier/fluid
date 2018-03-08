@@ -2,7 +2,7 @@ package me.escoffier.fluid.expression.groovy;
 
 import org.junit.Test;
 
-import static me.escoffier.fluid.constructs.impl.DataExpressionFactories.requiredEventExpression;
+import static me.escoffier.fluid.impl.DataExpressionFactories.requiredEventExpression;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class GroovyDataExpressionTest {

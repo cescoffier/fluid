@@ -8,7 +8,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
-import me.escoffier.fluid.constructs.Sink;
+import me.escoffier.fluid.models.Sink;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
@@ -26,8 +26,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.reactivex.Completable.complete;
-import static me.escoffier.fluid.constructs.CommonHeaders.key;
-import static me.escoffier.fluid.constructs.CommonHeaders.original;
+import static me.escoffier.fluid.models.CommonHeaders.key;
+import static me.escoffier.fluid.models.CommonHeaders.original;
 import static me.escoffier.fluid.kafka.KafkaSourceConfig.kafkaSourceConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -82,7 +82,7 @@ public class KafkaSourceTest {
         .put("value.deserializer", IntegerDeserializer.class.getName())
     );
     source
-      .transformPayload(i -> i + 1)
+      .mapItem(i -> i + 1)
       .to(Sink.forEachPayload(results::add));
 
     AtomicInteger counter = new AtomicInteger();
@@ -141,11 +141,11 @@ public class KafkaSourceTest {
     List<Integer> resultsA = new ArrayList<>();
     List<Integer> resultsB = new ArrayList<>();
     source
-      .transformPayload(i -> i + 1)
+      .mapItem(i -> i + 1)
       .to(Sink.forEachPayload(resultsB::add));
 
     source
-      .transformPayload(i -> i + 1)
+      .mapItem(i -> i + 1)
       .to(Sink.forEachPayload(resultsA::add));
 
     AtomicInteger counter = new AtomicInteger();

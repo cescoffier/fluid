@@ -2,8 +2,8 @@ package me.escoffier.fluid.eventbus;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.constructs.Sink;
-import me.escoffier.fluid.constructs.Source;
+import me.escoffier.fluid.models.Sink;
+import me.escoffier.fluid.models.Source;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +36,7 @@ public class EventBusSourceTest {
   }
 
   @Test
-  public void testSource() throws InterruptedException {
+  public void testSource() {
     String topic = UUID.randomUUID().toString();
 
     EventBusSource<Integer> source = new EventBusSource<>(vertx,
@@ -46,7 +46,7 @@ public class EventBusSourceTest {
 
     List<Integer> results = new ArrayList<>();
     source
-      .transformPayload(i -> i + 1)
+      .mapItem(i -> i + 1)
       .to(Sink.forEachPayload(results::add));
 
     AtomicInteger counter = new AtomicInteger();
@@ -77,11 +77,11 @@ public class EventBusSourceTest {
     List<Integer> resultsA = new ArrayList<>();
     List<Integer> resultsB = new ArrayList<>();
     source
-      .transformPayload(i -> i + 1)
+      .mapItem(i -> i + 1)
       .to(Sink.forEachPayload(resultsB::add));
 
     source
-      .transformPayload(i -> i + 1)
+      .mapItem(i -> i + 1)
       .to(Sink.forEachPayload(resultsA::add));
 
     AtomicInteger counter = new AtomicInteger();
@@ -96,7 +96,7 @@ public class EventBusSourceTest {
   }
 
   @Test
-  public void testMulticastWithTime() throws InterruptedException {
+  public void testMulticastWithTime() {
     String topic = UUID.randomUUID().toString();
 
     EventBusSource<Integer> source = new EventBusSource<>(vertx,

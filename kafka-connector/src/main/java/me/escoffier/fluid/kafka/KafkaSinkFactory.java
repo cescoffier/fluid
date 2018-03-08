@@ -3,10 +3,8 @@ package me.escoffier.fluid.kafka;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.constructs.Sink;
-import me.escoffier.fluid.constructs.Source;
+import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.spi.SinkFactory;
-import me.escoffier.fluid.spi.SourceFactory;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>

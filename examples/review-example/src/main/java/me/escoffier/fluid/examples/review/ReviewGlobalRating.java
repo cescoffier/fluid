@@ -4,7 +4,7 @@ import io.reactivex.functions.BiFunction;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.fluid.annotations.Port;
 import me.escoffier.fluid.annotations.Transformation;
-import me.escoffier.fluid.constructs.*;
+import me.escoffier.fluid.models.*;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -18,7 +18,7 @@ public class ReviewGlobalRating {
   @Transformation
   public void computeStatistics() {
     reviews
-      .transformFlow(flow ->
+      .composeFlowable(flow ->
         flow
           .groupBy(data -> data.payload().getString("course"))
           .flatMap(group ->
@@ -35,6 +35,7 @@ public class ReviewGlobalRating {
   /**
    * Function computing an average of {@link Integer}.
    * It returns a {@link Tuple} structured as follows: 0: element-count, 1: sum of the element, 2: average
+   *
    * @return a tuple containing in this order the number of element in the series, the sum of the element and the
    * average.
    */

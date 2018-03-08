@@ -4,7 +4,7 @@ import io.debezium.kafka.KafkaCluster;
 import io.debezium.util.Testing;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.constructs.Source;
+import me.escoffier.fluid.models.Source;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
 import org.apache.kafka.common.serialization.IntegerSerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -78,7 +78,7 @@ public class KafkaSinkTest {
 
 
         Source.from(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-            .transformPayload(i -> i + 1)
+            .mapItem(i -> i + 1)
             .to(sink);
 
         assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
@@ -104,7 +104,10 @@ public class KafkaSinkTest {
 
         Stream<String> stream = new Random().longs(10).mapToObj(Long::toString);
         Source.fromPayloads(stream)
-            .onPayload(values::add)
+            .mapItem(i -> {
+              values.add(i);
+              return i;
+            })
             .to(sink);
 
       assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();

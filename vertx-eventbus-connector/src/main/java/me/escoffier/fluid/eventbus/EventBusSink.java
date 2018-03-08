@@ -5,8 +5,8 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.eventbus.EventBus;
-import me.escoffier.fluid.constructs.Data;
-import me.escoffier.fluid.constructs.Sink;
+import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Sink;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>

@@ -3,7 +3,7 @@ package me.escoffier.fluid.eventbus;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.eventbus.Message;
-import me.escoffier.fluid.constructs.Source;
+import me.escoffier.fluid.models.Source;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +55,7 @@ public class EventBusSinkTest {
 
 
     Source.from(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-      .transformPayload(i -> i + 1)
+      .mapItem(i -> i + 1)
       .to(sink);
 
     latch.await();

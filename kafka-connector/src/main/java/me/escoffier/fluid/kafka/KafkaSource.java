@@ -4,24 +4,23 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumer;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
-import me.escoffier.fluid.constructs.Data;
-import me.escoffier.fluid.constructs.Source;
-import me.escoffier.fluid.constructs.impl.AbstractSource;
+import me.escoffier.fluid.models.AbstractSource;
+import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Source;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static me.escoffier.fluid.constructs.CommonHeaders.ADDRESS;
-import static me.escoffier.fluid.constructs.CommonHeaders.KEY;
-import static me.escoffier.fluid.constructs.CommonHeaders.ORIGINAL;
+import static me.escoffier.fluid.models.CommonHeaders.ADDRESS;
+import static me.escoffier.fluid.models.CommonHeaders.KEY;
+import static me.escoffier.fluid.models.CommonHeaders.ORIGINAL;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
 public class KafkaSource<T> extends AbstractSource<T> implements Source<T> {
-  private final String name;
 
   KafkaSource(Vertx vertx, JsonObject json) {
     super(KafkaConsumer.<String, T>create(vertx, toMap(json))
@@ -40,10 +39,8 @@ public class KafkaSource<T> extends AbstractSource<T> implements Source<T> {
         }
 
         return upstream;
-      })
-    );
-
-    name = json.getString("name");
+      }
+    ), json.getString("name"), null);
   }
 
   private static <T> Data<T> createDataFromRecord(KafkaConsumerRecord<String, T> record) {
@@ -62,11 +59,6 @@ public class KafkaSource<T> extends AbstractSource<T> implements Source<T> {
     Map<String, String> map = new LinkedHashMap<>();
     json.forEach(entry -> map.put(entry.getKey(), entry.getValue().toString()));
     return map;
-  }
-
-  @Override
-  public String name() {
-    return name;
   }
 
 }

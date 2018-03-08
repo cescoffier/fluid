@@ -21,7 +21,7 @@
   <dependencies>
     <dependency>
       <groupId>me.escoffier.fluid</groupId>
-      <artifactId>fluid-framework</artifactId>
+      <artifactId>fluid</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

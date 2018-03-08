@@ -8,7 +8,7 @@ import java.util.Map;
 
 /**
  * Interface used to store, retrieve and delete a {@code document} representing a extraction of information from the
- * received {@link me.escoffier.fluid.constructs.Data}.
+ * received {@link me.escoffier.fluid.models.Data}.
  * <p>
  * The documents are organized in @{code collections} and are stored to a specific {@code key}. A {@code document} is
  * just a @{code Map&lt;String, Object&gt;} containing the data.

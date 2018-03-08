@@ -3,7 +3,7 @@ package me.escoffier.fluid.eventbus;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.constructs.Source;
+import me.escoffier.fluid.models.Source;
 import me.escoffier.fluid.spi.SourceFactory;
 
 /**

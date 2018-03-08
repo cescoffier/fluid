@@ -6,15 +6,15 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaWriteStream;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.impl.AsyncResultCompletable;
-import me.escoffier.fluid.constructs.Data;
-import me.escoffier.fluid.constructs.Sink;
+import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.spi.DataExpression;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static me.escoffier.fluid.constructs.impl.DataExpressionFactories.requiredEventExpression;
+import static me.escoffier.fluid.impl.DataExpressionFactories.requiredEventExpression;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>

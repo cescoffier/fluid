@@ -15,15 +15,15 @@
 
 
   <modules>
-    <module>fluid-constructs</module>
     <module>kafka-connector</module>
     <module>vertx-eventbus-connector</module>
-    <module>fluid-framework</module>
     <module>camel-sink</module>
     <module>expression-groovy</module>
     <module>data-view</module>
     <module>examples/simple-mediation</module>
     <module>examples/review-example</module>
+
+    <module>fluid</module>
   </modules>
 
 

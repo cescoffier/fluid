@@ -15,14 +15,14 @@ import java.util.Collections;
 public class WebVerticle extends AbstractVerticle {
 
     @Override
-    public void start() throws Exception {
+    public void start() {
         Router router = Router.router(vertx);
-        
+
         BridgeOptions options = new BridgeOptions();
         options.setOutboundPermitted(Collections.singletonList(new PermittedOptions()
             .setAddress("average")));
         router.route("/eventbus/*").handler(SockJSHandler.create(vertx).bridge(options));
-        
+
         router.route().handler(StaticHandler.create().setCachingEnabled(false));
 
         vertx.createHttpServer()
