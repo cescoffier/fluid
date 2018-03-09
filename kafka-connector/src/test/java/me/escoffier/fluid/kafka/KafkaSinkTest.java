@@ -78,7 +78,7 @@ public class KafkaSinkTest {
 
 
         Source.from(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-            .mapItem(i -> i + 1)
+            .mapPayload(i -> i + 1)
             .to(sink);
 
         assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
@@ -104,7 +104,7 @@ public class KafkaSinkTest {
 
         Stream<String> stream = new Random().longs(10).mapToObj(Long::toString);
         Source.fromPayloads(stream)
-            .mapItem(i -> {
+            .mapPayload(i -> {
               values.add(i);
               return i;
             })

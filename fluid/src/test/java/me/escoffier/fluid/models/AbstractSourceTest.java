@@ -22,7 +22,7 @@ public class AbstractSourceTest {
   public void testMapOnItem() {
     ListSink<Integer> list = Sink.list();
     Source.from(1, 2, 3, 4, 5)
-      .mapItem(i -> i + 1)
+      .mapPayload(i -> i + 1)
       .to(list);
 
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
@@ -42,7 +42,7 @@ public class AbstractSourceTest {
   public void testTransformer() {
     ListSink<Integer> list = Sink.list();
     Source.from(1, 2, 3, 4, 5)
-      .composeItemFlowable(flow -> flow.map(i -> i + 1))
+      .composePayloadFlowable(flow -> flow.map(i -> i + 1))
       .to(list);
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
   }
@@ -89,17 +89,17 @@ public class AbstractSourceTest {
     Source<String> s3 = Source.from("g", "h", "i");
 
     ListSink<String> list = Sink.list();
-    s1.composeItemFlowable(s -> s.map(String::toUpperCase))
+    s1.composePayloadFlowable(s -> s.map(String::toUpperCase))
       .zipWith(s2)
-      .mapItem(pair -> pair.left() + "x" + pair.right())
+      .mapPayload(pair -> pair.left() + "x" + pair.right())
       .to(list);
 
     assertThat(list.values()).containsExactly("Axd", "Bxe", "Cxf");
 
     list = Sink.list();
-    s1.composeItemFlowable(s -> s.map(String::toUpperCase))
+    s1.composePayloadFlowable(s -> s.map(String::toUpperCase))
       .zipWith(s2, s3)
-      .mapItem(tuple -> tuple.nth(0) + "x" + tuple.nth(1) + "x" + tuple.nth(2))
+      .mapPayload(tuple -> tuple.nth(0) + "x" + tuple.nth(1) + "x" + tuple.nth(2))
       .to(list);
 
     assertThat(list.values()).containsExactly("Axdxg", "Bxexh", "Cxfxi");

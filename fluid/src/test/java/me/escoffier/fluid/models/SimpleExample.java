@@ -45,7 +45,7 @@ public class SimpleExample {
   public void testWithRange() {
     ListSink<Integer> sink = new ListSink<>();
     Source.from(Flowable.range(0, 10).map(Message::new))
-      .mapItem(i -> {
+      .mapPayload(i -> {
         System.out.println("Item: " + i);
         return i;
       })
@@ -68,7 +68,7 @@ public class SimpleExample {
     String path = "target/test-classes/factorial.txt";
     FileSink sink = new FileSink(vertx, path);
     getFactorialFlow()
-      .mapItem(i -> i.toString() + "\n")
+      .mapPayload(i -> i.toString() + "\n")
       .to(sink);
 
     await().until(() -> FileUtils.readLines(new File(path), "UTF-8").size() >= 10);
@@ -86,7 +86,7 @@ public class SimpleExample {
     quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
 
     Flowable<Message<String>> stream = Source.fromPayloads(quotes.stream())
-      .mapItem(q -> q.author)
+      .mapPayload(q -> q.author)
       .asFlowable()
       .map(Message::payload)
       .compose(Flowable::distinct)
@@ -132,7 +132,7 @@ public class SimpleExample {
 
   private Source<BigInteger> getFactorialFlow() {
     return Source.fromPayloads(Flowable.range(1, 10))
-      .scanItems(BigInteger.ONE,
+      .scanPayloads(BigInteger.ONE,
         (acc, next) -> acc.multiply(BigInteger.valueOf(next)));
   }
 
@@ -199,9 +199,9 @@ public class SimpleExample {
     List<Source<String>> broadcast = Source.fromPayloads(f1).broadcast(2);
 
     Source<String> stream1 = broadcast.get(0)
-      .mapItem(String::toUpperCase);
+      .mapPayload(String::toUpperCase);
     Source<String> stream2 = broadcast.get(1)
-      .mapItem(s -> "FOO");
+      .mapPayload(s -> "FOO");
 
     ListSink<String> cache = new ListSink<>();
     stream1.mergeWith(stream2).to(cache);
@@ -218,8 +218,8 @@ public class SimpleExample {
     Flowable<String> f2 = Flowable.fromArray("1", "2", "3");
 
     ListSink<String> cache = new ListSink<>();
-    Source.fromPayloads(f1).mapItem(String::toUpperCase).zipWith(Source.fromPayloads(f2))
-      .mapItem(pair -> pair.left() + ":" + pair.right() + "\n")
+    Source.fromPayloads(f1).mapPayload(String::toUpperCase).zipWith(Source.fromPayloads(f2))
+      .mapPayload(pair -> pair.left() + ":" + pair.right() + "\n")
       .to(cache);
 
     await().until(() -> cache.values().size() == 3);
@@ -230,7 +230,7 @@ public class SimpleExample {
   public void testFold() {
     ScanSink<Integer, Integer> sink = Sink.fold(0, (i, v) -> i + v);
     Source.fromPayloads(Flowable.range(0, 3))
-      .mapItem(i -> ++i)
+      .mapPayload(i -> ++i)
       .to(sink);
 
     assertThat(sink.value()).isEqualTo(6);
@@ -240,7 +240,7 @@ public class SimpleExample {
   public void testHead() {
     HeadSink<Integer> sink = Sink.head();
     Source.fromPayloads(Flowable.range(0, 3))
-      .mapItem(i -> ++i)
+      .mapPayload(i -> ++i)
       .to(sink);
 
     assertThat(sink.value()).isEqualTo(1);

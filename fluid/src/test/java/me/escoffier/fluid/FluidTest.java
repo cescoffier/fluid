@@ -46,7 +46,7 @@ public class FluidTest {
     fluid.deploy(f -> {
       Sink<String> output = f.sink("output");
       f.<String>from("input")
-        .mapItem(String::toUpperCase)
+        .mapPayload(String::toUpperCase)
         .to(output);
     });
 
@@ -225,7 +225,7 @@ public class FluidTest {
 
     @Transformation
     void transform() {
-      source.mapItem(String::toUpperCase).to(sink);
+      source.mapPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -240,7 +240,7 @@ public class FluidTest {
 
     @Transformation
     private void transform() {
-      source.mapItem(String::toUpperCase).to(sink);
+      source.mapPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -265,7 +265,7 @@ public class FluidTest {
 
     @Transformation
     void transform() {
-      source.mapItem(String::toUpperCase).to(sink);
+      source.mapPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -280,7 +280,7 @@ public class FluidTest {
 
     @Transformation
     void transform() {
-      source.mapItem(String::toUpperCase).to(sink);
+      source.mapPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -292,7 +292,7 @@ public class FluidTest {
                      Source<String> source,
                    @Outbound("output")
                      Sink<String> sink) {
-      source.mapItem(String::toUpperCase).to(sink);
+      source.mapPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -304,7 +304,7 @@ public class FluidTest {
                      Source<String> source,
                    @Outbound("missing-output")
                      Sink<String> sink) {
-      source.mapItem(String::toUpperCase).to(sink);
+      source.mapPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -316,7 +316,7 @@ public class FluidTest {
                      Source<String> source,
                    @Outbound("output")
                      Sink<String> sink) {
-      source.mapItem(String::toUpperCase).to(sink);
+      source.mapPayload(String::toUpperCase).to(sink);
     }
 
   }
@@ -329,7 +329,7 @@ public class FluidTest {
     @Transformation
     void transform(@Outbound("output") Sink<String> sink,
                    String foo) {
-      source.mapItem(String::toUpperCase).mapItem(s -> foo).to(sink);
+      source.mapPayload(String::toUpperCase).mapPayload(s -> foo).to(sink);
     }
 
   }

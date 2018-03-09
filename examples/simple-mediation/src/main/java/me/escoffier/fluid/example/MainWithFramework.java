@@ -39,7 +39,7 @@ public class MainWithFramework {
 
     fluid.from(Flowable.interval(1000, TimeUnit.MILLISECONDS)
       .subscribeOn(Schedulers.computation()))
-      .mapItem(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
+      .mapPayload(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
       .to(sink("sensor"));
   }
 }

@@ -23,7 +23,7 @@ public class ReviewRecentRating {
   @Transformation
   public void computeStatistics() {
     reviews
-      .composeItemFlowable(flow ->
+      .composePayloadFlowable(flow ->
         flow
           .groupBy(data -> data.getString("course"))
           .flatMap(group ->

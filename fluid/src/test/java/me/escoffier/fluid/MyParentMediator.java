@@ -13,7 +13,7 @@ public abstract class MyParentMediator {
 
     @Transformation
     public void transmute() {
-        source().mapItem(String::toUpperCase).to(sink());
+        source().mapPayload(String::toUpperCase).to(sink());
     }
 
 }

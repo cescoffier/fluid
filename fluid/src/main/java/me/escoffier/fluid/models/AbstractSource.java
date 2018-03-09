@@ -77,7 +77,7 @@ public class AbstractSource<T> implements Source<T> {
   }
 
   @Override
-  public <X> Source<X> mapItem(Function<T, X> mapper) {
+  public <X> Source<X> mapPayload(Function<T, X> mapper) {
     Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
     Flowable<Message<X>> flowable = Flowable.fromPublisher(flow).map(d -> d.with(mapper.apply(d.payload())));
     return new AbstractSource<>(flowable, name, attributes);
@@ -131,7 +131,7 @@ public class AbstractSource<T> implements Source<T> {
   }
 
   @Override
-  public <X> Source<X> flatMapItem(Function<T, Publisher<X>> mapper) {
+  public <X> Source<X> flatMapPayload(Function<T, Publisher<X>> mapper) {
     Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
 
     Flowable<Message<X>> flowable = Flowable.fromPublisher(flow)
@@ -144,7 +144,7 @@ public class AbstractSource<T> implements Source<T> {
   }
 
   @Override
-  public <X> Source<X> concatMapItem(Function<T, Publisher<X>> mapper) {
+  public <X> Source<X> concatMapPayload(Function<T, Publisher<X>> mapper) {
     Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
 
     Flowable<Message<X>> flowable = Flowable.fromPublisher(flow)
@@ -157,7 +157,7 @@ public class AbstractSource<T> implements Source<T> {
   }
 
   @Override
-  public <X> Source<X> flatMapItem(Function<T, Publisher<X>> mapper, int maxConcurrency) {
+  public <X> Source<X> flatMapPayload(Function<T, Publisher<X>> mapper, int maxConcurrency) {
     Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
 
     Flowable<Message<X>> flowable = Flowable.fromPublisher(flow)
@@ -178,7 +178,7 @@ public class AbstractSource<T> implements Source<T> {
   }
 
   @Override
-  public <X> Source<X> reduceItems(X zero, BiFunction<X, T, X> function) {
+  public <X> Source<X> reducePayloads(X zero, BiFunction<X, T, X> function) {
     Objects.requireNonNull(function, "The `function` cannot be `null`");
     Flowable<Message<X>> reduced = Flowable.fromPublisher(flow)
       .map(Message::payload)
@@ -197,7 +197,7 @@ public class AbstractSource<T> implements Source<T> {
   }
 
   @Override
-  public <X> Source<X> scanItems(X zero, BiFunction<X, T, X> function) {
+  public <X> Source<X> scanPayloads(X zero, BiFunction<X, T, X> function) {
     Objects.requireNonNull(function, "The `function` cannot be `null`");
     Flowable<Message<X>> reduced = Flowable.fromPublisher(flow)
       .map(Message::payload)
@@ -380,7 +380,7 @@ public class AbstractSource<T> implements Source<T> {
   }
 
   @Override
-  public <X> Source<X> composeItemFlowable(Function<Flowable<T>, Flowable<X>> function) {
+  public <X> Source<X> composePayloadFlowable(Function<Flowable<T>, Flowable<X>> function) {
     return new AbstractSource<>(
       asFlowable().compose(upstream -> Flowable.defer(() -> {
         AtomicReference<Message<T>> current = new AtomicReference<>();

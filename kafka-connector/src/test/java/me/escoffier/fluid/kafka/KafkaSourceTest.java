@@ -82,7 +82,7 @@ public class KafkaSourceTest {
         .put("value.deserializer", IntegerDeserializer.class.getName())
     );
     source
-      .mapItem(i -> i + 1)
+      .mapPayload(i -> i + 1)
       .to(Sink.forEachPayload(results::add));
 
     AtomicInteger counter = new AtomicInteger();
@@ -141,11 +141,11 @@ public class KafkaSourceTest {
     List<Integer> resultsA = new ArrayList<>();
     List<Integer> resultsB = new ArrayList<>();
     source
-      .mapItem(i -> i + 1)
+      .mapPayload(i -> i + 1)
       .to(Sink.forEachPayload(resultsB::add));
 
     source
-      .mapItem(i -> i + 1)
+      .mapPayload(i -> i + 1)
       .to(Sink.forEachPayload(resultsA::add));
 
     AtomicInteger counter = new AtomicInteger();

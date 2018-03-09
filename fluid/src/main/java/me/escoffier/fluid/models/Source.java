@@ -109,7 +109,7 @@ public interface Source<T> extends Publisher<Message<T>> {
 
   <X> Source<X> map(Function<Message<T>, Message<X>> mapper);
 
-  <X> Source<X> mapItem(Function<T, X> mapper);
+  <X> Source<X> mapPayload(Function<T, X> mapper);
 
   Source<T> filter(Predicate<Message<T>> filter);
 
@@ -125,19 +125,19 @@ public interface Source<T> extends Publisher<Message<T>> {
 
   <X> Source<X> flatMap(Function<Message<T>, Publisher<Message<X>>> mapper, int maxConcurrency);
 
-  <X> Source<X> flatMapItem(Function<T, Publisher<X>> mapper);
+  <X> Source<X> flatMapPayload(Function<T, Publisher<X>> mapper);
 
-  <X> Source<X> concatMapItem(Function<T, Publisher<X>> mapper);
+  <X> Source<X> concatMapPayload(Function<T, Publisher<X>> mapper);
 
-  <X> Source<X> flatMapItem(Function<T, Publisher<X>> mapper, int maxConcurrency);
+  <X> Source<X> flatMapPayload(Function<T, Publisher<X>> mapper, int maxConcurrency);
 
   <X> Source<X> reduce(Message<X> zero, BiFunction<Message<X>, Message<T>, Message<X>> function);
 
-  <X> Source<X> reduceItems(X zero, BiFunction<X, T, X> function);
+  <X> Source<X> reducePayloads(X zero, BiFunction<X, T, X> function);
 
   <X> Source<X> scan(Message<X> zero, BiFunction<Message<X>, Message<T>, Message<X>> function);
 
-  <X> Source<X> scanItems(X zero, BiFunction<X, T, X> function);
+  <X> Source<X> scanPayloads(X zero, BiFunction<X, T, X> function);
 
   <K> Publisher<GroupedDataStream<K, T>> groupBy(Function<Message<T>, K> keySupplier);
 
@@ -167,5 +167,5 @@ public interface Source<T> extends Publisher<Message<T>> {
 
   <X> Source<X> composeFlowable(Function<Flowable<Message<T>>, Flowable<Message<X>>> mapper);
 
-  <X> Source<X> composeItemFlowable(Function<Flowable<T>, Flowable<X>> mapper);
+  <X> Source<X> composePayloadFlowable(Function<Flowable<T>, Flowable<X>> mapper);
 }

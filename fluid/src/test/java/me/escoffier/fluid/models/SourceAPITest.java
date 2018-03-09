@@ -29,7 +29,7 @@ public class SourceAPITest {
     ListSink<Integer> sink = new ListSink<>();
 
     Source.from(1, 2, 3, 4, 5)
-      .mapItem(d -> d + 1)
+      .mapPayload(d -> d + 1)
       .to(sink);
 
     await().until(() -> sink.values().size() == 5);
@@ -44,8 +44,8 @@ public class SourceAPITest {
       .skip(10)
       .limit(10);
     Source.fromPayloads(stream)
-      .mapItem(x -> x + 1)
-      .mapItem(i -> i * 2)
+      .mapPayload(x -> x + 1)
+      .mapPayload(i -> i * 2)
       .to(sink);
 
     await().until(() -> sink.values().size() >= 5);

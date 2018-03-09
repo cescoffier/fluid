@@ -40,8 +40,8 @@ public class Main {
 
     // Mediation
     source("sensor", JsonObject.class)
-      .mapItem(json -> json.getDouble("data"))
-      .composeItemFlowable(flow ->
+      .mapPayload(json -> json.getDouble("data"))
+      .composePayloadFlowable(flow ->
         flow.window(5)
           .flatMap(MathFlowable::averageDouble))
       .to(sink("eb-average"));
@@ -54,7 +54,7 @@ public class Main {
     Random random = new Random();
 
     Source.fromPayloads(Flowable.interval(1000, TimeUnit.MILLISECONDS).subscribeOn(Schedulers.computation()))
-      .mapItem(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
+      .mapPayload(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
       .to(sink("sensor"));
   }
 

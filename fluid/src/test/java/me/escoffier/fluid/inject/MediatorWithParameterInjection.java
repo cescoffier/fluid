@@ -25,7 +25,7 @@ public class MediatorWithParameterInjection {
     @Outbound("my-sink") Sink<String> sink
   ) {
 
-    s1.mapItem(String::toUpperCase).mapItem(s -> "S1-" + s).to(sink);
+    s1.mapPayload(String::toUpperCase).mapPayload(s -> "S1-" + s).to(sink);
 
     Flowable.fromPublisher(s2).map(Message::payload)
       .map(s -> "S2-" + s.toUpperCase()).flatMapCompletable(sink::dispatch)

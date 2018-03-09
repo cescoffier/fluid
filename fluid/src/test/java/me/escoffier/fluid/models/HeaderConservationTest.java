@@ -26,7 +26,7 @@ public class HeaderConservationTest {
     Flowable<Message<Double>> flowable = Flowable.fromArray(producer.get(), producer.get(), producer.get(), producer.get(), producer.get());
     ListSink<String> sink = Sink.list();
     Source.from(flowable)
-      .mapItem(d -> "foo")
+      .mapPayload(d -> "foo")
       .to(sink);
 
     assertThat(sink.values()).hasSize(5);
@@ -42,7 +42,7 @@ public class HeaderConservationTest {
     Flowable<Message<Double>> flowable = Flowable.fromArray(producer.get(), producer.get(), producer.get(), producer.get(), producer.get());
     ListSink<String> sink = Sink.list();
     Source.from(flowable)
-      .composeItemFlowable(s -> s.map(x -> {
+      .composePayloadFlowable(s -> s.map(x -> {
           if (random.nextBoolean()) {
             return "foo";
           }
@@ -64,7 +64,7 @@ public class HeaderConservationTest {
     Flowable<Message<Double>> flowable = Flowable.fromArray(producer.get(), producer.get(), producer.get(), producer.get(), producer.get());
     ListSink<String> sink = Sink.list();
     Source.from(flowable)
-      .composeItemFlowable(s -> s
+      .composePayloadFlowable(s -> s
         .map(x -> {
           if (random.nextBoolean()) {
             return "foo";

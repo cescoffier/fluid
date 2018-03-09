@@ -55,7 +55,7 @@ public class EventBusSinkTest {
 
 
     Source.from(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-      .mapItem(i -> i + 1)
+      .mapPayload(i -> i + 1)
       .to(sink);
 
     latch.await();

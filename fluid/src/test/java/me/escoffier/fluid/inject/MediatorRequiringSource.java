@@ -20,6 +20,6 @@ public class MediatorRequiringSource {
 
   @Transformation
   public void transform() {
-    source.mapItem(String::toUpperCase).to(Sink.forEachPayload(s -> SPY.add(s)));
+    source.mapPayload(String::toUpperCase).to(Sink.forEachPayload(s -> SPY.add(s)));
   }
 }
