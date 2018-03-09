@@ -18,11 +18,11 @@ public class ResponseCallbackTest {
   public void shouldExecuteResponseCallback() {
     // Given
     DateResponseCallback responseCallback = new DateResponseCallback();
-    Data<String> data = new Data<>("payload").with(RESPONSE_CALLBACK, responseCallback);
+    Message<String> message = new Message<>("payload").with(RESPONSE_CALLBACK, responseCallback);
     long timeResponse = 666;
 
     // When
-    responseCallback(data).reply(timeResponse).subscribe();
+    responseCallback(message).reply(timeResponse).subscribe();
 
     // Then
     assertThat(responseCallback.date.getTime()).isEqualTo(666);
@@ -32,10 +32,10 @@ public class ResponseCallbackTest {
   public void shouldPropagateReplyErrorDownstream() {
     // Given
     ErroringResponseCallback responseCallback = new ErroringResponseCallback();
-    Data<String> data = new Data<>("payload").with(RESPONSE_CALLBACK, responseCallback);
+    Message<String> message = new Message<>("payload").with(RESPONSE_CALLBACK, responseCallback);
 
     // When
-    Completable replyResult = responseCallback(data).reply(new Object());
+    Completable replyResult = responseCallback(message).reply(new Object());
 
     // Then
     assertThat(replyResult).isInstanceOf(CompletableErrorSupplier.class);

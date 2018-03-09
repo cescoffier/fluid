@@ -5,7 +5,7 @@ import io.vertx.core.eventbus.DeliveryOptions;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.eventbus.EventBus;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 
 /**
@@ -31,14 +31,14 @@ public class EventBusSink<T> implements Sink<T> {
   }
 
   @Override
-  public Completable dispatch(Data<T> data) {
+  public Completable dispatch(Message<T> message) {
     DeliveryOptions options = new DeliveryOptions();
-    data.headers().forEach((k, v) -> options.addHeader(k, v.toString()));
+    message.headers().forEach((k, v) -> options.addHeader(k, v.toString()));
 
     if (publish) {
-      eventBus.publish(address, data.payload(), options);
+      eventBus.publish(address, message.payload(), options);
     } else {
-      eventBus.send(address, data, options);
+      eventBus.send(address, message, options);
     }
     return Completable.complete();
   }

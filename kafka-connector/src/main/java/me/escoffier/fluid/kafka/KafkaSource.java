@@ -5,7 +5,7 @@ import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumer;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
 import me.escoffier.fluid.models.AbstractSource;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Source;
 
 import java.util.HashMap;
@@ -43,7 +43,7 @@ public class KafkaSource<T> extends AbstractSource<T> implements Source<T> {
     ), json.getString("name"), null);
   }
 
-  private static <T> Data<T> createDataFromRecord(KafkaConsumerRecord<String, T> record) {
+  private static <T> Message<T> createDataFromRecord(KafkaConsumerRecord<String, T> record) {
     Map<String, Object> headers = new HashMap<>();
     headers.put("timestamp", record.timestamp());
     headers.put("timestamp-type", record.timestampType());
@@ -52,7 +52,7 @@ public class KafkaSource<T> extends AbstractSource<T> implements Source<T> {
     headers.put("checksum", record.checksum());
     headers.put(KEY, record.key());
     headers.put(ADDRESS, record.topic());
-    return new Data<>(record.value(), headers);
+    return new Message<>(record.value(), headers);
   }
 
   private static Map<String, String> toMap(JsonObject json) {

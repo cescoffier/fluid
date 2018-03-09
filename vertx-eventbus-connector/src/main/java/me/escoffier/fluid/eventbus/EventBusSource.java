@@ -2,10 +2,9 @@ package me.escoffier.fluid.eventbus;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import io.vertx.reactivex.core.eventbus.Message;
 import me.escoffier.fluid.models.AbstractSource;
 import me.escoffier.fluid.models.CommonHeaders;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,10 +35,10 @@ public class EventBusSource<T> extends AbstractSource<T> {
       }), json.getString("name"), null);
   }
 
-  private static <T> Data<T> createData(Message<T> msg) {
+  private static <T> Message<T> createData(io.vertx.reactivex.core.eventbus.Message<T> msg) {
     Map<String, Object> map = new HashMap<>();
     msg.headers().names().forEach(s -> map.put(s, msg.headers().get(s)));
     map.put(CommonHeaders.ORIGINAL, msg);
-    return new Data<>(msg.body(), map);
+    return new Message<>(msg.body(), map);
   }
 }

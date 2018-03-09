@@ -22,11 +22,11 @@ public class ReviewGlobalRating {
         flow
           .groupBy(data -> data.payload().getString("course"))
           .flatMap(group ->
-            group.map(Data::payload)
+            group.map(Message::payload)
               .map(i -> i.getInteger("rating"))
               .scan(Tuple.tuple(0L, 0.0, 0.0), average())
               .map(tuple -> Pair.pair(group.getKey(), (double) tuple.nth(2)))
-              .map(Data::new)
+              .map(Message::new)
           )
       )
       .to(Sink.forEachPayload(pair -> System.out.println("Rating of " + pair.left() + " : " + pair.right())));
@@ -52,7 +52,7 @@ public class ReviewGlobalRating {
     };
   }
 
-  private boolean isFraud(Data<JsonObject> data) {
+  private boolean isFraud(Message<JsonObject> message) {
     return Math.random() > 0.80;
   }
 

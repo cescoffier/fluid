@@ -1,7 +1,7 @@
 package me.escoffier.fluid.impl;
 
 import io.reactivex.Completable;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 
 /**
@@ -13,12 +13,12 @@ public class HeadSink<OUT> implements Sink<OUT> {
   private OUT head;
 
   @Override
-  public Completable dispatch(Data<OUT> data) {
+  public Completable dispatch(Message<OUT> message) {
     return Completable.fromAction(() -> {
       synchronized (HeadSink.this) {
         if (head == null) {
           // TODO It would be nice to be able to cancel the subscription
-          head = data.payload();
+          head = message.payload();
         }
       }
     });

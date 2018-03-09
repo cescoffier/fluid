@@ -5,7 +5,7 @@ import org.junit.Test;
 import static me.escoffier.fluid.impl.DataExpressionFactories.requiredEventExpression;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class GroovyDataExpressionTest {
+public class GroovyMessageExpressionTest {
 
     @Test
     public void shouldEvaluateConstant() {

@@ -3,7 +3,6 @@ package me.escoffier.fluid.inject;
 import io.reactivex.Flowable;
 import me.escoffier.fluid.annotations.Inbound;
 import me.escoffier.fluid.annotations.Transformation;
-import me.escoffier.fluid.models.Data;
 
 import java.util.ArrayList;
 import java.util.List;

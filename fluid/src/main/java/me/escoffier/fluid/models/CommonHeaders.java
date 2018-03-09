@@ -21,39 +21,39 @@ public final class CommonHeaders {
 
 
   @SuppressWarnings("unchecked")
-  public static <T> T original(Data data) {
-    return (T) data.get(ORIGINAL);
+  public static <T> T original(Message message) {
+    return (T) message.get(ORIGINAL);
   }
 
   @SuppressWarnings("unchecked")
-  public static <T> Optional<T> originalOpt(Data data) {
-    return data.getOpt(ORIGINAL);
+  public static <T> Optional<T> originalOpt(Message message) {
+    return message.getOpt(ORIGINAL);
   }
 
-  public static String address(Data data) {
-    return (String) data.get(ADDRESS);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static Optional<String> addressOpt(Data data) {
-    return data.getOpt(ADDRESS);
-  }
-
-  public static String key(Data data) {
-    return (String) data.get(KEY);
+  public static String address(Message message) {
+    return (String) message.get(ADDRESS);
   }
 
   @SuppressWarnings("unchecked")
-  public static Optional<String> keyOpt(Data data) {
-    return data.getOpt(KEY);
+  public static Optional<String> addressOpt(Message message) {
+    return message.getOpt(ADDRESS);
   }
 
-  public static ResponseCallback responseCallback(Data data) {
-    return (ResponseCallback) data.get(RESPONSE_CALLBACK);
+  public static String key(Message message) {
+    return (String) message.get(KEY);
   }
 
-  public static Optional<ResponseCallback> responseCallbackOpt(Data data) {
-    return (Optional<ResponseCallback>) data.getOpt(RESPONSE_CALLBACK);
+  @SuppressWarnings("unchecked")
+  public static Optional<String> keyOpt(Message message) {
+    return message.getOpt(KEY);
+  }
+
+  public static ResponseCallback responseCallback(Message message) {
+    return (ResponseCallback) message.get(RESPONSE_CALLBACK);
+  }
+
+  public static Optional<ResponseCallback> responseCallbackOpt(Message message) {
+    return (Optional<ResponseCallback>) message.getOpt(RESPONSE_CALLBACK);
   }
 
 }

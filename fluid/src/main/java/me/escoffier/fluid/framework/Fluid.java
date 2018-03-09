@@ -5,7 +5,7 @@ import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.annotations.Inbound;
 import me.escoffier.fluid.annotations.Outbound;
 import me.escoffier.fluid.annotations.Transformation;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
 import me.escoffier.fluid.reflect.ReflectionHelper;
@@ -136,11 +136,11 @@ public class Fluid {
           Type type = method.getGenericReturnType();
           if (type instanceof ParameterizedType) {
             Type enclosed = ((ParameterizedType) type).getActualTypeArguments()[0];
-            if (!enclosed.getTypeName().startsWith(Data.class.getName())) {
+            if (!enclosed.getTypeName().startsWith(Message.class.getName())) {
               flowable.flatMapCompletable(sink::dispatch).subscribe();
             } else {
               flowable
-                .flatMapCompletable(d -> sink.dispatch((Data) d)).subscribe();
+                .flatMapCompletable(d -> sink.dispatch((Message) d)).subscribe();
             }
           } else {
             flowable.flatMapCompletable(sink::dispatch).subscribe();
@@ -157,8 +157,8 @@ public class Fluid {
     if (clazz.isAssignableFrom(Publisher.class)) {
       if (type instanceof ParameterizedType) {
         Type enclosed = ((ParameterizedType) type).getActualTypeArguments()[0];
-        if (!enclosed.getTypeName().startsWith(Data.class.getName())) {
-          return Flowable.fromPublisher(source).map(Data::payload);
+        if (!enclosed.getTypeName().startsWith(Message.class.getName())) {
+          return Flowable.fromPublisher(source).map(Message::payload);
         } else {
           return source;
         }
@@ -166,11 +166,11 @@ public class Fluid {
         return source;
       }
     } else if (clazz.isAssignableFrom(Flowable.class)) {
-      Flowable<Data<Object>> flowable = Flowable.fromPublisher(source);
+      Flowable<Message<Object>> flowable = Flowable.fromPublisher(source);
       if (type instanceof ParameterizedType) {
         Type enclosed = ((ParameterizedType) type).getActualTypeArguments()[0];
-        if (!enclosed.getTypeName().startsWith(Data.class.getName())) {
-          return flowable.map(Data::payload);
+        if (!enclosed.getTypeName().startsWith(Message.class.getName())) {
+          return flowable.map(Message::payload);
         } else {
           return flowable;
         }

@@ -90,7 +90,7 @@ public class SinkTest {
 
   @Test
   public void testForEach() {
-    List<Data<Integer>> list = new ArrayList<>();
+    List<Message<Integer>> list = new ArrayList<>();
     Sink<Integer> sink = Sink.forEach(list::add);
     assertThat(sink.name()).isNull();
     Completable c1 = sink.dispatch(1);
@@ -101,14 +101,14 @@ public class SinkTest {
     assertThat(c2.blockingGet()).isNull();
     assertThat(c3.blockingGet()).isNull();
 
-    assertThat(list.stream().map(Data::payload).collect(Collectors.toList()))
+    assertThat(list.stream().map(Message::payload).collect(Collectors.toList()))
       .containsExactly(1, 2, 3);
   }
 
 
   @Test
   public void testForEachAsync() {
-    List<Data<Integer>> list = new ArrayList<>();
+    List<Message<Integer>> list = new ArrayList<>();
     Sink<Integer> sink = Sink.forEachAsync(i -> {
       list.add(i);
       return Completable.complete();
@@ -122,7 +122,7 @@ public class SinkTest {
     assertThat(c2.blockingGet()).isNull();
     assertThat(c3.blockingGet()).isNull();
 
-    assertThat(list.stream().map(Data::payload).collect(Collectors.toList()))
+    assertThat(list.stream().map(Message::payload).collect(Collectors.toList()))
       .containsExactly(1, 2, 3);
   }
 
@@ -159,7 +159,7 @@ public class SinkTest {
     });
 
     Source<Integer> source = Source.fromPayloads(publisher);
-    Flowable<Data<Integer>> flowable = Flowable.fromPublisher(source).observeOn(Schedulers.computation());
+    Flowable<Message<Integer>> flowable = Flowable.fromPublisher(source).observeOn(Schedulers.computation());
     Source.from(flowable)
       .to(slow);
 
@@ -178,7 +178,7 @@ public class SinkTest {
       if (i == 3) {
         return null;
       }
-      return new Data<>(i.toString());
+      return new Message<>(i.toString());
     });
     assertThat(sink.dispatch(1).blockingGet()).isNull();
     assertThat(sink.dispatch(2).blockingGet()).isNull();
@@ -206,7 +206,7 @@ public class SinkTest {
       if (i == 3) {
         return null;
       }
-      return new Data<>(i.toString());
+      return new Message<>(i.toString());
     });
     assertThat(sink.dispatch(1).blockingGet()).isNull();
     assertThat(sink.dispatch(2).blockingGet()).isNull();

@@ -4,7 +4,7 @@ import io.reactivex.Flowable;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.fluid.annotations.Inbound;
 import me.escoffier.fluid.annotations.Transformation;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
 
@@ -34,7 +34,7 @@ public class ReviewProducer {
           .put("course", pickAMovie())
           .put("rating", rate())
           .put("review.id", reviewCount);
-        return new Data<>(review).with("count", reviewCount);
+        return new Message<>(review).with("count", reviewCount);
       })
       .to(sink);
   }

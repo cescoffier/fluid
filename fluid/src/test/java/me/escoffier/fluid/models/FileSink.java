@@ -24,8 +24,8 @@ public class FileSink implements Sink<String> {
     }
 
     @Override
-    public Completable dispatch(Data<String> data) {
+    public Completable dispatch(Message<String> message) {
         return flow
-            .doOnSuccess(file -> file.write(Buffer.buffer(data.payload()))).toCompletable();
+            .doOnSuccess(file -> file.write(Buffer.buffer(message.payload()))).toCompletable();
     }
 }

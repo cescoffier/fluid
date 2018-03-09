@@ -1,7 +1,7 @@
 package me.escoffier.fluid.impl;
 
 import io.reactivex.Completable;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 
 import java.util.Optional;
@@ -16,13 +16,13 @@ public class TailSink<OUT> implements Sink<OUT> {
   /**
    * The last received value.
    */
-  private Data<OUT> tail;
+  private Message<OUT> tail;
 
   @Override
-  public Completable dispatch(Data<OUT> data) {
+  public Completable dispatch(Message<OUT> message) {
     return Completable.fromAction(() -> {
       synchronized (TailSink.this) {
-        tail = data;
+        tail = message;
       }
     });
   }
@@ -31,13 +31,13 @@ public class TailSink<OUT> implements Sink<OUT> {
    * @return the stored payload.
    */
   public synchronized OUT value() {
-    return Optional.ofNullable(tail).map(Data::payload).orElse(null);
+    return Optional.ofNullable(tail).map(Message::payload).orElse(null);
   }
 
   /**
    * @return the stored data
    */
-  public synchronized Data<OUT> data() {
+  public synchronized Message<OUT> data() {
     return tail;
   }
 
@@ -46,6 +46,6 @@ public class TailSink<OUT> implements Sink<OUT> {
    * the value won't change even.
    */
   public synchronized Optional<OUT> optional() {
-    return Optional.ofNullable(tail).map(Data::payload);
+    return Optional.ofNullable(tail).map(Message::payload);
   }
 }

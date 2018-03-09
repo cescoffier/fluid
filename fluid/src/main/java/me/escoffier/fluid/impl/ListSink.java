@@ -1,7 +1,7 @@
 package me.escoffier.fluid.impl;
 
 import io.reactivex.Completable;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 
 import java.util.ArrayList;
@@ -15,19 +15,19 @@ import java.util.stream.Collectors;
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
 public class ListSink<OUT> implements Sink<OUT> {
-  private List<Data<OUT>> values = new CopyOnWriteArrayList<>();
+  private List<Message<OUT>> values = new CopyOnWriteArrayList<>();
 
   @Override
-  public Completable dispatch(Data<OUT> data) {
-    return Completable.fromAction(() -> values.add(data));
+  public Completable dispatch(Message<OUT> message) {
+    return Completable.fromAction(() -> values.add(message));
   }
 
   public synchronized List<OUT> values() {
-    return values.stream().map(Data::payload)
+    return values.stream().map(Message::payload)
       .collect(Collectors.toList());
   }
 
-  public synchronized List<Data<OUT>> data() {
+  public synchronized List<Message<OUT>> data() {
     return new ArrayList<>(values);
   }
 }

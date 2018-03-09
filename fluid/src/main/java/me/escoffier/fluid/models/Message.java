@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class Data<T> {
+public class Message<T> {
 
   /**
    * The payload, must not be {@code null}
@@ -19,36 +19,36 @@ public class Data<T> {
   private final Map<String, Object> headers;
 
   /**
-   * Creates a new instance of {@link Data}. This constructor does not set any headers (empty map).
+   * Creates a new instance of {@link Message}. This constructor does not set any headers (empty map).
    *
    * @param payload the payload, must not be {@code null}
    */
-  public Data(T payload) {
+  public Message(T payload) {
     this.payload = Objects.requireNonNull(payload);
     this.headers = Collections.emptyMap();
   }
 
   /**
-   * Creates a new instance of {@link Data}. This constructor does not set any headers (empty map).
+   * Creates a new instance of {@link Message}. This constructor does not set any headers (empty map).
    *
    * @param payload the payload
    * @param headers the header, must not be {@code null}
    */
-  public Data(T payload, Map<String, Object> headers) {
+  public Message(T payload, Map<String, Object> headers) {
     this.payload = Objects.requireNonNull(payload);
     this.headers = Collections
       .unmodifiableMap(new HashMap<>(Objects.requireNonNull(headers)));
   }
 
   /**
-   * Creates a new instance of {@link Data} reusing the same set of headers but with the new payload.
+   * Creates a new instance of {@link Message} reusing the same set of headers but with the new payload.
    *
    * @param payload the payload
    * @param <O>     the type of the encapsulated payload
    * @return the new instance
    */
-  public <O> Data<O> with(O payload) {
-    return new Data<>(Objects.requireNonNull(payload), headers());
+  public <O> Message<O> with(O payload) {
+    return new Message<>(Objects.requireNonNull(payload), headers());
   }
 
   /**
@@ -76,36 +76,36 @@ public class Data<T> {
   }
 
   /**
-   * Creates a new instance of {@link Data} copying the current instance and adding the given header:
+   * Creates a new instance of {@link Message} copying the current instance and adding the given header:
    * <code>key: value</code>.
    *
    * @param key   the key of the header to add, must not be {@code null}
    * @param value the value to associate to the key
-   * @return the new instance of {@link Data}
+   * @return the new instance of {@link Message}
    */
-  public Data<T> with(String key, Object value) {
+  public Message<T> with(String key, Object value) {
     Map<String, Object> copy = new HashMap<>(headers);
     copy.put(Objects.requireNonNull(key), value);
-    return new Data<>(payload, copy);
+    return new Message<>(payload, copy);
   }
 
   /**
-   * Creates a new instance of {@link Data} copying the current instance without the given header. This method does
+   * Creates a new instance of {@link Message} copying the current instance without the given header. This method does
    * not check whether or not the header was present.
    *
    * @param key the key of the header to remove, must not be {@code null}
-   * @return the new instance of {@link Data}
+   * @return the new instance of {@link Message}
    */
-  public Data<T> without(String key) {
+  public Message<T> without(String key) {
     Map<String, Object> copy = new HashMap<>(headers);
     copy.remove(Objects.requireNonNull(key));
-    return new Data<>(payload, copy);
+    return new Message<>(payload, copy);
   }
 
   /**
-   * Gets the set of headers associated with the current {@link Data}.
+   * Gets the set of headers associated with the current {@link Message}.
    *
-   * @return the headers, never {@code null}. An empty map is returned if the {@link Data} has no headers.
+   * @return the headers, never {@code null}. An empty map is returned if the {@link Message} has no headers.
    */
   public Map<String, Object> headers() {
     return headers;

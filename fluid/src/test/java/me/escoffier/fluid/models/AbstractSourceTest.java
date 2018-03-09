@@ -32,7 +32,7 @@ public class AbstractSourceTest {
   public void testCompose() {
     ListSink<Integer> list = Sink.list();
     Source.from(1, 2, 3, 4, 5)
-      .composeFlowable(flow -> flow.map(Data::payload).map(i -> i + 1).map(Data::new))
+      .composeFlowable(flow -> flow.map(Message::payload).map(i -> i + 1).map(Message::new))
       .to(list);
 
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
@@ -51,7 +51,7 @@ public class AbstractSourceTest {
   public void testThatWeCanRetrieveTheFlowable() {
     List<Integer> list = Source.from(1, 2, 3, 4, 5)
       .asFlowable()
-      .map(Data::payload)
+      .map(Message::payload)
       .toList()
       .blockingGet();
     assertThat(list).containsExactly(1, 2, 3, 4, 5);
@@ -114,7 +114,7 @@ public class AbstractSourceTest {
     assertThat(sink.values()).hasSize(10);
     assertThat(sink.data()).hasSize(10);
 
-    for (Data<Integer> d : sink.data()) {
+    for (Message<Integer> d : sink.data()) {
       assertThat(d.<Long>get("X-Timestamp")).isNotNull().isGreaterThanOrEqualTo(0);
       assertThat(d.<Boolean>get("Random")).isTrue();
       assertThat(d.payload()).isGreaterThanOrEqualTo(0).isLessThan(100);
@@ -122,8 +122,8 @@ public class AbstractSourceTest {
   }
 
 
-  private static Data<Double> random() {
-    return new Data<>(Math.random()).with("X-Timestamp", System.currentTimeMillis()).with("Random", true);
+  private static Message<Double> random() {
+    return new Message<>(Math.random()).with("X-Timestamp", System.currentTimeMillis()).with("Random", true);
   }
 
 

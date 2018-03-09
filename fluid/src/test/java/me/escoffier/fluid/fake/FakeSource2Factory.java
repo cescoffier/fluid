@@ -5,7 +5,7 @@ import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.models.AbstractSource;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Source;
 import me.escoffier.fluid.spi.SourceFactory;
 
@@ -31,7 +31,7 @@ public class FakeSource2Factory implements SourceFactory {
     @SuppressWarnings("unchecked")
     public FakeSourceImpl(JsonObject json) {
       super(Flowable.fromIterable(
-        json.getJsonArray("items").getList()).map(Data::new)
+        json.getJsonArray("items").getList()).map(Message::new)
       , null, null);
       name = json.getString("name");
     }

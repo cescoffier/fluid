@@ -8,38 +8,38 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class CommonHeadersTest {
 
-  private Data dataWithCommonHeaders = new Data<>("payload", ImmutableMap.of(KEY, "key", ORIGINAL, "original", ADDRESS, "address"));
+  private Message messageWithCommonHeaders = new Message<>("payload", ImmutableMap.of(KEY, "key", ORIGINAL, "original", ADDRESS, "address"));
 
-  private Data dataWithoutCommonHeaders = new Data<>("payload");
+  private Message messageWithoutCommonHeaders = new Message<>("payload");
 
   @Test
   public void shouldGetRequiredAddress() {
-    assertThat(address(dataWithCommonHeaders)).isEqualTo("address");
+    assertThat(address(messageWithCommonHeaders)).isEqualTo("address");
   }
 
   @Test
   public void shouldHandleEmptyAddress() {
-    assertThat(addressOpt(dataWithoutCommonHeaders)).isEmpty();
+    assertThat(addressOpt(messageWithoutCommonHeaders)).isEmpty();
   }
 
   @Test
   public void shouldGetRequiredKey() {
-    assertThat(key(dataWithCommonHeaders)).isEqualTo("key");
+    assertThat(key(messageWithCommonHeaders)).isEqualTo("key");
   }
 
   @Test
   public void shouldHandleEmptyKey() {
-    assertThat(keyOpt(dataWithoutCommonHeaders)).isEmpty();
+    assertThat(keyOpt(messageWithoutCommonHeaders)).isEmpty();
   }
 
   @Test
   public void shouldGetRequiredOriginalData() {
-    assertThat(CommonHeaders.<String>original(dataWithCommonHeaders)).isEqualTo("original");
+    assertThat(CommonHeaders.<String>original(messageWithCommonHeaders)).isEqualTo("original");
   }
 
   @Test
   public void shouldHandleEmptyOriginal() {
-    assertThat(originalOpt(dataWithoutCommonHeaders)).isEmpty();
+    assertThat(originalOpt(messageWithoutCommonHeaders)).isEmpty();
   }
 
 }

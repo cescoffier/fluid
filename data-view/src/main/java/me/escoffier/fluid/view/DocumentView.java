@@ -3,12 +3,13 @@ package me.escoffier.fluid.view;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
+import me.escoffier.fluid.models.Message;
 
 import java.util.Map;
 
 /**
  * Interface used to store, retrieve and delete a {@code document} representing a extraction of information from the
- * received {@link me.escoffier.fluid.models.Data}.
+ * received {@link Message}.
  * <p>
  * The documents are organized in @{code collections} and are stored to a specific {@code key}. A {@code document} is
  * just a @{code Map&lt;String, Object&gt;} containing the data.

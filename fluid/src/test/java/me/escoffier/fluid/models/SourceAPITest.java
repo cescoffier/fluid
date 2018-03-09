@@ -17,7 +17,7 @@ public class SourceAPITest {
     ListSink<Integer> sink = new ListSink<>();
 
     Source.from(1, 2, 3, 4, 5)
-      .compose(pub -> Flowable.fromPublisher(pub).map(Data::payload).map(d -> d + 1).map(Data::new))
+      .compose(pub -> Flowable.fromPublisher(pub).map(Message::payload).map(d -> d + 1).map(Message::new))
       .to(sink);
 
     await().until(() -> sink.values().size() == 5);

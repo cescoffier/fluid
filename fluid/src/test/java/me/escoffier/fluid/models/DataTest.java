@@ -15,25 +15,25 @@ public class DataTest {
 
   @Test
   public void createWithoutHeaders() {
-    Data<String> data = new Data<>("hello");
-    assertThat(data.payload()).isEqualTo("hello");
-    assertThat(data.headers()).isEmpty();
+    Message<String> message = new Message<>("hello");
+    assertThat(message.payload()).isEqualTo("hello");
+    assertThat(message.headers()).isEmpty();
   }
 
   @Test
   public void createWithHeaders() {
     Map<String, Object> headers = new HashMap<>();
     headers.put("foo", "bar");
-    Data<String> data = new Data<>("hello", headers);
-    assertThat(data.payload()).isEqualTo("hello");
-    assertThat(data.headers()).containsExactly(entry("foo", "bar"));
-    String h = data.get("foo");
+    Message<String> message = new Message<>("hello", headers);
+    assertThat(message.payload()).isEqualTo("hello");
+    assertThat(message.headers()).containsExactly(entry("foo", "bar"));
+    String h = message.get("foo");
     assertThat(h).isEqualTo("bar");
   }
 
   @Test
   public void testCreationWithWith() {
-    Data<String> d1 = new Data<>("hello")
+    Message<String> d1 = new Message<>("hello")
       .with("aaa", 1).with("bbb", "rrrr");
     assertThat(d1.payload()).isEqualTo("hello");
     int x = d1.get("aaa");
@@ -41,7 +41,7 @@ public class DataTest {
     assertThat(x).isEqualTo(1);
     assertThat(y).isEqualTo("rrrr");
 
-    Data<Double> d2 = d1.with(25.5);
+    Message<Double> d2 = d1.with(25.5);
     assertThat(d2.payload()).isEqualTo(25.5);
     x = d2.get("aaa");
     y = d2.get("bbb");
@@ -57,13 +57,13 @@ public class DataTest {
 
   @Test
   public void testToString() {
-    Data<String> data = new Data<>("hello");
-    assertThat(data.toString()).contains("\"payload\":\"hello\"").contains("\"headers\":{}");
-    assertThat(data.with("key", "value").toString())
+    Message<String> message = new Message<>("hello");
+    assertThat(message.toString()).contains("\"payload\":\"hello\"").contains("\"headers\":{}");
+    assertThat(message.with("key", "value").toString())
       .contains("\"payload\":\"hello\"")
       .contains("\"headers\":{\"key\":\"value\"}");
 
-    String actual = data.with("key", "value").with("foo", 25).toString();
+    String actual = message.with("key", "value").with("foo", 25).toString();
     assertThat(actual)
       .isEqualTo("{\"payload\":\"hello\", \"headers\":{\"key\":\"value\",\"foo\":\"25\"}}");
   }

@@ -1,7 +1,7 @@
 package me.escoffier.fluid.impl;
 
 import io.reactivex.Completable;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 
 import java.util.function.BiFunction;
@@ -24,10 +24,10 @@ public class ScanSink<OUT, RES> implements Sink<OUT> {
   }
 
   @Override
-  public synchronized Completable dispatch(Data<OUT> data) {
+  public synchronized Completable dispatch(Message<OUT> message) {
     return Completable.fromAction(() -> {
       synchronized (ScanSink.this) {
-        current = mapper.apply(data.payload(), current);
+        current = mapper.apply(message.payload(), current);
       }
     });
 

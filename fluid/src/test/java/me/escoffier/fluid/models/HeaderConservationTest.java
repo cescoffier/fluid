@@ -18,19 +18,19 @@ public class HeaderConservationTest {
   private Random random = new Random();
   private AtomicInteger counter = new AtomicInteger();
 
-  private Supplier<Data<Double>> producer = () ->
-    new Data<>(random.nextDouble()).with("index", counter.incrementAndGet()).with("timestamp", System.currentTimeMillis());
+  private Supplier<Message<Double>> producer = () ->
+    new Message<>(random.nextDouble()).with("index", counter.incrementAndGet()).with("timestamp", System.currentTimeMillis());
 
   @Test
   public void testConservationWhenTransformingPayload() {
-    Flowable<Data<Double>> flowable = Flowable.fromArray(producer.get(), producer.get(), producer.get(), producer.get(), producer.get());
+    Flowable<Message<Double>> flowable = Flowable.fromArray(producer.get(), producer.get(), producer.get(), producer.get(), producer.get());
     ListSink<String> sink = Sink.list();
     Source.from(flowable)
       .mapItem(d -> "foo")
       .to(sink);
 
     assertThat(sink.values()).hasSize(5);
-    for (Data<String> d : sink.data()) {
+    for (Message<String> d : sink.data()) {
       assertThat((long) d.get("timestamp")).isNotNull().isNotZero().isNotNegative();
       assertThat((int) d.get("index")).isNotNull().isNotZero().isNotNegative();
       assertThat(d.payload()).isEqualToIgnoringCase("foo");
@@ -39,7 +39,7 @@ public class HeaderConservationTest {
 
   @Test
   public void testConservationWhenTransformingPayloadStream() {
-    Flowable<Data<Double>> flowable = Flowable.fromArray(producer.get(), producer.get(), producer.get(), producer.get(), producer.get());
+    Flowable<Message<Double>> flowable = Flowable.fromArray(producer.get(), producer.get(), producer.get(), producer.get(), producer.get());
     ListSink<String> sink = Sink.list();
     Source.from(flowable)
       .composeItemFlowable(s -> s.map(x -> {
@@ -52,7 +52,7 @@ public class HeaderConservationTest {
       .to(sink);
 
     assertThat(sink.values()).hasSize(5);
-    for (Data<String> d : sink.data()) {
+    for (Message<String> d : sink.data()) {
       assertThat((long) d.get("timestamp")).isNotNull().isNotZero().isNotNegative();
       assertThat((int) d.get("index")).isNotNull().isNotZero().isNotNegative();
       assertThat(d.payload()).isIn("FOO", "BAR");
@@ -61,7 +61,7 @@ public class HeaderConservationTest {
 
   @Test
   public void testConservationWhenTransformingPayloadStreamWithDoubleEmission() {
-    Flowable<Data<Double>> flowable = Flowable.fromArray(producer.get(), producer.get(), producer.get(), producer.get(), producer.get());
+    Flowable<Message<Double>> flowable = Flowable.fromArray(producer.get(), producer.get(), producer.get(), producer.get(), producer.get());
     ListSink<String> sink = Sink.list();
     Source.from(flowable)
       .composeItemFlowable(s -> s
@@ -79,7 +79,7 @@ public class HeaderConservationTest {
     int i = 1;
     long lastTimestamp = 0;
     int lastIndex = 0;
-    for (Data<String> d : sink.data()) {
+    for (Message<String> d : sink.data()) {
       assertThat((long) d.get("timestamp")).isNotNull().isNotZero().isNotNegative();
       assertThat((int) d.get("index")).isNotNull().isNotZero().isNotNegative();
       assertThat(d.payload()).isIn("FOO", "BAR");

@@ -4,7 +4,7 @@ import io.reactivex.Flowable;
 import me.escoffier.fluid.framework.Fluid;
 import me.escoffier.fluid.impl.ListSink;
 import me.escoffier.fluid.models.AbstractSource;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
 import me.escoffier.fluid.registry.FluidRegistry;
@@ -134,7 +134,7 @@ public class InjectionTest {
 
     MySource() {
       super(
-        Flowable.fromArray(new Data<>("a"), new Data<>("b"), new Data<>("c"), new Data<>("d"), new Data<>("e")),
+        Flowable.fromArray(new Message<>("a"), new Message<>("b"), new Message<>("c"), new Message<>("d"), new Message<>("e")),
         "my-source",
         null
       );

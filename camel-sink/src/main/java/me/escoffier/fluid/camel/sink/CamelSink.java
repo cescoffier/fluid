@@ -4,7 +4,7 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.internal.operators.completable.CompletableFromObservable;
 import io.vertx.core.json.JsonObject;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
@@ -31,8 +31,8 @@ public class CamelSink<T> implements Sink<T> {
         }
     }
 
-    @Override public Completable dispatch(Data<T> data) {
-        CompletableFuture<Object> result = producerTemplate.asyncSendBody(endpoint, data.payload());
+    @Override public Completable dispatch(Message<T> message) {
+        CompletableFuture<Object> result = producerTemplate.asyncSendBody(endpoint, message.payload());
         return new CompletableFromObservable<>(toObservable(result));
     }
 

@@ -6,7 +6,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaWriteStream;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.impl.AsyncResultCompletable;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.spi.DataExpression;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -45,11 +45,11 @@ public class KafkaSink<T> implements Sink<T> {
 
 
   @Override
-  public Completable dispatch(Data<T> data) {
+  public Completable dispatch(Message<T> message) {
     // TODO Override publication configuration using headers
     // TODO Modify the evaluation to support Data<T>
     ProducerRecord<String, T> record
-      = new ProducerRecord(topic, partition, timestamp, key.evaluate(data), data.payload());
+      = new ProducerRecord(topic, partition, timestamp, key.evaluate(message), message.payload());
     return new AsyncResultCompletable(
       handler ->
         stream.write(record, x -> {

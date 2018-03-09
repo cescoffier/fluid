@@ -4,7 +4,7 @@ import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.models.AbstractSource;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
 import org.junit.After;
@@ -65,7 +65,7 @@ public class FluidRegistryTest {
     Sink<String> source = new Sink<String>() {
 
       @Override
-      public Completable dispatch(Data<String> data) {
+      public Completable dispatch(Message<String> data) {
         return Completable.complete();
       }
 

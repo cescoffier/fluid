@@ -13,15 +13,15 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * Represents a data source. It emits {@link Data<T>}.
+ * Represents a data source. It emits {@link Message <T>}.
  */
-public interface Source<T> extends Publisher<Data<T>> {
+public interface Source<T> extends Publisher<Message<T>> {
 
   Source<T> named(String name);
 
   Source<T> withAttribute(String key, Object value);
 
-  static <T> Source<T> from(Publisher<Data<T>> flow) {
+  static <T> Source<T> from(Publisher<Message<T>> flow) {
     return from(Flowable.fromPublisher(Objects.requireNonNull(flow)));
   }
 
@@ -29,15 +29,15 @@ public interface Source<T> extends Publisher<Data<T>> {
     return fromPayloads(Flowable.fromPublisher(Objects.requireNonNull(flow)));
   }
 
-  static <T> Source<T> from(Flowable<Data<T>> flow) {
+  static <T> Source<T> from(Flowable<Message<T>> flow) {
     return new AbstractSource<>(Objects.requireNonNull(flow), null, null);
   }
 
   static <T> Source<T> fromPayloads(Flowable<T> flow) {
-    return new AbstractSource<>(Objects.requireNonNull(flow).map(Data::new), null, null);
+    return new AbstractSource<>(Objects.requireNonNull(flow).map(Message::new), null, null);
   }
 
-  static <T> Source<T> from(Single<Data<T>> single) {
+  static <T> Source<T> from(Single<Message<T>> single) {
     return from(Objects.requireNonNull(single).toFlowable());
   }
 
@@ -45,7 +45,7 @@ public interface Source<T> extends Publisher<Data<T>> {
     return fromPayloads(Objects.requireNonNull(single).toFlowable());
   }
 
-  static <T> Source<T> from(Maybe<Data<T>> maybe) {
+  static <T> Source<T> from(Maybe<Message<T>> maybe) {
     return new AbstractSource<>(Objects.requireNonNull(maybe).toFlowable(), null, null);
   }
 
@@ -53,7 +53,7 @@ public interface Source<T> extends Publisher<Data<T>> {
     return fromPayloads(Objects.requireNonNull(maybe).toFlowable());
   }
 
-  static <T> Source<T> from(Data<T>... payloads) {
+  static <T> Source<T> from(Message<T>... payloads) {
     return from(Flowable.fromArray(Objects.requireNonNull(payloads)));
   }
 
@@ -61,7 +61,7 @@ public interface Source<T> extends Publisher<Data<T>> {
     return fromPayloads(Flowable.fromArray(Objects.requireNonNull(payloads)));
   }
 
-  static <T> Source<T> from(Iterable<Data<T>> payloads) {
+  static <T> Source<T> from(Iterable<Message<T>> payloads) {
     return from(Flowable.fromIterable(Objects.requireNonNull(payloads)));
   }
 
@@ -69,7 +69,7 @@ public interface Source<T> extends Publisher<Data<T>> {
     return fromPayloads(Flowable.fromIterable(Objects.requireNonNull(payloads)));
   }
 
-  static <T> Source<T> from(java.util.stream.Stream<Data<T>> stream) {
+  static <T> Source<T> from(java.util.stream.Stream<Message<T>> stream) {
     return from(Flowable.fromIterable(stream::iterator));
   }
 
@@ -85,7 +85,7 @@ public interface Source<T> extends Publisher<Data<T>> {
     return fromPayloads(Flowable.just(payload));
   }
 
-  static <T> Source<T> just(Data<T> payload) {
+  static <T> Source<T> just(Message<T> payload) {
     return from(Flowable.just(payload));
   }
 
@@ -107,23 +107,23 @@ public interface Source<T> extends Publisher<Data<T>> {
 
   Optional<T> attr(String key);
 
-  <X> Source<X> map(Function<Data<T>, Data<X>> mapper);
+  <X> Source<X> map(Function<Message<T>, Message<X>> mapper);
 
   <X> Source<X> mapItem(Function<T, X> mapper);
 
-  Source<T> filter(Predicate<Data<T>> filter);
+  Source<T> filter(Predicate<Message<T>> filter);
 
   Source<T> filterPayload(Predicate<T> filter);
 
-  Source<T> filterNot(Predicate<Data<T>> filter);
+  Source<T> filterNot(Predicate<Message<T>> filter);
 
   Source<T> filterPayloadNot(Predicate<T> filter);
 
-  <X> Source<X> flatMap(Function<Data<T>, Publisher<Data<X>>> mapper);
+  <X> Source<X> flatMap(Function<Message<T>, Publisher<Message<X>>> mapper);
 
-  <X> Source<X> concatMap(Function<Data<T>, Publisher<Data<X>>> mapper);
+  <X> Source<X> concatMap(Function<Message<T>, Publisher<Message<X>>> mapper);
 
-  <X> Source<X> flatMap(Function<Data<T>, Publisher<Data<X>>> mapper, int maxConcurrency);
+  <X> Source<X> flatMap(Function<Message<T>, Publisher<Message<X>>> mapper, int maxConcurrency);
 
   <X> Source<X> flatMapItem(Function<T, Publisher<X>> mapper);
 
@@ -131,41 +131,41 @@ public interface Source<T> extends Publisher<Data<T>> {
 
   <X> Source<X> flatMapItem(Function<T, Publisher<X>> mapper, int maxConcurrency);
 
-  <X> Source<X> reduce(Data<X> zero, BiFunction<Data<X>, Data<T>, Data<X>> function);
+  <X> Source<X> reduce(Message<X> zero, BiFunction<Message<X>, Message<T>, Message<X>> function);
 
   <X> Source<X> reduceItems(X zero, BiFunction<X, T, X> function);
 
-  <X> Source<X> scan(Data<X> zero, BiFunction<Data<X>, Data<T>, Data<X>> function);
+  <X> Source<X> scan(Message<X> zero, BiFunction<Message<X>, Message<T>, Message<X>> function);
 
   <X> Source<X> scanItems(X zero, BiFunction<X, T, X> function);
 
-  <K> Publisher<GroupedDataStream<K, T>> groupBy(Function<Data<T>, K> keySupplier);
+  <K> Publisher<GroupedDataStream<K, T>> groupBy(Function<Message<T>, K> keySupplier);
 
   List<Source<T>> broadcast(int numberOfBranches);
 
   List<Source<T>> broadcast(String... names);
 
-  Pair<Source<T>, Source<T>> branch(Predicate<Data<T>> condition);
+  Pair<Source<T>, Source<T>> branch(Predicate<Message<T>> condition);
 
   Pair<Source<T>, Source<T>> branchOnPayload(Predicate<T> condition);
 
   Sink<T> to(Sink<T> sink);
 
-  Flowable<Data<T>> asFlowable();
+  Flowable<Message<T>> asFlowable();
 
-  <O> Source<Pair<T, O>> zipWith(Publisher<Data<O>> source);
+  <O> Source<Pair<T, O>> zipWith(Publisher<Message<O>> source);
 
-  Source<Tuple> zipWith(Publisher<Data>... sources);
+  Source<Tuple> zipWith(Publisher<Message>... sources);
 
   Source<Tuple> zipWith(Source... sources);
 
-  Source<T> mergeWith(Publisher<Data<T>> source);
+  Source<T> mergeWith(Publisher<Message<T>> source);
 
-  Source<T> mergeWith(Publisher<Data<T>>... sources);
+  Source<T> mergeWith(Publisher<Message<T>>... sources);
 
-  <X> Source<X> compose(Function<Publisher<Data<T>>, Publisher<Data<X>>> mapper);
+  <X> Source<X> compose(Function<Publisher<Message<T>>, Publisher<Message<X>>> mapper);
 
-  <X> Source<X> composeFlowable(Function<Flowable<Data<T>>, Flowable<Data<X>>> mapper);
+  <X> Source<X> composeFlowable(Function<Flowable<Message<T>>, Flowable<Message<X>>> mapper);
 
   <X> Source<X> composeItemFlowable(Function<Flowable<T>, Flowable<X>> mapper);
 }

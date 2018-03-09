@@ -44,7 +44,7 @@ public class SimpleExample {
   @Test
   public void testWithRange() {
     ListSink<Integer> sink = new ListSink<>();
-    Source.from(Flowable.range(0, 10).map(Data::new))
+    Source.from(Flowable.range(0, 10).map(Message::new))
       .mapItem(i -> {
         System.out.println("Item: " + i);
         return i;
@@ -57,8 +57,8 @@ public class SimpleExample {
 
   @Test
   public void testWithRange2() {
-    List<Data<Integer>> list = new ArrayList<>();
-    Source.from(Flowable.range(0, 10).map(Data::new))
+    List<Message<Integer>> list = new ArrayList<>();
+    Source.from(Flowable.range(0, 10).map(Message::new))
       .to(Sink.forEach(list::add));
     assertThat(list).hasSize(10);
   }
@@ -85,12 +85,12 @@ public class SimpleExample {
     quotes.add(new Quote("Rhinestones make everything better", "Piera Gelardi"));
     quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
 
-    Flowable<Data<String>> stream = Source.fromPayloads(quotes.stream())
+    Flowable<Message<String>> stream = Source.fromPayloads(quotes.stream())
       .mapItem(q -> q.author)
       .asFlowable()
-      .map(Data::payload)
+      .map(Message::payload)
       .compose(Flowable::distinct)
-      .map(d -> new Data<>(d.toUpperCase()));
+      .map(d -> new Message<>(d.toUpperCase()));
 
     Source.from(stream)
       .to(cache);
@@ -141,11 +141,11 @@ public class SimpleExample {
     ListSink<String> cache = new ListSink<>();
     getFactorialFlow()
       .compose(publisher -> {
-        Flowable<Data<BigInteger>> flowable = Flowable.fromPublisher(publisher);
+        Flowable<Message<BigInteger>> flowable = Flowable.fromPublisher(publisher);
         return flowable.zipWith(Flowable.range(0, 99),
           (num, idx) -> String.format("%d! = %s", idx, num))
           .delay(1, TimeUnit.SECONDS)
-          .map(Data::new);
+          .map(Message::new);
         })
       .to(cache);
 
@@ -155,14 +155,14 @@ public class SimpleExample {
 
   @Test
   public void testComplexShaping() {
-    Function<Publisher<Data<Quote>>, Publisher<Data<String>>> toAuthor =
+    Function<Publisher<Message<Quote>>, Publisher<Message<String>>> toAuthor =
       flow -> Flowable.fromPublisher(flow).map(q -> q.with(q.payload().author));
 
-    Function<Publisher<Data<Quote>>, Publisher<Data<String>>> toWords =
+    Function<Publisher<Message<Quote>>, Publisher<Message<String>>> toWords =
       flow -> Flowable.fromPublisher(flow)
-        .map(Data::payload)
+        .map(Message::payload)
         .concatMap(quote -> Flowable.fromArray(quote.quote.split(" ")))
-        .map(Data::new);
+        .map(Message::new);
 
     ListSink<String> authors = new ListSink<>();
     ListSink<String> words = new ListSink<>();
@@ -174,11 +174,11 @@ public class SimpleExample {
     quotes.add(new Quote("Rhinestones make everything better", "Piera Gelardi"));
     quotes.add(new Quote("Design is so simple, that's why it's so complicated", "Paul Rand"));
 
-    List<Source<Quote>> broadcast = Source.from(quotes.stream().map(Data::new)).broadcast(2);
+    List<Source<Quote>> broadcast = Source.from(quotes.stream().map(Message::new)).broadcast(2);
 
     broadcast.get(0)
       .compose(toAuthor)
-      .compose(publisher -> Flowable.fromPublisher(publisher).map(Data::payload).distinct().map(Data::new))
+      .compose(publisher -> Flowable.fromPublisher(publisher).map(Message::payload).distinct().map(Message::new))
       .to(authors);
 
     broadcast.get(1)

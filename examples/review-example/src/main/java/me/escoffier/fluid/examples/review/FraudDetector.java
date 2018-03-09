@@ -3,7 +3,7 @@ package me.escoffier.fluid.examples.review;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.fluid.annotations.Inbound;
 import me.escoffier.fluid.annotations.Transformation;
-import me.escoffier.fluid.models.Data;
+import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Pair;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
@@ -32,7 +32,7 @@ public class FraudDetector {
 
   }
 
-  private boolean isFraud(Data<JsonObject> data) {
+  private boolean isFraud(Message<JsonObject> message) {
     return Math.random() > 0.80;
   }
 
