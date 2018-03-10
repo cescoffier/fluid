@@ -5,6 +5,7 @@ import me.escoffier.fluid.impl.ListSink;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,14 +32,14 @@ public class SourcesTest {
 
   @Test
   public void testMultiCastWithBroadcast() {
-    List<Source<Integer>> source = Source.fromPayloads(Flowable.range(1, 10)).broadcast("1", "2", "3");
+    Map<String, Source<Integer>> source = Source.fromPayloads(Flowable.range(1, 10)).broadcast("1", "2", "3");
     ListSink<Integer> sink1 = Sink.list();
     ListSink<Integer> sink2 = Sink.list();
     ListSink<Integer> sink3 = Sink.list();
 
-    source.get(0).to(sink1);
-    source.get(1).to(sink2);
-    source.get(2).to(sink3);
+    source.get("1").to(sink1);
+    source.get("2").to(sink2);
+    source.get("3").to(sink3);
 
     assertThat(sink1.values()).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
     assertThat(sink2.values()).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);

@@ -6,6 +6,7 @@ import io.reactivex.Single;
 import org.reactivestreams.Publisher;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -240,48 +241,197 @@ public interface Source<T> extends Publisher<Message<T>> {
    */
   <X> Source<X> flatMap(Function<Message<T>, Publisher<Message<X>>> mapper, int maxConcurrency);
 
+  /**
+   * Same as {@link #flatMap(Function)} but applies the function on the payload of the incoming messages.
+   *
+   * @param mapper the function, must not be {@code null}
+   * @param <X>    the type of payload returned by the function
+   * @return the new source
+   */
   <X> Source<X> flatMapPayload(Function<T, Publisher<X>> mapper);
 
+  /**
+   * Same as {@link #concatMap(Function)} but applies the function on the payload of the incoming messages.
+   *
+   * @param mapper the function, must not be {@code null}
+   * @param <X>    the type of payload returned by the function
+   * @return the new source
+   */
   <X> Source<X> concatMapPayload(Function<T, Publisher<X>> mapper);
 
+  /**
+   * Same as {@link #flatMap(Function, int)} but applies the function on the payload of the incoming messages.
+   *
+   * @param mapper the function, must not be {@code null}
+   * @param <X>    the type of payload returned by the function
+   * @return the new source
+   */
   <X> Source<X> flatMapPayload(Function<T, Publisher<X>> mapper, int maxConcurrency);
 
-  <X> Source<X> reduce(Message<X> zero, BiFunction<Message<X>, Message<T>, Message<X>> function);
-
-  <X> Source<X> reducePayloads(X zero, BiFunction<X, T, X> function);
-
+  /**
+   * Creates a new source emitting its {@code zero} message and then applies the current and next value to the
+   * given function, emitting the next current value.
+   *
+   * @param zero     the initial value, must not be {@code null}
+   * @param function the function, must not be {@code null}
+   * @param <X>      the type of payload for the created messages.
+   * @return the created source
+   */
   <X> Source<X> scan(Message<X> zero, BiFunction<Message<X>, Message<T>, Message<X>> function);
 
+  /**
+   * Same as {@link #scan(Message, BiFunction)} but the function is called on the payload of the messages.
+   *
+   * @param zero     the initial value, must not be {@code}
+   * @param function the function, must not be {@code null}
+   * @param <X>      the type of payload for the created messages.
+   * @return the created source
+   */
   <X> Source<X> scanPayloads(X zero, BiFunction<X, T, X> function);
 
+  /**
+   * Creates a new {@link Publisher} emitting {@link GroupedDataStream}. This operator demultiplexes the incoming stream into
+   * separate output streams, one for each element key. The key is computed for each element using the given function.
+   * When a new key is encountered for the first time a new {@link GroupedDataStream} is opened and subsequently fed with
+   * all elements belonging to that key.
+   *
+   * @param keySupplier the function providing the key for the given message, must not be {@code}, must not return @{code
+   *                    null}.
+   * @param <K>         The type of the key
+   * @return the created publisher
+   */
   <K> Publisher<GroupedDataStream<K, T>> groupBy(Function<Message<T>, K> keySupplier);
 
+  /**
+   * Creates a set of sources all receiving the messages from the current source. The given parameter indicates the number
+   * of <em>branches</em> that need to be created.
+   *
+   * @param numberOfBranches the number of branch, must be strictly greater than 1.
+   * @return the list of sources.
+   */
   List<Source<T>> broadcast(int numberOfBranches);
 
-  List<Source<T>> broadcast(String... names);
+  /**
+   * Creates a set of sources all receiving the messages from the current source. The given names are used to name the
+   * created sources.
+   *
+   * @param names the names used to name the created sources. Must not be {@code null}, must not contain {@code null} or
+   *              be blank.
+   * @return the {@link Map} associating the names to the created source.
+   */
+  Map<String, Source<T>> broadcast(String... names);
 
+  /**
+   * Creates a pair of sources. These sources receives the message from the current source. However, depending whether or
+   * not they match the given predicates they are emitted in the first source or in the second source. This construct can
+   * be seen as an "if-then-else" conditional structure.
+   *
+   * @param condition the condition, must not be {@code null}
+   * @return the {@link Pair} of sources
+   */
   Pair<Source<T>, Source<T>> branch(Predicate<Message<T>> condition);
 
+  /**
+   * Creates a pair of sources. These sources receives the message from the current source. However, depending whether or
+   * not they match the given predicates they are emitted in the first source or in the second source. This construct can
+   * be seen as an "if-then-else" conditional structure. Unlike {@link #branch(Predicate)}, this method uses the message
+   * payload.
+   *
+   * @param condition the condition, must not be {@code null}
+   * @return the {@link Pair} of sources
+   */
   Pair<Source<T>, Source<T>> branchOnPayload(Predicate<T> condition);
 
+  /**
+   * Connects the current source to a sink. The sink is a terminal operation.
+   *
+   * @param sink the sink, must not be {@code null}
+   * @return the passed sink
+   */
   Sink<T> to(Sink<T> sink);
 
+  /**
+   * @return the current source as a RX Java 2 {@link Flowable}.
+   */
   Flowable<Message<T>> asFlowable();
 
+  /**
+   * Creates a new source associating the messages from the current source and from another source. The messages emitted
+   * by this new source contains {@link Pair} instances encapsulating the payload from the 2 sources. Headers from the
+   * current source are preserved.
+   *
+   * @param source another source, must not be {@code null}
+   * @param <O>    the type of payload of the second source
+   * @return the new source
+   */
   <O> Source<Pair<T, O>> zipWith(Publisher<Message<O>> source);
 
+  /**
+   * Creates a new source associating the messages from the current source and from other sources. The messages emitted
+   * by this new source contains {@link Tuple} instances encapsulating the payload from the different sources. Headers from
+   * the current source are preserved.
+   *
+   * @param sources the sources to combine by the current one
+   * @return the new source
+   */
   Source<Tuple> zipWith(Publisher<Message>... sources);
 
+  /**
+   * Creates a new source associating the messages from the current source and from other sources. The messages emitted
+   * by this new source contains {@link Tuple} instances encapsulating the payload from the different sources. Headers from
+   * the current source are preserved.
+   *
+   * @param sources the sources to combine by the current one
+   * @return the new source
+   */
   Source<Tuple> zipWith(Source... sources);
 
+  /**
+   * Creates a new source merging messages from the current source and another one.
+   *
+   * @param source the other source, must not be {@code null}
+   * @return the new source
+   */
   Source<T> mergeWith(Publisher<Message<T>> source);
 
+  /**
+   * Creates a new source merging messages from the current source and other ones.
+   *
+   * @param sources the other sources, must not be {@code null}, must not contain {@code null}
+   * @return the new source
+   */
   Source<T> mergeWith(Publisher<Message<T>>... sources);
 
+  /**
+   * Creates a new source by applying the given function on the current source. In other words, this method transforms a
+   * source by applying a particular <em>transformation</em> function to it.
+   *
+   * @param mapper the function, must not be {@code null}, must not return {@code null}
+   * @param <X>    the type of payload of the resulting source
+   * @return the new source
+   */
   <X> Source<X> compose(Function<Publisher<Message<T>>, Publisher<Message<X>>> mapper);
 
+  /**
+   * Creates a new source by applying the given function on the current source. In other words, this method transforms a
+   * source by applying a particular <em>transformation</em> function to it. Unlike {@link #compose(Function)}, this
+   * method manipulates {@link Flowable}.
+   *
+   * @param mapper the function, must not be {@code null}, must not return {@code null}
+   * @param <X>    the type of payload of the resulting source
+   * @return the new source
+   */
   <X> Source<X> composeFlowable(Function<Flowable<Message<T>>, Flowable<Message<X>>> mapper);
 
+  /**
+   * Creates a new source by applying the given function on the current source. In other words, this method transforms a
+   * source by applying a particular <em>transformation</em> function to it. Unlike {@link #compose(Function)} and
+   * {@link #composeFlowable(Function)}, this method manipulates the payloads.
+   *
+   * @param mapper the function, must not be {@code null}, must not return {@code null}
+   * @param <X>    the type of payload of the resulting source
+   * @return the new source
+   */
   <X> Source<X> composePayloadFlowable(Function<Flowable<T>, Flowable<X>> mapper);
 
 }

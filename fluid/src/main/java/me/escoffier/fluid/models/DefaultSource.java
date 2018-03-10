@@ -191,25 +191,6 @@ public class DefaultSource<T> implements Source<T> {
   }
 
   @Override
-  public <X> Source<X> reduce(Message<X> zero, BiFunction<Message<X>, Message<T>, Message<X>> function) {
-    Objects.requireNonNull(function, "The `function` cannot be `null`");
-    Objects.requireNonNull(zero, "The `zero` item (seed) cannot be `null`");
-    Flowable<Message<X>> reduced = Flowable.fromPublisher(flow).reduce(zero, function::apply).toFlowable();
-    return new DefaultSource<>(reduced, name, attributes);
-  }
-
-  @Override
-  public <X> Source<X> reducePayloads(X zero, BiFunction<X, T, X> function) {
-    Objects.requireNonNull(function, "The `function` cannot be `null`");
-    Flowable<Message<X>> reduced = Flowable.fromPublisher(flow)
-      .map(Message::payload)
-      .reduce(zero, function::apply)
-      .map(Message::new)
-      .toFlowable();
-    return new DefaultSource<>(reduced, name, attributes);
-  }
-
-  @Override
   public <X> Source<X> scan(Message<X> zero, BiFunction<Message<X>, Message<T>, Message<X>> function) {
     Objects.requireNonNull(function, "The `function` cannot be `null`");
     Objects.requireNonNull(zero, "The `zero` item (seed) cannot be `null`");
@@ -229,6 +210,7 @@ public class DefaultSource<T> implements Source<T> {
 
   @Override
   public <K> Publisher<GroupedDataStream<K, T>> groupBy(Function<Message<T>, K> keySupplier) {
+    Objects.requireNonNull(keySupplier, "The function computing the key must not be `null`");
     return Flowable.fromPublisher(flow)
       .groupBy(keySupplier::apply)
       .flatMapSingle(gf -> {
@@ -283,17 +265,20 @@ public class DefaultSource<T> implements Source<T> {
   }
 
   @Override
-  public List<Source<T>> broadcast(String... names) {
+  public Map<String, Source<T>> broadcast(String... names) {
     if (names == null || names.length <= 1) {
       throw new IllegalArgumentException("The number of branch must be at least 2");
     }
 
-    List<Source<T>> streams = new ArrayList<>(names.length);
+    Map<String, Source<T>> streams = new LinkedHashMap<>();
     Flowable<Message<T>> publish = Flowable.fromPublisher(flow).publish().autoConnect(names.length);
 
     for (String n : names) {
+      if (Strings.isBlank(n)) {
+        throw new IllegalArgumentException("Illegal name for source. The name must not be `null` or blank");
+      }
       Source<T> stream = new DefaultSource<>(publish, n, attributes);
-      streams.add(stream);
+      streams.put(n, stream);
     }
 
     return streams;
@@ -319,9 +304,10 @@ public class DefaultSource<T> implements Source<T> {
 
   @Override
   public Sink<T> to(Sink<T> sink) {
+    Objects.requireNonNull(sink, "The sink must not be `null`");
     Flowable<Message<Void>> flowable = Flowable.fromPublisher(flow)
       .flatMapCompletable(sink::dispatch)
-      .doOnError(Throwable::printStackTrace)
+      .doOnError(Throwable::printStackTrace) // TODO error reporting
       .toFlowable();
 
     flowable.subscribe();
