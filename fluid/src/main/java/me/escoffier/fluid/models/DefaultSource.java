@@ -22,6 +22,8 @@ import static me.escoffier.fluid.models.Pair.pair;
  */
 public class DefaultSource<T> implements Source<T> {
 
+  public static final String FUNCTION_CANNOT_BE_NULL_MESSAGE = "The `mapper` function cannot be `null`";
+  public static final String FILTER_CANNOT_BE_NULL_MESSAGE = "The `filter` function cannot be `null`";
   private final Publisher<Message<T>> flow;
 
   private final String name;
@@ -93,58 +95,58 @@ public class DefaultSource<T> implements Source<T> {
 
   @Override
   public <X> Source<X> map(Function<Message<T>, Message<X>> mapper) {
-    Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
+    Objects.requireNonNull(mapper, FUNCTION_CANNOT_BE_NULL_MESSAGE);
     return new DefaultSource<>(Flowable.fromPublisher(flow).map(mapper::apply), name, attributes);
   }
 
   @Override
   public <X> Source<X> mapPayload(Function<T, X> mapper) {
-    Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
+    Objects.requireNonNull(mapper, FUNCTION_CANNOT_BE_NULL_MESSAGE);
     Flowable<Message<X>> flowable = Flowable.fromPublisher(flow).map(d -> d.with(mapper.apply(d.payload())));
     return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
   public Source<T> filter(Predicate<Message<T>> filter) {
-    Objects.requireNonNull(filter, "The `filter` function cannot be `null`");
+    Objects.requireNonNull(filter, FILTER_CANNOT_BE_NULL_MESSAGE);
     return new DefaultSource<>(Flowable.fromPublisher(flow).filter(filter::test), name, attributes);
   }
 
   @Override
   public Source<T> filterPayload(Predicate<T> filter) {
-    Objects.requireNonNull(filter, "The `filter` function cannot be `null`");
+    Objects.requireNonNull(filter, FILTER_CANNOT_BE_NULL_MESSAGE);
     Flowable<Message<T>> flowable = Flowable.fromPublisher(flow).filter(d -> filter.test(d.payload()));
     return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
   public Source<T> filterNot(Predicate<Message<T>> filter) {
-    Objects.requireNonNull(filter, "The `filter` function cannot be `null`");
+    Objects.requireNonNull(filter, FILTER_CANNOT_BE_NULL_MESSAGE);
     return new DefaultSource<>(Flowable.fromPublisher(flow).filter(d -> !filter.test(d)), name, attributes);
   }
 
   @Override
   public Source<T> filterNotPayload(Predicate<T> filter) {
-    Objects.requireNonNull(filter, "The `filter` function cannot be `null`");
+    Objects.requireNonNull(filter, FILTER_CANNOT_BE_NULL_MESSAGE);
     Flowable<Message<T>> flowable = Flowable.fromPublisher(flow).filter(d -> !filter.test(d.payload()));
     return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
   public <X> Source<X> flatMap(Function<Message<T>, Publisher<Message<X>>> mapper) {
-    Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
+    Objects.requireNonNull(mapper, FUNCTION_CANNOT_BE_NULL_MESSAGE);
     return new DefaultSource<>(Flowable.fromPublisher(flow).flatMap(mapper::apply), name, attributes);
   }
 
   @Override
   public <X> Source<X> concatMap(Function<Message<T>, Publisher<Message<X>>> mapper) {
-    Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
+    Objects.requireNonNull(mapper, FUNCTION_CANNOT_BE_NULL_MESSAGE);
     return new DefaultSource<>(Flowable.fromPublisher(flow).concatMap(mapper::apply), name, attributes);
   }
 
   @Override
   public <X> Source<X> flatMap(Function<Message<T>, Publisher<Message<X>>> mapper, int maxConcurrency) {
-    Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
+    Objects.requireNonNull(mapper, FUNCTION_CANNOT_BE_NULL_MESSAGE);
     if (maxConcurrency < 1) {
       throw new IllegalArgumentException("The `maxConcurrency` cannot be less than 1");
     }
@@ -153,7 +155,7 @@ public class DefaultSource<T> implements Source<T> {
 
   @Override
   public <X> Source<X> flatMapPayload(Function<T, Publisher<X>> mapper) {
-    Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
+    Objects.requireNonNull(mapper, FUNCTION_CANNOT_BE_NULL_MESSAGE);
 
     Flowable<Message<X>> flowable = Flowable.fromPublisher(flow)
       .flatMap(data -> {
@@ -166,7 +168,7 @@ public class DefaultSource<T> implements Source<T> {
 
   @Override
   public <X> Source<X> concatMapPayload(Function<T, Publisher<X>> mapper) {
-    Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
+    Objects.requireNonNull(mapper, FUNCTION_CANNOT_BE_NULL_MESSAGE);
 
     Flowable<Message<X>> flowable = Flowable.fromPublisher(flow)
       .concatMap(data -> {
@@ -179,7 +181,7 @@ public class DefaultSource<T> implements Source<T> {
 
   @Override
   public <X> Source<X> flatMapPayload(Function<T, Publisher<X>> mapper, int maxConcurrency) {
-    Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
+    Objects.requireNonNull(mapper, FUNCTION_CANNOT_BE_NULL_MESSAGE);
 
     Flowable<Message<X>> flowable = Flowable.fromPublisher(flow)
       .flatMap(data -> {
