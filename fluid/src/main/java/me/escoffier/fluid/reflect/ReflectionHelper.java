@@ -41,8 +41,8 @@ public class ReflectionHelper {
     try {
       field.set(mediator, source);
     } catch (IllegalAccessException e) {
-      throw new IllegalStateException("Unable to set field " + field.getName() + " from " + mediator.getClass()
-        .getName() + " to " + source, e);
+      throw new IllegalStateException("Unable to set field " + field.getName() + " from "
+        + mediator.getClass().getName() + " to " + source, e);
     }
   }
 
@@ -102,14 +102,14 @@ public class ReflectionHelper {
     List<Flowable<Object>> sources = new ArrayList<>();
 
     if (method.getParameterCount() == 0) {
-      throw new IllegalStateException("Invalid number of parameter for the function - you need at " +
+      throw new IllegalArgumentException("Invalid number of parameter for the function - you need at " +
         "least one parameter");
     }
 
     for (Parameter param : method.getParameters()) {
       Inbound inbound = param.getAnnotation(Inbound.class);
       if (inbound == null) {
-        throw new IllegalStateException("Invalid function method - all parameters must " +
+        throw new IllegalArgumentException("Invalid function method - all parameters must " +
           "be annotated with @Inbound");
       }
 
@@ -248,7 +248,7 @@ public class ReflectionHelper {
   }
 
 
-  private static Sink<Object> getSinkOrFail(String name) {
+  static Sink<Object> getSinkOrFail(String name) {
     Sink<Object> sink = FluidRegistry.sink(Objects.requireNonNull(name));
     if (sink == null) {
       throw new IllegalArgumentException("Unable to find the sink " + name);
@@ -256,7 +256,7 @@ public class ReflectionHelper {
     return sink;
   }
 
-  private static Source<Object> getSourceOrFail(String name) {
+  static Source<Object> getSourceOrFail(String name) {
     Source<Object> src = FluidRegistry.source(Objects.requireNonNull(name));
     if (src == null) {
       throw new IllegalArgumentException("Unable to find the source " + name);
