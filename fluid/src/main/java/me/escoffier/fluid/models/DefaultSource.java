@@ -3,6 +3,7 @@ package me.escoffier.fluid.models;
 import io.reactivex.Flowable;
 import io.reactivex.Single;
 import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.util.Strings;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 
@@ -40,13 +41,30 @@ public class DefaultSource<T> implements Source<T> {
 
   @Override
   public Source<T> named(String name) {
+    if (Strings.isBlank(name)) {
+      throw new IllegalArgumentException("The name cannot be `null` or blank");
+    }
     return new DefaultSource<>(flow, name, attributes);
+  }
+
+  @Override
+  public Source<T> unnamed() {
+    return new DefaultSource<>(flow, null, attributes);
   }
 
   @Override
   public Source<T> withAttribute(String key, Object value) {
     Map<String, Object> attr = new HashMap<>(attributes);
-    attr.put(key, value);
+    attr.put(Objects.requireNonNull(key, "The key must not be `null`"),
+      Objects.requireNonNull(value, "The value must not be `null`"));
+    return new DefaultSource<>(flow, name, attr);
+  }
+
+  @Override
+  public Source<T> withoutAttribute(String key) {
+    Objects.requireNonNull(key, "name must not be `null`");
+    Map<String, Object> attr = new HashMap<>(attributes);
+    attr.remove(key);
     return new DefaultSource<>(flow, name, attr);
   }
 
@@ -57,6 +75,7 @@ public class DefaultSource<T> implements Source<T> {
 
   @Override
   public Source<T> orElse(Source<T> alt) {
+    Objects.requireNonNull(alt, "The alternative source must not be `null`");
     return new DefaultSource<>(Flowable.fromPublisher(flow).switchIfEmpty(alt), name, attributes);
   }
 
@@ -67,7 +86,7 @@ public class DefaultSource<T> implements Source<T> {
 
   @Override
   public Optional<T> attr(String key) {
-    return Optional.ofNullable((T) attributes.get(key));
+    return Optional.ofNullable((T) attributes.get(Objects.requireNonNull(key, "The key must not be `null`")));
   }
 
   // TODO dispatchOn to select on which thread pool the source emit the data
@@ -105,7 +124,7 @@ public class DefaultSource<T> implements Source<T> {
   }
 
   @Override
-  public Source<T> filterPayloadNot(Predicate<T> filter) {
+  public Source<T> filterNotPayload(Predicate<T> filter) {
     Objects.requireNonNull(filter, "The `filter` function cannot be `null`");
     Flowable<Message<T>> flowable = Flowable.fromPublisher(flow).filter(d -> !filter.test(d.payload()));
     return new DefaultSource<>(flowable, name, attributes);
@@ -292,7 +311,7 @@ public class DefaultSource<T> implements Source<T> {
   public Pair<Source<T>, Source<T>> branchOnPayload(Predicate<T> condition) {
     List<Source<T>> sources = broadcast(2);
     Source<T> left = sources.get(0).filterPayload(condition);
-    Source<T> right = sources.get(0).filterPayloadNot(condition);
+    Source<T> right = sources.get(0).filterNotPayload(condition);
     return pair(left, right);
   }
 

@@ -13,9 +13,74 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 /**
+ * Checks the behavior of {@link DefaultSource}.
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
 public class DefaultSourceTest {
+
+  @Test
+  public void testNamedSource() {
+    Source<String> source = Source.from("a", "b", "c")
+      .named("my source");
+
+    assertThat(source.name()).isEqualTo("my source");
+
+    assertThat(source.named("foo").name()).isEqualTo("foo");
+
+    assertThat(source.unnamed().name()).isNull();
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testNullName() {
+    Source.from("a", "b", "c").named(null);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void testBlankName() {
+    Source.from("a", "b", "c").named(" ");
+  }
+
+  @Test
+  public void testAttributes() {
+    Source<String> source = Source.from("a", "b", "c")
+      .named("my source");
+
+    assertThat(source.attr("foo")).isEmpty();
+
+    source = source.withAttribute("foo", "bar").withAttribute("k", "v");
+    assertThat(source.attr("foo")).get().isEqualTo("bar");
+    assertThat(source.attr("k")).get().isEqualTo("v");
+
+    source = source.withoutAttribute("foo").withoutAttribute("boo");
+    assertThat(source.attr("foo")).isEmpty();
+    assertThat(source.attr("k")).get().isEqualTo("v");
+  }
+
+  @Test
+  public void testOrElse() {
+    Source<String> source = Source.from("a", "b", "c")
+      .named("my source");
+
+    Source<String> empty = Source.<String>empty().named("empty");
+
+    Source<String> another = Source.from("d", "e", "f");
+
+    ListSink<String> sink = Sink.list();
+    source.orElse(another).to(sink);
+    assertThat(sink.values()).containsExactly("a", "b", "c");
+
+    sink = Sink.list();
+    empty.orElse(source).to(sink);
+    assertThat(sink.values()).containsExactly("a", "b", "c");
+
+    sink = Sink.list();
+    empty.orElse(another).to(sink);
+    assertThat(sink.values()).containsExactly("d", "e", "f");
+
+    sink = Sink.list();
+    empty.orElse(empty).to(sink);
+    assertThat(sink.values()).isEmpty();
+  }
 
 
   @Test
@@ -26,6 +91,42 @@ public class DefaultSourceTest {
       .to(list);
 
     assertThat(list.values()).containsExactly(2, 3, 4, 5, 6);
+  }
+
+  @Test
+  public void testFilterOnMessage() {
+    ListSink<Integer> sink = Sink.list();
+    Source.from(1, 2, 3, 4, 5)
+      .filter(msg -> msg.payload() >= 3)
+      .to(sink);
+    assertThat(sink.values()).containsExactly(3, 4, 5);
+  }
+
+  @Test
+  public void testFilterNotOnMessage() {
+    ListSink<Integer> sink = Sink.list();
+    Source.from(1, 2, 3, 4, 5)
+      .filterNot(msg -> msg.payload() >= 3)
+      .to(sink);
+    assertThat(sink.values()).containsExactly(1, 2);
+  }
+
+  @Test
+  public void testFilterOnPayloads() {
+    ListSink<Integer> sink = Sink.list();
+    Source.from(1, 2, 3, 4, 5)
+      .filterPayload(i -> i >= 3)
+      .to(sink);
+    assertThat(sink.values()).containsExactly(3, 4, 5);
+  }
+
+  @Test
+  public void testFilterNotOnPayloads() {
+    ListSink<Integer> sink = Sink.list();
+    Source.from(1, 2, 3, 4, 5)
+      .filterNotPayload(i -> i >= 3)
+      .to(sink);
+    assertThat(sink.values()).containsExactly(1, 2);
   }
 
   @Test
@@ -120,6 +221,7 @@ public class DefaultSourceTest {
       assertThat(d.payload()).isGreaterThanOrEqualTo(0).isLessThan(100);
     }
   }
+
 
 
   private static Message<Double> random() {
