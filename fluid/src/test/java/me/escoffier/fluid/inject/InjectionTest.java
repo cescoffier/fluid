@@ -82,7 +82,7 @@ public class InjectionTest {
     fluid.deploy(MediatorRequiringSink.class);
 
     await().until(() -> my_sink.values().size() == 5);
-    assertThat( my_sink.values()).containsExactly("A", "B", "C", "D", "E");
+    assertThat(my_sink.values()).containsExactly("A", "B", "C", "D", "E");
   }
 
   @Test
@@ -103,7 +103,7 @@ public class InjectionTest {
     fluid.deploy(MediatorProvidingFlowable.class);
 
     await().until(() -> my_sink.values().size() == 10);
-    assertThat( my_sink.values()).containsExactly("A", "A", "B", "B", "C", "C","D", "D", "E", "E");
+    assertThat(my_sink.values()).containsExactly("A", "A", "B", "B", "C", "C", "D", "D", "E", "E");
   }
 
   @Test
@@ -111,7 +111,7 @@ public class InjectionTest {
     fluid.deploy(MediatorProvidingFlowableData.class);
 
     await().until(() -> my_sink.values().size() == 10);
-    assertThat( my_sink.values()).containsExactly("A", "A", "B", "B", "C", "C","D", "D", "E", "E");
+    assertThat(my_sink.values()).containsExactly("A", "A", "B", "B", "C", "C", "D", "D", "E", "E");
   }
 
   @Test
@@ -119,7 +119,7 @@ public class InjectionTest {
     fluid.deploy(MediatorProvidingPublisher.class);
 
     await().until(() -> my_sink.values().size() == 10);
-    assertThat( my_sink.values()).containsExactly("A", "A", "B", "B", "C", "C","D", "D", "E", "E");
+    assertThat(my_sink.values()).containsExactly("A", "A", "B", "B", "C", "C", "D", "D", "E", "E");
   }
 
   @Test
@@ -127,7 +127,80 @@ public class InjectionTest {
     fluid.deploy(MediatorProvidingPublisherData.class);
 
     await().until(() -> my_sink.values().size() == 10);
-    assertThat( my_sink.values()).containsExactly("A", "A", "B", "B", "C", "C","D", "D", "E", "E");
+    assertThat(my_sink.values()).containsExactly("A", "A", "B", "B", "C", "C", "D", "D", "E", "E");
+  }
+
+  @Test
+  public void testFunction() {
+    fluid.deploy(FunctionGettingMessage.class);
+
+    await().until(() -> my_sink.values().size() == 5);
+    assertThat(my_sink.values()).containsExactly("A", "B", "C", "D", "E");
+  }
+
+  @Test
+  public void testFunctionWith2Sources() {
+    fluid.deploy(FunctionGettingTwoPayloads.class);
+
+    await().until(() -> my_sink.values().size() == 5);
+    assertThat(my_sink.values()).containsExactly("AA", "BB", "CC", "DD", "EE");
+  }
+
+  @Test
+  public void testFunctionReturningMessage() {
+    fluid.deploy(FunctionReturningMessage.class);
+
+    await().until(() -> my_sink.values().size() == 5);
+    for (Message<String> message : my_sink.data()) {
+      assertThat((String) message.get("X-header")).isEqualTo("X-value");
+    }
+    assertThat(my_sink.values()).containsExactly("A", "B", "C", "D", "E");
+  }
+
+  @Test
+  public void testFunctionReturningFlowableOfMessage() {
+    fluid.deploy(FunctionReturningFlowableMessage.class);
+
+    await().until(() -> my_sink.values().size() == 5);
+    for (Message<String> message : my_sink.data()) {
+      assertThat((String) message.get("X-header")).isEqualTo("X-value");
+    }
+    assertThat(my_sink.values()).containsExactly("A", "B", "C", "D", "E");
+  }
+
+  @Test
+  public void testFunctionReturningFlowable() {
+    fluid.deploy(FunctionReturningFlowable.class);
+
+    await().until(() -> my_sink.values().size() == 10);
+    assertThat(my_sink.values()).containsExactly("a", "A", "b", "B", "c", "C", "d", "D", "e", "E");
+  }
+
+  @Test
+  public void testFunctionReturningPublisher() {
+    fluid.deploy(FunctionReturningPublisher.class);
+
+    await().until(() -> my_sink.values().size() == 10);
+    assertThat(my_sink.values()).containsExactly("a", "A", "b", "B", "c", "C", "d", "D", "e", "E");
+  }
+
+  @Test
+  public void testFunctionReturningPublisherOfMessage() {
+    fluid.deploy(FunctionReturningPublisherMessage.class);
+
+    await().until(() -> my_sink.values().size() == 5);
+    for (Message<String> message : my_sink.data()) {
+      assertThat((String) message.get("X-header")).isEqualTo("X-value");
+    }
+    assertThat(my_sink.values()).containsExactly("A", "B", "C", "D", "E");
+  }
+
+  @Test
+  public void testFunctionReturningNothing() {
+    fluid.deploy(FunctionNotRetuningAnything.class);
+
+    await().until(() -> my_sink.values().size() == 5);
+    assertThat(my_sink.values()).containsExactly("A", "B", "C", "D", "E");
   }
 
   private static class MySource extends AbstractSource<String> {

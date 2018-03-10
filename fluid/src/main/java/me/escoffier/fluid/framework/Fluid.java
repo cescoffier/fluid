@@ -2,23 +2,21 @@ package me.escoffier.fluid.framework;
 
 import io.reactivex.Flowable;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.annotations.Inbound;
-import me.escoffier.fluid.annotations.Outbound;
+import me.escoffier.fluid.annotations.Function;
 import me.escoffier.fluid.annotations.Transformation;
-import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
-import me.escoffier.fluid.reflect.ReflectionHelper;
 import me.escoffier.fluid.registry.FluidRegistry;
-import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
-import org.reactivestreams.Publisher;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import static me.escoffier.fluid.reflect.ReflectionHelper.inject;
+import static me.escoffier.fluid.reflect.ReflectionHelper.invokeFunctionMethod;
+import static me.escoffier.fluid.reflect.ReflectionHelper.invokeTransformationMethod;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -63,141 +61,18 @@ public class Fluid {
   }
 
   private void execute(Object mediator) {
-    Method[] methods = MethodUtils.getMethodsWithAnnotation(mediator.getClass(), Transformation.class, true, true);
-    if (methods == null || methods.length == 0) {
-      throw new IllegalArgumentException("Invalid object " + mediator + " - no transformation method found");
-    }
-    for (Method method : methods) {
-      invoke(mediator, method);
-    }
-  }
-
-  private Sink<Object> getSinkOrFail(String name) {
-    Sink<Object> sink = FluidRegistry.sink(Objects.requireNonNull(name));
-    if (sink == null) {
-      throw new IllegalArgumentException("Unable to find the sink " + name);
-    }
-    return sink;
-  }
-
-  private Source<Object> getSourceOrFail(String name) {
-    Source<Object> src = FluidRegistry.source(Objects.requireNonNull(name));
-    if (src == null) {
-      throw new IllegalArgumentException("Unable to find the source " + name);
-    }
-    return src;
-  }
-
-  private void invoke(Object mediator, Method method) {
-    method = ReflectionHelper.makeAccessibleIfNot(method);
-
-    List<Object> values = new ArrayList<>();
-    for (Parameter param : method.getParameters()) {
-      Inbound inbound = param.getAnnotation(Inbound.class);
-      Outbound outbound = param.getAnnotation(Outbound.class);
-
-      if (inbound != null) {
-        String name = inbound.value();
-        Source<Object> source = getSourceOrFail(name);
-        Object inject = getSourceToInject(param.getType(), param.getParameterizedType(), source);
-        values.add(inject);
-      } else if (outbound != null) {
-        String name = outbound.value();
-        Sink<Object> sink = getSinkOrFail(name);
-        values.add(sink);
-      } else {
-        throw new IllegalArgumentException("Invalid parameter - one parameter of " + method.getName()
-          + " is not annotated with @Outbound or @Inbound");
-      }
+    List<Method> tx = MethodUtils.getMethodsListWithAnnotation(mediator.getClass(), Transformation.class, true, true);
+    List<Method> fn = MethodUtils.getMethodsListWithAnnotation(mediator.getClass(), Function.class, true, true);
+    if (tx.isEmpty()  && fn.isEmpty()) {
+      throw new IllegalArgumentException("Invalid object " + mediator + " - no transformation or function methods found");
     }
 
-    try {
-      Class<?> returnType = method.getReturnType();
-      Outbound outbound = method.getAnnotation(Outbound.class);
-      if (returnType.equals(Void.TYPE)) {
-        method.invoke(mediator, values.toArray());
-      } else {
-        if (outbound == null) {
-          throw new IllegalStateException("The method " + method.getName() + " from "
-            + mediator.getClass() + " needs to be annotated with @Outbound indicating the sink");
-        } else {
-          Sink<Object> sink = getSinkOrFail(outbound.value());
-          Flowable<Object> flowable;
-          if (returnType.isAssignableFrom(Flowable.class)) {
-            flowable = (Flowable) method.invoke(mediator, values.toArray());
-          } else if (returnType.isAssignableFrom(Publisher.class)) {
-            flowable = Flowable.fromPublisher(
-              (Publisher) method.invoke(mediator, values.toArray()));
-          } else {
-            throw new IllegalStateException("The method " + method.getName() + " from "
-              + mediator.getClass() + " does not return a valid type");
-          }
-
-          Type type = method.getGenericReturnType();
-          if (type instanceof ParameterizedType) {
-            Type enclosed = ((ParameterizedType) type).getActualTypeArguments()[0];
-            if (!enclosed.getTypeName().startsWith(Message.class.getName())) {
-              flowable.flatMapCompletable(sink::dispatch).subscribe();
-            } else {
-              flowable
-                .flatMapCompletable(d -> sink.dispatch((Message) d)).subscribe();
-            }
-          } else {
-            flowable.flatMapCompletable(sink::dispatch).subscribe();
-          }
-        }
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException("Unable to invoke " + method.getName() + " from " + mediator.getClass()
-        .getName(), e);
-    }
-  }
-
-  private Object getSourceToInject(Class<?> clazz, Type type, Source<Object> source) {
-    if (clazz.isAssignableFrom(Publisher.class)) {
-      if (type instanceof ParameterizedType) {
-        Type enclosed = ((ParameterizedType) type).getActualTypeArguments()[0];
-        if (!enclosed.getTypeName().startsWith(Message.class.getName())) {
-          return Flowable.fromPublisher(source).map(Message::payload);
-        } else {
-          return source;
-        }
-      } else {
-        return source;
-      }
-    } else if (clazz.isAssignableFrom(Flowable.class)) {
-      Flowable<Message<Object>> flowable = Flowable.fromPublisher(source);
-      if (type instanceof ParameterizedType) {
-        Type enclosed = ((ParameterizedType) type).getActualTypeArguments()[0];
-        if (!enclosed.getTypeName().startsWith(Message.class.getName())) {
-          return flowable.map(Message::payload);
-        } else {
-          return flowable;
-        }
-      } else {
-        return flowable;
-      }
-    } else if (clazz.isAssignableFrom(Source.class)) {
-      return source;
-    }
-    return source;
-  }
-
-  private void inject(Object mediator) {
-    List<Field> list = FieldUtils.getFieldsListWithAnnotation(mediator.getClass(), Inbound.class);
-    for (Field field : list) {
-      Inbound annotation = field.getAnnotation(Inbound.class);
-      Source<Object> source = getSourceOrFail(annotation.value());
-      ReflectionHelper.set(mediator, field, getSourceToInject(field.getType(), field.getGenericType(), source));
+    for (Method method : tx) {
+      invokeTransformationMethod(mediator, method);
     }
 
-    list = FieldUtils.getFieldsListWithAnnotation(mediator.getClass(), Outbound.class);
-    for (Field field : list) {
-      Outbound annotation = field.getAnnotation(Outbound.class);
-      if (field.getType().isAssignableFrom(Sink.class)) {
-        Sink<Object> sink = getSinkOrFail(annotation.value());
-        ReflectionHelper.set(mediator, field, sink);
-      }
+    for (Method method : fn) {
+      invokeFunctionMethod(mediator, method);
     }
   }
 
