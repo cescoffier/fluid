@@ -2,7 +2,7 @@ package me.escoffier.fluid.eventbus;
 
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.models.AbstractSource;
+import me.escoffier.fluid.models.DefaultSource;
 import me.escoffier.fluid.models.CommonHeaders;
 import me.escoffier.fluid.models.Message;
 
@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class EventBusSource<T> extends AbstractSource<T> {
+public class EventBusSource<T> extends DefaultSource<T> {
 
   public EventBusSource(Vertx vertx, JsonObject json) {
     super(vertx.eventBus()

@@ -3,7 +3,7 @@ package me.escoffier.fluid.registry;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.models.AbstractSource;
+import me.escoffier.fluid.models.DefaultSource;
 import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
@@ -53,7 +53,7 @@ public class FluidRegistryTest {
 
   @Test
   public void testRegistrationOfNamedSource() {
-    Source<String> source = new AbstractSource<>(Flowable.empty(), "my-source", null);
+    Source<String> source = new DefaultSource<>(Flowable.empty(), "my-source", null);
 
     FluidRegistry.register(source);
     assertThat(FluidRegistry.source("my-source")).isSameAs(source);

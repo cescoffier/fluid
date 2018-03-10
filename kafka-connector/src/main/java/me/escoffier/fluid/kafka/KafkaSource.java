@@ -4,7 +4,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumer;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
-import me.escoffier.fluid.models.AbstractSource;
+import me.escoffier.fluid.models.DefaultSource;
 import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Source;
 
@@ -20,7 +20,7 @@ import static me.escoffier.fluid.models.CommonHeaders.ORIGINAL;
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class KafkaSource<T> extends AbstractSource<T> implements Source<T> {
+public class KafkaSource<T> extends DefaultSource<T> implements Source<T> {
 
   KafkaSource(Vertx vertx, JsonObject json) {
     super(KafkaConsumer.<String, T>create(vertx, toMap(json))

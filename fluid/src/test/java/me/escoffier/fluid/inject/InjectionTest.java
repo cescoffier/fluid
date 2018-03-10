@@ -3,7 +3,7 @@ package me.escoffier.fluid.inject;
 import io.reactivex.Flowable;
 import me.escoffier.fluid.framework.Fluid;
 import me.escoffier.fluid.impl.ListSink;
-import me.escoffier.fluid.models.AbstractSource;
+import me.escoffier.fluid.models.DefaultSource;
 import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
@@ -203,7 +203,7 @@ public class InjectionTest {
     assertThat(my_sink.values()).containsExactly("A", "B", "C", "D", "E");
   }
 
-  private static class MySource extends AbstractSource<String> {
+  private static class MySource extends DefaultSource<String> {
 
     MySource() {
       super(

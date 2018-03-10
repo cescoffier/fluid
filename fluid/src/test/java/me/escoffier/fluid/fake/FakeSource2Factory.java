@@ -4,7 +4,7 @@ import io.reactivex.Flowable;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.models.AbstractSource;
+import me.escoffier.fluid.models.DefaultSource;
 import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Source;
 import me.escoffier.fluid.spi.SourceFactory;
@@ -24,7 +24,7 @@ public class FakeSource2Factory implements SourceFactory {
     return Single.just(new FakeSourceImpl(json));
   }
 
-  private class FakeSourceImpl extends AbstractSource<Integer> {
+  private class FakeSourceImpl extends DefaultSource<Integer> {
 
     private String name;
 

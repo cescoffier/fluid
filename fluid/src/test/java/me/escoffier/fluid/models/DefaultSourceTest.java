@@ -15,7 +15,7 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class AbstractSourceTest {
+public class DefaultSourceTest {
 
 
   @Test

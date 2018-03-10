@@ -15,9 +15,11 @@ import java.util.function.Predicate;
 import static me.escoffier.fluid.models.Pair.pair;
 
 /**
+ * The default source implementation.
+ *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
-public class AbstractSource<T> implements Source<T> {
+public class DefaultSource<T> implements Source<T> {
 
   private final Publisher<Message<T>> flow;
 
@@ -25,7 +27,7 @@ public class AbstractSource<T> implements Source<T> {
 
   private final Map<String, Object> attributes;
 
-  public AbstractSource(Publisher<Message<T>> items, String name, Map<String, Object> attr) {
+  public DefaultSource(Publisher<Message<T>> items, String name, Map<String, Object> attr) {
     Objects.requireNonNull(items, "The given `items` cannot be `null`");
     this.flow = items;
     this.name = name;
@@ -38,14 +40,14 @@ public class AbstractSource<T> implements Source<T> {
 
   @Override
   public Source<T> named(String name) {
-    return new AbstractSource<>(flow, name, attributes);
+    return new DefaultSource<>(flow, name, attributes);
   }
 
   @Override
   public Source<T> withAttribute(String key, Object value) {
     Map<String, Object> attr = new HashMap<>(attributes);
     attr.put(key, value);
-    return new AbstractSource<>(flow, name, attr);
+    return new DefaultSource<>(flow, name, attr);
   }
 
   @Override
@@ -55,7 +57,7 @@ public class AbstractSource<T> implements Source<T> {
 
   @Override
   public Source<T> orElse(Source<T> alt) {
-    return new AbstractSource<>(Flowable.fromPublisher(flow).switchIfEmpty(alt), name, attributes);
+    return new DefaultSource<>(Flowable.fromPublisher(flow).switchIfEmpty(alt), name, attributes);
   }
 
   @Override
@@ -73,52 +75,52 @@ public class AbstractSource<T> implements Source<T> {
   @Override
   public <X> Source<X> map(Function<Message<T>, Message<X>> mapper) {
     Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
-    return new AbstractSource<>(Flowable.fromPublisher(flow).map(mapper::apply), name, attributes);
+    return new DefaultSource<>(Flowable.fromPublisher(flow).map(mapper::apply), name, attributes);
   }
 
   @Override
   public <X> Source<X> mapPayload(Function<T, X> mapper) {
     Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
     Flowable<Message<X>> flowable = Flowable.fromPublisher(flow).map(d -> d.with(mapper.apply(d.payload())));
-    return new AbstractSource<>(flowable, name, attributes);
+    return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
   public Source<T> filter(Predicate<Message<T>> filter) {
     Objects.requireNonNull(filter, "The `filter` function cannot be `null`");
-    return new AbstractSource<>(Flowable.fromPublisher(flow).filter(filter::test), name, attributes);
+    return new DefaultSource<>(Flowable.fromPublisher(flow).filter(filter::test), name, attributes);
   }
 
   @Override
   public Source<T> filterPayload(Predicate<T> filter) {
     Objects.requireNonNull(filter, "The `filter` function cannot be `null`");
     Flowable<Message<T>> flowable = Flowable.fromPublisher(flow).filter(d -> filter.test(d.payload()));
-    return new AbstractSource<>(flowable, name, attributes);
+    return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
   public Source<T> filterNot(Predicate<Message<T>> filter) {
     Objects.requireNonNull(filter, "The `filter` function cannot be `null`");
-    return new AbstractSource<>(Flowable.fromPublisher(flow).filter(d -> !filter.test(d)), name, attributes);
+    return new DefaultSource<>(Flowable.fromPublisher(flow).filter(d -> !filter.test(d)), name, attributes);
   }
 
   @Override
   public Source<T> filterPayloadNot(Predicate<T> filter) {
     Objects.requireNonNull(filter, "The `filter` function cannot be `null`");
     Flowable<Message<T>> flowable = Flowable.fromPublisher(flow).filter(d -> !filter.test(d.payload()));
-    return new AbstractSource<>(flowable, name, attributes);
+    return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
   public <X> Source<X> flatMap(Function<Message<T>, Publisher<Message<X>>> mapper) {
     Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
-    return new AbstractSource<>(Flowable.fromPublisher(flow).flatMap(mapper::apply), name, attributes);
+    return new DefaultSource<>(Flowable.fromPublisher(flow).flatMap(mapper::apply), name, attributes);
   }
 
   @Override
   public <X> Source<X> concatMap(Function<Message<T>, Publisher<Message<X>>> mapper) {
     Objects.requireNonNull(mapper, "The `mapper` function cannot be `null`");
-    return new AbstractSource<>(Flowable.fromPublisher(flow).concatMap(mapper::apply), name, attributes);
+    return new DefaultSource<>(Flowable.fromPublisher(flow).concatMap(mapper::apply), name, attributes);
   }
 
   @Override
@@ -127,7 +129,7 @@ public class AbstractSource<T> implements Source<T> {
     if (maxConcurrency < 1) {
       throw new IllegalArgumentException("The `maxConcurrency` cannot be less than 1");
     }
-    return new AbstractSource<>(Flowable.fromPublisher(flow).flatMap(mapper::apply, maxConcurrency), name, attributes);
+    return new DefaultSource<>(Flowable.fromPublisher(flow).flatMap(mapper::apply, maxConcurrency), name, attributes);
   }
 
   @Override
@@ -140,7 +142,7 @@ public class AbstractSource<T> implements Source<T> {
         return Flowable.fromPublisher(publisher).map(data::with);
       });
 
-    return new AbstractSource<>(flowable, name, attributes);
+    return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
@@ -153,7 +155,7 @@ public class AbstractSource<T> implements Source<T> {
         return Flowable.fromPublisher(publisher).map(data::with);
       });
 
-    return new AbstractSource<>(flowable, name, attributes);
+    return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
@@ -166,7 +168,7 @@ public class AbstractSource<T> implements Source<T> {
         return Flowable.fromPublisher(publisher).map(data::with);
       }, maxConcurrency);
 
-    return new AbstractSource<>(flowable, name, attributes);
+    return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
@@ -174,7 +176,7 @@ public class AbstractSource<T> implements Source<T> {
     Objects.requireNonNull(function, "The `function` cannot be `null`");
     Objects.requireNonNull(zero, "The `zero` item (seed) cannot be `null`");
     Flowable<Message<X>> reduced = Flowable.fromPublisher(flow).reduce(zero, function::apply).toFlowable();
-    return new AbstractSource<>(reduced, name, attributes);
+    return new DefaultSource<>(reduced, name, attributes);
   }
 
   @Override
@@ -185,7 +187,7 @@ public class AbstractSource<T> implements Source<T> {
       .reduce(zero, function::apply)
       .map(Message::new)
       .toFlowable();
-    return new AbstractSource<>(reduced, name, attributes);
+    return new DefaultSource<>(reduced, name, attributes);
   }
 
   @Override
@@ -193,7 +195,7 @@ public class AbstractSource<T> implements Source<T> {
     Objects.requireNonNull(function, "The `function` cannot be `null`");
     Objects.requireNonNull(zero, "The `zero` item (seed) cannot be `null`");
     Flowable<Message<X>> reduced = Flowable.fromPublisher(flow).scan(zero, function::apply);
-    return new AbstractSource<>(reduced, name, attributes);
+    return new DefaultSource<>(reduced, name, attributes);
   }
 
   @Override
@@ -203,7 +205,7 @@ public class AbstractSource<T> implements Source<T> {
       .map(Message::payload)
       .scan(zero, function::apply)
       .map(Message::new); // TODO We are loosing the headers
-    return new AbstractSource<>(reduced, name, attributes);
+    return new DefaultSource<>(reduced, name, attributes);
   }
 
   @Override
@@ -241,7 +243,7 @@ public class AbstractSource<T> implements Source<T> {
           LogManager.getLogger(loggerName).error("Error emitted on unnamed source", error);
         }
       });
-    return new AbstractSource<>(flowable, name, attributes);
+    return new DefaultSource<>(flowable, name, attributes);
   }
 
   @Override
@@ -254,7 +256,7 @@ public class AbstractSource<T> implements Source<T> {
     Flowable<Message<T>> publish = Flowable.fromPublisher(flow).publish().autoConnect(numberOfBranches);
 
     for (int i = 0; i < numberOfBranches; i++) {
-      Source<T> stream = new AbstractSource<>(publish, name, attributes);
+      Source<T> stream = new DefaultSource<>(publish, name, attributes);
       streams.add(stream);
     }
 
@@ -271,7 +273,7 @@ public class AbstractSource<T> implements Source<T> {
     Flowable<Message<T>> publish = Flowable.fromPublisher(flow).publish().autoConnect(names.length);
 
     for (String n : names) {
-      Source<T> stream = new AbstractSource<>(publish, n, attributes);
+      Source<T> stream = new DefaultSource<>(publish, n, attributes);
       streams.add(stream);
     }
 
@@ -314,7 +316,7 @@ public class AbstractSource<T> implements Source<T> {
 
   @Override
   public <O> Source<Pair<T, O>> zipWith(Publisher<Message<O>> source) {
-    return new AbstractSource<>(asFlowable().zipWith(source, (a, b) -> a.with(Pair.pair(a.payload(), b.payload()))),
+    return new DefaultSource<>(asFlowable().zipWith(source, (a, b) -> a.with(Pair.pair(a.payload(), b.payload()))),
       name, attributes);
   }
 
@@ -353,12 +355,12 @@ public class AbstractSource<T> implements Source<T> {
       return first.with(Tuple.tuple(payloads.toArray(new Object[payloads.size()])));
     });
 
-    return new AbstractSource<>(stream, name, attributes);
+    return new DefaultSource<>(stream, name, attributes);
   }
 
   @Override
   public Source<T> mergeWith(Publisher<Message<T>> source) {
-    return new AbstractSource<>(asFlowable().mergeWith(source), name, attributes);
+    return new DefaultSource<>(asFlowable().mergeWith(source), name, attributes);
   }
 
   @Override
@@ -366,22 +368,22 @@ public class AbstractSource<T> implements Source<T> {
     List<Publisher<Message<T>>> list = new ArrayList<>();
     list.add(this);
     list.addAll(Arrays.asList(sources));
-    return new AbstractSource<>(Flowable.merge(list), name, attributes);
+    return new DefaultSource<>(Flowable.merge(list), name, attributes);
   }
 
   @Override
   public <X> Source<X> compose(Function<Publisher<Message<T>>, Publisher<Message<X>>> mapper) {
-    return new AbstractSource<>(asFlowable().compose(mapper::apply), name, attributes);
+    return new DefaultSource<>(asFlowable().compose(mapper::apply), name, attributes);
   }
 
   @Override
   public <X> Source<X> composeFlowable(Function<Flowable<Message<T>>, Flowable<Message<X>>> mapper) {
-    return new AbstractSource<>(asFlowable().compose(mapper::apply), name, attributes);
+    return new DefaultSource<>(asFlowable().compose(mapper::apply), name, attributes);
   }
 
   @Override
   public <X> Source<X> composePayloadFlowable(Function<Flowable<T>, Flowable<X>> function) {
-    return new AbstractSource<>(
+    return new DefaultSource<>(
       asFlowable().compose(upstream -> Flowable.defer(() -> {
         AtomicReference<Message<T>> current = new AtomicReference<>();
         return function.apply(upstream.doOnNext(current::set).map(Message::payload))

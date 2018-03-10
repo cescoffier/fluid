@@ -30,11 +30,11 @@ public interface Source<T> extends Publisher<Message<T>> {
   }
 
   static <T> Source<T> from(Flowable<Message<T>> flow) {
-    return new AbstractSource<>(Objects.requireNonNull(flow), null, null);
+    return new DefaultSource<>(Objects.requireNonNull(flow), null, null);
   }
 
   static <T> Source<T> fromPayloads(Flowable<T> flow) {
-    return new AbstractSource<>(Objects.requireNonNull(flow).map(Message::new), null, null);
+    return new DefaultSource<>(Objects.requireNonNull(flow).map(Message::new), null, null);
   }
 
   static <T> Source<T> from(Single<Message<T>> single) {
@@ -46,7 +46,7 @@ public interface Source<T> extends Publisher<Message<T>> {
   }
 
   static <T> Source<T> from(Maybe<Message<T>> maybe) {
-    return new AbstractSource<>(Objects.requireNonNull(maybe).toFlowable(), null, null);
+    return new DefaultSource<>(Objects.requireNonNull(maybe).toFlowable(), null, null);
   }
 
   static <T> Source<T> fromPayload(Maybe<T> maybe) {
