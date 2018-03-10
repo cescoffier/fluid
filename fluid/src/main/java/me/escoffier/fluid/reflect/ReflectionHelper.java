@@ -27,7 +27,7 @@ public class ReflectionHelper {
     // Avoid direct instantiation
   }
 
-  public static Method makeAccessibleIfNot(Method method) {
+  private static Method makeAccessibleIfNot(Method method) {
     if (!Objects.requireNonNull(method).isAccessible()) {
       method.setAccessible(true);
     }
@@ -46,19 +46,71 @@ public class ReflectionHelper {
     }
   }
 
-  private static boolean isStream(Class<?> clazz) {
-    return Publisher.class.isAssignableFrom(clazz) || Source.class.isAssignableFrom(clazz)
-      || Flowable.class.isAssignableFrom(clazz);
+  private static Completable propagateResult(Object result, Sink<Object> sink) {
+    if (result instanceof Publisher) {
+      return Flowable.fromPublisher((Publisher) result).flatMapCompletable(d -> {
+        if (d instanceof Message) {
+          return sink.dispatch((Message) d);
+        } else {
+          return sink.dispatch(d);
+        }
+      });
+    } else if (result instanceof Message) {
+      return sink.dispatch((Message) result);
+    } else { // Payload
+      return sink.dispatch(result);
+    }
   }
 
-  public static void invokeFunctionMethod(Object mediator, Method method) {
+  public static void invokeFunction(Object mediator, Method method) {
     method = ReflectionHelper.makeAccessibleIfNot(method);
 
+    List<Flowable<Object>> sources = getFlowableForParameters(method);
+
+    Function function = method.getAnnotation(Function.class);
+    Sink<Object> sink = null;
+    if (function.outbound().length() != 0) {
+      sink = getSinkOrFail(function.outbound());
+    }
+
+    Method methodToBeInvoked = method;
+    Sink<Object> theSink = sink;
+
+    Flowable<Optional<Object>> result;
+    if (sources.size() == 1) {
+      result = sources.get(0)
+        .map(item -> Optional.ofNullable(methodToBeInvoked.invoke(mediator, item)));
+    } else {
+      result = Flowable.zip(sources, args -> args)
+        .map(args -> Optional.ofNullable(methodToBeInvoked.invoke(mediator, args)));
+    }
+
+    result
+      .flatMapCompletable(maybeResult -> {
+          if (! maybeResult.isPresent()) {
+            // We didn't get a result
+            return Completable.complete();
+          } else {
+            return propagateResult(maybeResult.get(), theSink);
+          }
+      })
+      .doOnError(Throwable::printStackTrace) // TODO improve error reporting
+      .subscribe();
+  }
+
+  private static List<Flowable<Object>> getFlowableForParameters(Method method) {
     List<Flowable<Object>> sources = new ArrayList<>();
+
+    if (method.getParameterCount() == 0) {
+      throw new IllegalStateException("Invalid number of parameter for the function - you need at " +
+        "least one parameter");
+    }
+
     for (Parameter param : method.getParameters()) {
       Inbound inbound = param.getAnnotation(Inbound.class);
       if (inbound == null) {
-        throw new IllegalStateException("Invalid function method - all parameters must be annotated with @Inbound");
+        throw new IllegalStateException("Invalid function method - all parameters must " +
+          "be annotated with @Inbound");
       }
 
       String name = inbound.value();
@@ -70,92 +122,13 @@ public class ReflectionHelper {
         sources.add(source.asFlowable().cast(Object.class));
       }
     }
-
-    Function function = method.getAnnotation(Function.class);
-    Sink<Object> sink = null;
-    if (function.outbound() != null  && function.outbound().length() != 0) {
-      sink = getSinkOrFail(function.outbound());
-    }
-
-    Method methodToBeInvoked = method;
-    Sink<Object> theSink = sink;
-    if (sources.size() == 1) {
-      sources.get(0)
-        .map(item -> Optional.ofNullable(methodToBeInvoked.invoke(mediator, item)))
-        .flatMapCompletable(maybeResult -> {
-          if (maybeResult.isPresent()) {
-            Object item = maybeResult.get();
-            if (isStream(item.getClass())) {
-              if (item instanceof Source) {
-                throw new IllegalStateException("A function cannot return a source");
-              } else if (item instanceof Flowable) {
-                return ((Flowable) item).flatMapCompletable(d -> {
-                  if (d instanceof Message) {
-                    return theSink.dispatch((Message)d);
-                  } else {
-                    return theSink.dispatch(d);
-                  }
-                });
-              } else {
-                // Publisher
-                return Flowable.fromPublisher((Publisher)item).flatMapCompletable(d -> {
-                  if (d instanceof Message) {
-                    return theSink.dispatch((Message)d);
-                  } else {
-                    return theSink.dispatch(d);
-                  }
-                });
-              }
-            } else if (item instanceof Message) {
-              return theSink.dispatch((Message) item);
-            } else {
-              return theSink.dispatch(item);
-            }
-          } else {
-            return Completable.complete();
-          }
-        })
-        .doOnError(Throwable::printStackTrace) // TODO improve error reporting
-        .subscribe();
-    } else {
-       // We need to zip.
-       Flowable.zip(sources, args -> args)
-       .map(args -> Optional.ofNullable(methodToBeInvoked.invoke(mediator, args)))
-         .flatMapCompletable(maybeResult -> {
-           if (maybeResult.isPresent()) {
-             return theSink.dispatch(maybeResult.get());
-           } else {
-             return Completable.complete();
-           }
-         })
-         .doOnError(Throwable::printStackTrace) // TODO improve error reporting
-         .subscribe();
-    }
+    return sources;
   }
 
 
   public static void invokeTransformationMethod(Object mediator, Method method) {
     method = ReflectionHelper.makeAccessibleIfNot(method);
-
-    List<Object> values = new ArrayList<>();
-    for (Parameter param : method.getParameters()) {
-      Inbound inbound = param.getAnnotation(Inbound.class);
-      Outbound outbound = param.getAnnotation(Outbound.class);
-
-      if (inbound != null) {
-        String name = inbound.value();
-        Source<Object> source = getSourceOrFail(name);
-        Object inject = getSourceToInject(param.getType(), param.getParameterizedType(), source);
-        values.add(inject);
-      } else if (outbound != null) {
-        String name = outbound.value();
-        Sink<Object> sink = getSinkOrFail(name);
-        values.add(sink);
-      } else {
-        throw new IllegalArgumentException("Invalid parameter - one parameter of " + method.getName()
-          + " is not annotated with @Outbound or @Inbound");
-      }
-    }
+    List<Object> values = getParameterFromTransformationMethod(method);
 
     try {
       Class<?> returnType = method.getReturnType();
@@ -169,9 +142,7 @@ public class ReflectionHelper {
         } else {
           Sink<Object> sink = getSinkOrFail(outbound.value());
           Flowable<Object> flowable;
-          if (returnType.isAssignableFrom(Flowable.class)) {
-            flowable = (Flowable) method.invoke(mediator, values.toArray());
-          } else if (returnType.isAssignableFrom(Publisher.class)) {
+          if (Publisher.class.isAssignableFrom(returnType)) {
             flowable = Flowable.fromPublisher(
               (Publisher) method.invoke(mediator, values.toArray()));
           } else {
@@ -203,6 +174,29 @@ public class ReflectionHelper {
       throw new IllegalStateException("Unable to invoke " + method.getName() + " from " + mediator.getClass()
         .getName(), e);
     }
+  }
+
+  private static List<Object> getParameterFromTransformationMethod(Method method) {
+    List<Object> values = new ArrayList<>();
+    for (Parameter param : method.getParameters()) {
+      Inbound inbound = param.getAnnotation(Inbound.class);
+      Outbound outbound = param.getAnnotation(Outbound.class);
+
+      if (inbound != null) {
+        String name = inbound.value();
+        Source<Object> source = getSourceOrFail(name);
+        Object inject = getSourceToInject(param.getType(), param.getParameterizedType(), source);
+        values.add(inject);
+      } else if (outbound != null) {
+        String name = outbound.value();
+        Sink<Object> sink = getSinkOrFail(name);
+        values.add(sink);
+      } else {
+        throw new IllegalArgumentException("Invalid parameter - one parameter of " + method.getName()
+          + " is not annotated with @Outbound or @Inbound");
+      }
+    }
+    return values;
   }
 
   public static Object getSourceToInject(Class<?> clazz, Type type, Source<Object> source) {

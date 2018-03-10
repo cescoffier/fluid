@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import static me.escoffier.fluid.reflect.ReflectionHelper.inject;
-import static me.escoffier.fluid.reflect.ReflectionHelper.invokeFunctionMethod;
+import static me.escoffier.fluid.reflect.ReflectionHelper.invokeFunction;
 import static me.escoffier.fluid.reflect.ReflectionHelper.invokeTransformationMethod;
 
 /**
@@ -72,7 +72,7 @@ public class Fluid {
     }
 
     for (Method method : fn) {
-      invokeFunctionMethod(mediator, method);
+      invokeFunction(mediator, method);
     }
   }
 
