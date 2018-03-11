@@ -63,8 +63,8 @@ public class Config {
   public Optional<List<JsonNode>> getList(String path) {
     return get(path)
       .filter(JsonNode::isArray)
-      .map(node -> {
-        ArrayNode array = (ArrayNode) node;
+      .map(jn -> {
+        ArrayNode array = (ArrayNode) jn;
         List<JsonNode> list = new ArrayList<>();
         for (int i = 0; i < array.size(); i++) {
           list.add(array.get(i));
@@ -114,21 +114,14 @@ public class Config {
   public List<Config> getConfigList(String path) {
     String[] segments = path.split("\\.");
     JsonNode current = node;
-    Config parent = this;
+    Config currentParent = this;
     for (String seg : segments) {
-      JsonNode child = current.get(seg);
-      if (child == null) {
-        // Numeric ?
-        int index = asInteger(seg);
-        if (index >= 0) {
-          child = current.get(index);
-        }
-      }
+      JsonNode child = getChild(current, seg);
 
       if (child == null) {
         return Collections.emptyList();
       } else {
-        parent = new Config(parent, current);
+        currentParent = new Config(currentParent, current);
         current = child;
       }
     }
@@ -141,11 +134,23 @@ public class Config {
         ArrayNode array = (ArrayNode) current;
         List<Config> config = new ArrayList<>();
         for (int i = 0; i < array.size(); i++) {
-          config.add(new Config(parent, array.get(i)));
+          config.add(new Config(currentParent, array.get(i)));
         }
         return config;
       }
     }
+  }
+
+  private static JsonNode getChild(JsonNode json, String seg) {
+    JsonNode child = json.get(seg);
+    if (child == null) {
+      // If not found, check if it's an index.
+      int index = asInteger(seg);
+      if (index >= 0) {
+        child = json.get(index);
+      }
+    }
+    return child;
   }
 
   public String getString(String path, String def) {
@@ -211,9 +216,9 @@ public class Config {
     if (path.trim().isEmpty()) {
       throw new IllegalArgumentException("The path must not be empty");
     }
-    JsonNode node = this.node.get(path);
-    if (node != null) {
-      return Optional.of(node);
+    JsonNode jn = this.node.get(path);
+    if (jn != null) {
+      return Optional.of(jn);
     }
 
     if (path.contains(".")) {
@@ -227,14 +232,7 @@ public class Config {
     String[] segments = path.split("\\.");
     JsonNode current = node;
     for (String seg : segments) {
-      JsonNode child = current.get(seg);
-      if (child == null) {
-        // Numeric ?
-        int index = asInteger(seg);
-        if (index >= 0) {
-          child = current.get(index);
-        }
-      }
+      JsonNode child = getChild(current, seg);
 
       if (child == null) {
         return Optional.empty(); // Not found
@@ -260,14 +258,7 @@ public class Config {
     JsonNode current = node;
     Config parent = this;
     for (String seg : segments) {
-      JsonNode child = current.get(seg);
-      if (child == null) {
-        // Numeric ?
-        int index = asInteger(seg);
-        if (index >= 0) {
-          child = current.get(index);
-        }
-      }
+      JsonNode child = getChild(current, seg);
 
       if (child == null) {
         return Optional.empty(); // Not found
