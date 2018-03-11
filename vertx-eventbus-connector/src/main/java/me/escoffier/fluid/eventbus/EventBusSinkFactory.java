@@ -3,6 +3,7 @@ package me.escoffier.fluid.eventbus;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.spi.SinkFactory;
 
@@ -16,8 +17,8 @@ public class EventBusSinkFactory implements SinkFactory {
     }
 
     @Override
-    public <T> Single<Sink<T>> create(Vertx vertx, JsonObject json) {
-        return Single.just(new EventBusSink<>(vertx, json));
+    public <T> Single<Sink<T>> create(Vertx vertx, String name, Config conf) {
+        return Single.just(new EventBusSink<>(vertx, conf));
 
     }
 }

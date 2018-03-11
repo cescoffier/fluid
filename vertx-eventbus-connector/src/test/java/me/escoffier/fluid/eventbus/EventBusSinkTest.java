@@ -1,13 +1,17 @@
 package me.escoffier.fluid.eventbus;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.eventbus.Message;
+import me.escoffier.fluid.config.Config;
+import me.escoffier.fluid.config.FluidConfig;
 import me.escoffier.fluid.models.Source;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -36,7 +40,7 @@ public class EventBusSinkTest {
   }
 
   @Test
-  public void testSinkWithInteger() throws InterruptedException {
+  public void testSinkWithInteger() throws InterruptedException, IOException {
     String topic = UUID.randomUUID().toString();
     CountDownLatch latch = new CountDownLatch(1);
     List<Integer> list = new ArrayList<>();
@@ -49,10 +53,7 @@ public class EventBusSinkTest {
 
 
     EventBusSink<Integer> sink = new EventBusSink<>(vertx,
-      new JsonObject()
-        .put("address", topic)
-    );
-
+      new Config(new JsonObject().put("address", topic)));
 
     Source.from(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
       .mapPayload(i -> i + 1)
@@ -63,7 +64,7 @@ public class EventBusSinkTest {
   }
 
   @Test
-  public void testSinkWithString() throws InterruptedException {
+  public void testSinkWithString() throws InterruptedException, IOException {
     String topic = UUID.randomUUID().toString();
     CountDownLatch latch = new CountDownLatch(1);
     List<String> list = new ArrayList<>();
@@ -75,9 +76,7 @@ public class EventBusSinkTest {
     });
 
     EventBusSink<String> sink = new EventBusSink<>(vertx,
-      new JsonObject()
-        .put("address", topic)
-    );
+      new Config(FluidConfig.mapper().readValue(new JsonObject().put("address", topic).encode(), JsonNode.class)));
 
 
     Stream<String> stream = new Random().longs(10).mapToObj(Long::toString);

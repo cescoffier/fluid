@@ -1,11 +1,8 @@
 package me.escoffier.fluid.fake;
 
-import io.reactivex.Flowable;
 import io.reactivex.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.models.DefaultSource;
-import me.escoffier.fluid.models.Message;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.Source;
 import me.escoffier.fluid.spi.SourceFactory;
 
@@ -18,24 +15,10 @@ public class FakeSourceFactory implements SourceFactory {
     return "fake-source";
   }
 
+
   @SuppressWarnings("unchecked")
   @Override
-  public Single<Source<String>> create(Vertx vertx, JsonObject json) {
-    return Single.just(new FakeSourceImpl(json));
-  }
-
-  private class FakeSourceImpl extends DefaultSource<String> {
-
-    private String name;
-
-    FakeSourceImpl(JsonObject json) {
-      super(Flowable.fromArray("a", "b", "c").map(Message::new), null, null);
-      name = json.getString("name");
-    }
-
-    @Override
-    public String name() {
-      return name;
-    }
+  public Single<Source<String>> create(Vertx vertx, String name, Config config) {
+    return Single.just(Source.from("a", "b", "c").named(name));
   }
 }

@@ -3,6 +3,8 @@ package me.escoffier.fluid.spi;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.Config;
+import me.escoffier.fluid.config.FluidConfig;
 import me.escoffier.fluid.models.Sink;
 
 /**
@@ -12,6 +14,6 @@ public interface SinkFactory {
 
     String name();
 
-    <T> Single<Sink<T>> create(Vertx vertx, JsonObject json);
+    <T> Single<Sink<T>> create(Vertx vertx, String name, Config config);
 
 }

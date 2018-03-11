@@ -1,6 +1,7 @@
 package me.escoffier.fluid.registry;
 
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.FluidConfig;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
 
@@ -23,9 +24,9 @@ public class FluidRegistry {
   private static Map<String, Source> sources = new ConcurrentHashMap<>();
   private static Map<String, Sink> sinks = new ConcurrentHashMap<>();
 
-  public static synchronized void initialize(Vertx vertx) {
-    sinks.putAll(SourceAndSinkBuilder.createSinksFromConfiguration(vertx));
-    sources.putAll(SourceAndSinkBuilder.createSourcesFromConfiguration(vertx));
+  public static synchronized void initialize(Vertx vertx, FluidConfig config) {
+    sinks.putAll(SourceAndSinkBuilder.createSinksFromConfiguration(vertx, config));
+    sources.putAll(SourceAndSinkBuilder.createSourcesFromConfiguration(vertx, config));
   }
 
   private FluidRegistry() {

@@ -15,6 +15,17 @@ martin:
     skill: Elite
     age: 45
 
+# nest objects
+nested:
+  level1:
+    message: level1
+    level2:
+      message: level 2
+  array:
+    - foo: bar
+    - key: value
+
+
 # Array of objects
 objects:
   -  martin:
@@ -60,7 +71,19 @@ ignore_newlines: >
 # numbers
 an_integer: 25
 a_double: 25.5
+a_long: 2500000
 
 key.with.dots: some value
 key-with-dashes: some value
 "key with spaces": some value
+
+# lists
+lists:
+  bools: [true, false, yes, no]
+  longs: [1000, 1001, 1002]
+  doubles: [10.0, 5, 25.3, 42]
+  configs:
+    - firstName: Bob
+      lastName: Morane
+    - firstName: Bill
+      lastName:  Ballantine

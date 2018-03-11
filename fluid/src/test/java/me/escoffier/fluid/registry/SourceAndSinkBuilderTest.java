@@ -3,6 +3,7 @@ package me.escoffier.fluid.registry;
 import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.config.FluidConfig;
 
+import me.escoffier.fluid.framework.Fluid;
 import me.escoffier.fluid.impl.ListSink;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
@@ -23,13 +24,14 @@ public class SourceAndSinkBuilderTest {
 
 
   private Vertx vertx;
+  private Fluid fluid;
 
   @Before
   public void setup() {
     System.setProperty("fluid-config", "src/test/resources/config/fake.yml");
-    vertx = Vertx.vertx();
     FluidRegistry.reset();
-    FluidConfig.load();
+    fluid = new Fluid();
+    vertx = fluid.vertx();
   }
 
   @After
@@ -41,7 +43,7 @@ public class SourceAndSinkBuilderTest {
   @SuppressWarnings("unchecked")
   @Test
   public void loadSourceTest() {
-    Map<String, Source> sources = SourceAndSinkBuilder.createSourcesFromConfiguration(vertx);
+    Map<String, Source> sources = SourceAndSinkBuilder.createSourcesFromConfiguration(vertx, fluid.getConfig());
     assertThat(sources).hasSize(2);
 
     Source<String> source1 = sources.get("source1");
@@ -63,7 +65,7 @@ public class SourceAndSinkBuilderTest {
   @SuppressWarnings("unchecked")
   @Test
   public void loadSinkTest() {
-    Map<String, Sink> sinks = SourceAndSinkBuilder.createSinksFromConfiguration(vertx);
+    Map<String, Sink> sinks = SourceAndSinkBuilder.createSinksFromConfiguration(vertx, fluid.getConfig());
     assertThat(sinks).hasSize(2);
 
     Sink<String> sink1 = sinks.get("sink1");
@@ -81,7 +83,7 @@ public class SourceAndSinkBuilderTest {
 
   @Test
   public void testInitializationFromRegistry() {
-    FluidRegistry.initialize(vertx);
+    FluidRegistry.initialize(vertx, fluid.getConfig());
     assertThat(FluidRegistry.sink("sink1")).isNotNull();
     assertThat(FluidRegistry.sink("sink2")).isNotNull();
     assertThat(FluidRegistry.sink("not a sink")).isNull();

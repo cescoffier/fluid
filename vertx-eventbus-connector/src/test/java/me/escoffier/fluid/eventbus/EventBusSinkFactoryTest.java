@@ -1,12 +1,16 @@
 package me.escoffier.fluid.eventbus;
 
+import com.fasterxml.jackson.databind.node.NullNode;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.Sink;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -39,12 +43,14 @@ public class EventBusSinkFactoryTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testCreationWithoutParameter() {
-    factory.create(vertx, new JsonObject());
+    factory.create(vertx, null, new Config(NullNode.getInstance()));
   }
 
   @Test
-  public void testCreationWithAddress() {
-    Single<Sink<Object>> single = factory.create(vertx, new JsonObject().put("address", "an-address"));
+  public void testCreationWithAddress() throws IOException {
+    Single<Sink<Object>> single = factory.create(vertx,
+      null,
+      new Config(new JsonObject().put("address", "an-address")));
     Sink<Object> sink = single.blockingGet();
     assertThat(sink).isInstanceOf(EventBusSink.class);
   }

@@ -1,14 +1,18 @@
 package me.escoffier.fluid.kafka;
 
+import com.fasterxml.jackson.databind.node.NullNode;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.serialization.JsonObjectDeserializer;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.Source;
 import org.apache.kafka.common.config.ConfigException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,15 +45,15 @@ public class KafkaSourceFactoryTest {
 
   @Test(expected = ConfigException.class)
   public void testCreationWithoutParameter() {
-    factory.create(vertx, new JsonObject());
+    factory.create(vertx, null, new Config(NullNode.getInstance()));
   }
 
   @Test
-  public void testCreationWithMinimalConfiguration() {
-    Single<Source<Object>> single = factory.create(vertx, new JsonObject()
+  public void testCreationWithMinimalConfiguration() throws IOException {
+    Single<Source<Object>> single = factory.create(vertx, null, new Config(new JsonObject()
       .put("bootstrap.servers", "localhost:9092")
       .put("key.deserializer", JsonObjectDeserializer.class.getName())
-      .put("value.deserializer", JsonObjectDeserializer.class.getName()));
+      .put("value.deserializer", JsonObjectDeserializer.class.getName())));
     Source<Object> sink = single.blockingGet();
     assertThat(sink).isInstanceOf(KafkaSource.class);
   }

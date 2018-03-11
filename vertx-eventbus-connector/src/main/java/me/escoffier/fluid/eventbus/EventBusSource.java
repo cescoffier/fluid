@@ -1,9 +1,9 @@
 package me.escoffier.fluid.eventbus;
 
-import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
-import me.escoffier.fluid.models.DefaultSource;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.CommonHeaders;
+import me.escoffier.fluid.models.DefaultSource;
 import me.escoffier.fluid.models.Message;
 
 import java.util.HashMap;
@@ -15,24 +15,24 @@ import java.util.concurrent.TimeUnit;
  */
 public class EventBusSource<T> extends DefaultSource<T> {
 
-  public EventBusSource(Vertx vertx, JsonObject json) {
+  public EventBusSource(Vertx vertx, String name, String address, Config config) {
     super(vertx.eventBus()
-      .<T>consumer(json.getString("address"))
+      .<T>consumer(address)
       .toFlowable()
       .map(EventBusSource::createData)
       .compose(upstream -> {
-        Integer size = json.getInteger("multicast.buffer.size", -1);
+        int size = config.getInt("multicast.buffer.size", -1);
         if (size != -1) {
           return upstream.replay(size).autoConnect();
         }
 
-        Integer seconds = json.getInteger("multicast.buffer.period.ms", -1);
+        int seconds = config.getInt("multicast.buffer.period.ms", -1);
         if (seconds != -1) {
           return upstream.replay(seconds, TimeUnit.MILLISECONDS).autoConnect();
         }
 
         return upstream;
-      }), json.getString("name"), null);
+      }), name, null);
   }
 
   private static <T> Message<T> createData(io.vertx.reactivex.core.eventbus.Message<T> msg) {

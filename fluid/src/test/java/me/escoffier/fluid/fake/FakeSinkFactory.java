@@ -1,8 +1,8 @@
 package me.escoffier.fluid.fake;
 
 import io.reactivex.Single;
-import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.impl.ListSink;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.spi.SinkFactory;
@@ -18,15 +18,15 @@ public class FakeSinkFactory implements SinkFactory {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <T> Single<Sink<T>> create(Vertx vertx, JsonObject json) {
-    return Single.just(new FakeSink(json));
+  public <T> Single<Sink<T>> create(Vertx vertx, String name, Config conf) {
+    return Single.just(new FakeSink(name));
   }
 
   private class FakeSink<T> extends ListSink<T> implements Sink<T> {
     private final String name;
 
-    FakeSink(JsonObject json) {
-      name = json.getString("name");
+    FakeSink(String name) {
+      this.name = name;
     }
 
     @Override

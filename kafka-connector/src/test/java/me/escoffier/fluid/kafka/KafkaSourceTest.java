@@ -8,6 +8,7 @@ import io.vertx.ext.unit.TestContext;
 import io.vertx.ext.unit.junit.VertxUnitRunner;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.Sink;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.serialization.IntegerDeserializer;
@@ -26,9 +27,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static io.reactivex.Completable.complete;
+import static me.escoffier.fluid.kafka.KafkaSourceConfig.kafkaSourceConfig;
 import static me.escoffier.fluid.models.CommonHeaders.key;
 import static me.escoffier.fluid.models.CommonHeaders.original;
-import static me.escoffier.fluid.kafka.KafkaSourceConfig.kafkaSourceConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -71,16 +72,18 @@ public class KafkaSourceTest {
   }
 
   @Test
-  public void testSource() throws InterruptedException {
+  public void testSource() throws IOException {
     KafkaUsage usage = new KafkaUsage();
     String topic = UUID.randomUUID().toString();
     List<Integer> results = new ArrayList<>();
     KafkaSource<Integer> source = new KafkaSource<>(vertx,
-      getKafkaConfig()
-        .put("topic", topic)
-        .put("value.serializer", IntegerSerializer.class.getName())
-        .put("value.deserializer", IntegerDeserializer.class.getName())
-    );
+      "my-kafka",
+      new Config(
+        getKafkaConfig()
+          .put("topic", topic)
+          .put("value.serializer", IntegerSerializer.class.getName())
+          .put("value.deserializer", IntegerDeserializer.class.getName())
+      ));
     source
       .mapPayload(i -> i + 1)
       .to(Sink.forEachPayload(results::add));
@@ -94,17 +97,19 @@ public class KafkaSourceTest {
   }
 
   @Test
-  public void testCommonHeaders(TestContext context) throws InterruptedException {
+  public void testCommonHeaders(TestContext context) throws IOException {
     Async async = context.async();
     KafkaUsage usage = new KafkaUsage();
     String topic = UUID.randomUUID().toString();
 
     KafkaSource<Integer> source = new KafkaSource<>(vertx,
-      getKafkaConfig()
-        .put("topic", topic)
-        .put("value.serializer", IntegerSerializer.class.getName())
-        .put("value.deserializer", IntegerDeserializer.class.getName())
-    );
+      "my-kafka",
+      new Config(
+        getKafkaConfig()
+          .put("topic", topic)
+          .put("value.serializer", IntegerSerializer.class.getName())
+          .put("value.deserializer", IntegerDeserializer.class.getName())
+      ));
 
     source
       .to(data -> {
@@ -120,17 +125,19 @@ public class KafkaSourceTest {
   }
 
   @Test
-  public void testMulticastWithBufferSize() throws InterruptedException {
+  public void testMulticastWithBufferSize() throws IOException {
     KafkaUsage usage = new KafkaUsage();
     String topic = UUID.randomUUID().toString();
 
     KafkaSource<Integer> source = new KafkaSource<>(vertx,
-      getKafkaConfig()
-        .put("topic", topic)
-        .put("value.serializer", IntegerSerializer.class.getName())
-        .put("value.deserializer", IntegerDeserializer.class.getName())
-        .put("multicast.buffer.size", 20)
-    );
+      "my-kafka",
+      new Config(
+        getKafkaConfig()
+          .put("topic", topic)
+          .put("value.serializer", IntegerSerializer.class.getName())
+          .put("value.deserializer", IntegerDeserializer.class.getName())
+          .put("multicast.buffer.size", 20)
+      ));
 
     assertThat(source).isNotNull();
     checkMulticast(usage, topic, source);
@@ -159,17 +166,19 @@ public class KafkaSourceTest {
   }
 
   @Test
-  public void testMulticastWithTime() throws InterruptedException {
+  public void testMulticastWithTime() throws IOException {
     KafkaUsage usage = new KafkaUsage();
     String topic = UUID.randomUUID().toString();
 
     KafkaSource<Integer> source = new KafkaSource<>(vertx,
-      getKafkaConfig()
-        .put("topic", topic)
-        .put("value.serializer", IntegerSerializer.class.getName())
-        .put("value.deserializer", IntegerDeserializer.class.getName())
-        .put("multicast.buffer.period.ms", 2000)
-    );
+      "my-kafka",
+      new Config(
+        getKafkaConfig()
+          .put("topic", topic)
+          .put("value.serializer", IntegerSerializer.class.getName())
+          .put("value.deserializer", IntegerDeserializer.class.getName())
+          .put("multicast.buffer.period.ms", 2000)
+      ));
     assertThat(source).isNotNull();
     checkMulticast(usage, topic, source);
 

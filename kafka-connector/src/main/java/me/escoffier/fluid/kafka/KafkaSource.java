@@ -1,9 +1,9 @@
 package me.escoffier.fluid.kafka;
 
-import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumer;
 import io.vertx.reactivex.kafka.client.consumer.KafkaConsumerRecord;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.DefaultSource;
 import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Source;
@@ -13,34 +13,32 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static me.escoffier.fluid.models.CommonHeaders.ADDRESS;
-import static me.escoffier.fluid.models.CommonHeaders.KEY;
-import static me.escoffier.fluid.models.CommonHeaders.ORIGINAL;
+import static me.escoffier.fluid.models.CommonHeaders.*;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
 public class KafkaSource<T> extends DefaultSource<T> implements Source<T> {
 
-  KafkaSource(Vertx vertx, JsonObject json) {
-    super(KafkaConsumer.<String, T>create(vertx, toMap(json))
-      .subscribe(json.getString("topic", json.getString("name")))
+  KafkaSource(Vertx vertx, String name, Config config) {
+    super(KafkaConsumer.<String, T>create(vertx, toMap(config))
+      .subscribe(config.getString("topic", name))
       .toFlowable()
       .map(KafkaSource::createDataFromRecord)
       .compose(upstream -> {
-        int size = json.getInteger("multicast.buffer.size", 0);
+        int size = config.getInt("multicast.buffer.size", 0);
         if (size > 0) {
           return upstream.replay(size).autoConnect();
         }
 
-        Integer seconds = json.getInteger("multicast.buffer.period.ms", -1);
+        Integer seconds = config.getInt("multicast.buffer.period.ms", -1);
         if (seconds != -1) {
           return upstream.replay(seconds, TimeUnit.MILLISECONDS).autoConnect();
         }
 
         return upstream;
       }
-    ), json.getString("name"), null);
+    ),name, null);
   }
 
   private static <T> Message<T> createDataFromRecord(KafkaConsumerRecord<String, T> record) {
@@ -55,9 +53,9 @@ public class KafkaSource<T> extends DefaultSource<T> implements Source<T> {
     return new Message<>(record.value(), headers);
   }
 
-  private static Map<String, String> toMap(JsonObject json) {
+  private static Map<String, String> toMap(Config config) {
     Map<String, String> map = new LinkedHashMap<>();
-    json.forEach(entry -> map.put(entry.getKey(), entry.getValue().toString()));
+    config.names().forEachRemaining(name -> map.put(name, config.getString(name, null)));
     return map;
   }
 

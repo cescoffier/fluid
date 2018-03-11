@@ -3,6 +3,7 @@ package me.escoffier.fluid.kafka;
 import io.reactivex.Single;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.spi.SinkFactory;
 
@@ -16,7 +17,7 @@ public class KafkaSinkFactory implements SinkFactory {
     }
 
     @Override
-    public <T> Single<Sink<T>> create(Vertx vertx, JsonObject json) {
-        return Single.just(new KafkaSink<>(vertx, json));
+    public <T> Single<Sink<T>> create(Vertx vertx, String name, Config config) {
+        return Single.just(new KafkaSink<>(vertx, name, config));
     }
 }

@@ -4,6 +4,7 @@ import io.reactivex.Flowable;
 import io.vertx.reactivex.core.Vertx;
 import me.escoffier.fluid.annotations.Function;
 import me.escoffier.fluid.annotations.Transformation;
+import me.escoffier.fluid.config.FluidConfig;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
 import me.escoffier.fluid.registry.FluidRegistry;
@@ -24,6 +25,7 @@ import static me.escoffier.fluid.reflect.ReflectionHelper.invokeTransformationMe
 public class Fluid {
 
   private final Vertx vertx;
+  private FluidConfig config;
 
   public Fluid() {
     this(Vertx.vertx());
@@ -31,7 +33,8 @@ public class Fluid {
 
   public Fluid(Vertx vertx) {
     this.vertx = vertx;
-    FluidRegistry.initialize(vertx);
+    config = new FluidConfig();
+    FluidRegistry.initialize(vertx, config);
   }
 
   public Fluid(io.vertx.core.Vertx vertx) {
@@ -91,5 +94,13 @@ public class Fluid {
 
   public Vertx vertx() {
     return vertx;
+  }
+
+  public FluidConfig getConfig() {
+    return config;
+  }
+
+  public void close() {
+    vertx.close();
   }
 }

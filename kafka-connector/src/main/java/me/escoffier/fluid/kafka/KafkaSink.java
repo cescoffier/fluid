@@ -6,6 +6,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaWriteStream;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.impl.AsyncResultCompletable;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.spi.DataExpression;
@@ -28,18 +29,18 @@ public class KafkaSink<T> implements Sink<T> {
   private final String name;
   private Long timestamp;
 
-  public KafkaSink(Vertx vertx, JsonObject json) {
-    stream = KafkaWriteStream.create(vertx.getDelegate(), toMap(json));
-    topic = json.getString("topic");
-    partition = json.getInteger("partition");
-    timestamp = json.getLong("timestamp");
-    key = requiredEventExpression(json.getString("key"));
-    name = json.getString("name");
+  public KafkaSink(Vertx vertx, String name, Config config) {
+    stream = KafkaWriteStream.create(vertx.getDelegate(), toMap(config));
+    topic = config.getString("topic", name);
+    partition = config.getInt("partition", 1);
+    timestamp = config.getLong("timestamp").orElse(null);
+    key = requiredEventExpression(config.getString("key"));
+    this.name = name;
   }
 
-  private static Map<String, Object> toMap(JsonObject json) {
+  private static Map<String, Object> toMap(Config config) {
     Map<String, Object> map = new LinkedHashMap<>();
-    json.forEach(entry -> map.put(entry.getKey(), entry.getValue().toString()));
+    config.names().forEachRemaining(name -> map.put(name, config.getString(name, null)));
     return map;
   }
 

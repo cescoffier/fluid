@@ -3,6 +3,7 @@ package me.escoffier.fluid.registry;
 import io.reactivex.Completable;
 import io.reactivex.Flowable;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.framework.Fluid;
 import me.escoffier.fluid.models.DefaultSource;
 import me.escoffier.fluid.models.Message;
 import me.escoffier.fluid.models.Sink;
@@ -100,11 +101,10 @@ public class FluidRegistryTest {
 
   @Test
   public void testInitialize() {
-    Vertx vertx = Vertx.vertx();
-    FluidRegistry.initialize(vertx);
+    Fluid fluid = new Fluid();
     assertThat(FluidRegistry.source("unknown")).isNull();
     assertThat(FluidRegistry.sink("unknown")).isNull();
-    vertx.close();
+    fluid.vertx().close();
   }
 
 }

@@ -1,13 +1,16 @@
 package me.escoffier.fluid.eventbus;
 
+import com.fasterxml.jackson.databind.node.NullNode;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.config.Config;
 import me.escoffier.fluid.models.Sink;
 import me.escoffier.fluid.models.Source;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +22,7 @@ import static org.awaitility.Awaitility.await;
 
 /**
  * Check the behavior of the event bus source.
+ *
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
  */
 public class EventBusSourceTest {
@@ -40,8 +44,9 @@ public class EventBusSourceTest {
     String topic = UUID.randomUUID().toString();
 
     EventBusSource<Integer> source = new EventBusSource<>(vertx,
-      new JsonObject()
-        .put("address", topic)
+      null,
+      topic,
+      new Config(NullNode.getInstance())
     );
 
     List<Integer> results = new ArrayList<>();
@@ -60,13 +65,17 @@ public class EventBusSourceTest {
   }
 
   @Test
-  public void testMulticastWithBufferSize() throws InterruptedException {
+  public void testMulticastWithBufferSize() throws IOException {
     String topic = UUID.randomUUID().toString();
 
-    EventBusSource<Integer> source = new EventBusSource<>(vertx,
-      new JsonObject()
-        .put("address", topic)
-        .put("multicast.buffer.size", 20)
+    Source<Integer> source = new EventBusSource<>(vertx,
+      "foo",
+      topic,
+      new Config(
+        new JsonObject()
+          .put("address", topic)
+          .put("multicast.buffer.size", 20)
+      )
     );
 
     checkMulticast(topic, source);
@@ -96,14 +105,17 @@ public class EventBusSourceTest {
   }
 
   @Test
-  public void testMulticastWithTime() {
+  public void testMulticastWithTime() throws IOException {
     String topic = UUID.randomUUID().toString();
 
     EventBusSource<Integer> source = new EventBusSource<>(vertx,
-      new JsonObject()
-        .put("address", topic)
-        .put("multicast.buffer.period.ms", 2000)
-    );
+      "foo",
+      topic,
+      new Config(
+        new JsonObject()
+          .put("address", topic)
+          .put("multicast.buffer.period.ms", 2000)
+      ));
 
     checkMulticast(topic, source);
 

@@ -7,6 +7,7 @@ import io.reactivex.Flowable;
 import io.reactivex.schedulers.Schedulers;
 import io.vertx.core.json.JsonObject;
 import io.vertx.reactivex.core.Vertx;
+import me.escoffier.fluid.framework.Fluid;
 import me.escoffier.fluid.models.Source;
 import me.escoffier.fluid.registry.FluidRegistry;
 
@@ -29,10 +30,9 @@ public class Main {
   public static void main(String[] args) throws IOException {
     init();
 
-    Vertx vertx = Vertx.vertx();
-    vertx.deployVerticle(WebVerticle.class.getName());
+    Fluid fluid = new Fluid();
 
-    FluidRegistry.initialize(vertx);
+    fluid.vertx().deployVerticle(WebVerticle.class.getName());
 
     // Sensors
     createSensor();
