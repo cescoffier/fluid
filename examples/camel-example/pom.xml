@@ -11,10 +11,11 @@
     <relativePath>../..</relativePath>
   </parent>
 
-  <artifactId>simple-mediation-example</artifactId>
+  <artifactId>camel-example</artifactId>
 
   <properties>
     <sonar.skip>true</sonar.skip>
+    <camel.version>2.20.2</camel.version>
   </properties>
 
   <dependencies>
@@ -32,21 +33,12 @@
       <artifactId>kafka-connector</artifactId>
       <version>${project.version}</version>
     </dependency>
-    <dependency>
-      <groupId>me.escoffier.fluid</groupId>
-      <artifactId>vertx-eventbus-connector</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.github.akarnokd</groupId>
-      <artifactId>rxjava2-extensions</artifactId>
-      <version>0.17.8</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
-    </dependency>
 
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-reactive-streams</artifactId>
+      <version>${camel.version}</version>
+    </dependency>
 
     <!-- For running Kafka easily -->
     <dependency>

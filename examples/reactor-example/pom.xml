@@ -11,10 +11,11 @@
     <relativePath>../..</relativePath>
   </parent>
 
-  <artifactId>simple-mediation-example</artifactId>
+  <artifactId>reactor-example</artifactId>
 
   <properties>
     <sonar.skip>true</sonar.skip>
+    <reactor.version>3.1.5.RELEASE</reactor.version>
   </properties>
 
   <dependencies>
@@ -32,19 +33,11 @@
       <artifactId>kafka-connector</artifactId>
       <version>${project.version}</version>
     </dependency>
+
     <dependency>
-      <groupId>me.escoffier.fluid</groupId>
-      <artifactId>vertx-eventbus-connector</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>com.github.akarnokd</groupId>
-      <artifactId>rxjava2-extensions</artifactId>
-      <version>0.17.8</version>
-    </dependency>
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-web</artifactId>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-core</artifactId>
+      <version>${reactor.version}</version>
     </dependency>
 
 

@@ -1,0 +1,39 @@
+# global config
+kafka:
+  bootstrap.servers: localhost:9092
+  key.serializer: org.apache.kafka.common.serialization.StringSerializer
+  key.deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  acks: 1
+  group.id: the_group
+
+# Configure the sources
+sources:
+   sensor:
+      type: kafka
+      topic: sensor
+      value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
+      value.deserializer: io.vertx.kafka.client.serialization.JsonObjectDeserializer
+
+   result:
+      type: kafka
+      topic: result
+      value.serializer:  org.apache.kafka.common.serialization.IntegerSerializer
+      value.deserializer: org.apache.kafka.common.serialization.IntegerDeserializer
+
+# Configure the sinks
+sinks:
+  sensor:
+      type: kafka
+      topic: sensor
+      key.serializer: org.apache.kafka.common.serialization.StringSerializer
+      value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
+
+  result:
+     type: kafka
+     topic: result
+     value.serializer:  org.apache.kafka.common.serialization.IntegerSerializer
+     value.deserializer: org.apache.kafka.common.serialization.IntegerDeserializer
+
+
+
+
