@@ -1,11 +1,11 @@
 package me.escoffier.fluid.example;
 
 import hu.akarnokd.rxjava2.math.MathFlowable;
+import io.reactivex.Flowable;
 import io.vertx.core.json.JsonObject;
 import me.escoffier.fluid.annotations.Inbound;
+import me.escoffier.fluid.annotations.Outbound;
 import me.escoffier.fluid.annotations.Transformation;
-import me.escoffier.fluid.models.Sink;
-import me.escoffier.fluid.models.Source;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -13,14 +13,13 @@ import me.escoffier.fluid.models.Source;
 public class Mediator {
 
   @Transformation
-  public void mediation(@Inbound("sensor") Source<JsonObject> input, @Inbound("eb-average") Sink<Double> output) {
-    input
-      .mapPayload(json -> json.getDouble("data"))
-      .composePayloadFlowable(flow ->
-        flow.window(5)
-          .flatMap(MathFlowable::averageDouble)
-      )
-      .to(output);
+  @Outbound("eb-average")
+  public Flowable<Double> mediation(@Inbound("sensor") Flowable<JsonObject> input) {
+    return input
+      .map(json -> json.getDouble("data"))
+      .window(5)
+      .flatMap(MathFlowable::averageDouble)
+      .doOnNext(d -> System.out.println("Produced Average: " + d));
   }
 
 }

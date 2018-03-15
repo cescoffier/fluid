@@ -7,6 +7,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -292,4 +293,11 @@ public class Config {
     return node.fieldNames();
   }
 
+  public static Config empty() {
+    try {
+      return new Config(new JsonObject());
+    } catch (IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
 }

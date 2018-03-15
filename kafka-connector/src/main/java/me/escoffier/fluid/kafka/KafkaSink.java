@@ -2,7 +2,6 @@ package me.escoffier.fluid.kafka;
 
 import io.reactivex.Completable;
 import io.vertx.core.Future;
-import io.vertx.core.json.JsonObject;
 import io.vertx.kafka.client.producer.KafkaWriteStream;
 import io.vertx.reactivex.core.Vertx;
 import io.vertx.reactivex.core.impl.AsyncResultCompletable;
@@ -27,20 +26,35 @@ public class KafkaSink<T> implements Sink<T> {
   private final Integer partition;
   private final DataExpression key;
   private final String name;
+  private final String brokers;
   private Long timestamp;
 
   public KafkaSink(Vertx vertx, String name, Config config) {
-    stream = KafkaWriteStream.create(vertx.getDelegate(), toMap(config));
+    Map<String, Object> map = toMap(config);
+    stream = KafkaWriteStream.create(vertx.getDelegate(), map);
     topic = config.getString("topic", name);
-    partition = config.getInt("partition", 1);
+    partition = config.getInt("partition", 0);
     timestamp = config.getLong("timestamp").orElse(null);
-    key = requiredEventExpression(config.getString("key"));
+    key = requiredEventExpression(config.getString("key", null));
+    brokers = map.get("bootstrap.servers").toString();
     this.name = name;
+  }
+
+  public String topic() {
+    return topic;
+  }
+
+  public String brokers() {
+    return brokers;
   }
 
   private static Map<String, Object> toMap(Config config) {
     Map<String, Object> map = new LinkedHashMap<>();
-    config.names().forEachRemaining(name -> map.put(name, config.getString(name, null)));
+    // Read the global kafka config
+    Config kafka = config.root().getConfig("kafka").orElse(Config.empty());
+    kafka.names().forEachRemaining(name -> map.put(name, kafka.getString(name).orElse(null)));
+    // Override values
+    config.names().forEachRemaining(name -> map.put(name, config.getString(name).orElse(null)));
     return map;
   }
 
@@ -57,6 +71,7 @@ public class KafkaSink<T> implements Sink<T> {
           if (x.succeeded()) {
             handler.handle(Future.succeededFuture());
           } else {
+            x.cause().printStackTrace();
             handler.handle(Future.failedFuture(x.cause()));
           }
         }));

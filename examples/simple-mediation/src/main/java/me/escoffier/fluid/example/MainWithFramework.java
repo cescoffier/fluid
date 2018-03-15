@@ -37,9 +37,10 @@ public class MainWithFramework {
     String id = UUID.randomUUID().toString();
     Random random = new Random();
 
-    fluid.from(Flowable.interval(1000, TimeUnit.MILLISECONDS)
-      .subscribeOn(Schedulers.computation()))
+    fluid.from(
+      Flowable.interval(1000, TimeUnit.MILLISECONDS).subscribeOn(Schedulers.computation()))
       .mapPayload(l -> new JsonObject().put("uuid", id).put("data", random.nextInt(100)))
+      .log("Sensor-" + id)
       .to(sink("sensor"));
   }
 }

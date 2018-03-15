@@ -302,6 +302,8 @@ public interface Source<T> extends Publisher<Message<T>> {
    */
   <K> Publisher<GroupedDataStream<K, T>> groupBy(Function<Message<T>, K> keySupplier);
 
+  Source<T> log(String loggerName);
+
   /**
    * Creates a set of sources all receiving the messages from the current source. The given parameter indicates the number
    * of <em>branches</em> that need to be created.

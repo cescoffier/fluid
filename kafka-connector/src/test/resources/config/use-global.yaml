@@ -25,18 +25,14 @@ sinks:
   sensor:
       type: kafka
       topic: sensor
-      key.serializer: org.apache.kafka.common.serialization.StringSerializer
       value.serializer: io.vertx.kafka.client.serialization.JsonObjectSerializer
+      value.deserializer: io.vertx.kafka.client.serialization.JsonObjectDeserializer
 
   average:
      type: kafka
      topic: average
      value.serializer:  org.apache.kafka.common.serialization.DoubleSerializer
      value.deserializer: org.apache.kafka.common.serialization.DoubleDeserializer
-
-  eb-average:
-      type: eventbus
-      address: average
 
 
 

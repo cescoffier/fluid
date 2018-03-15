@@ -38,7 +38,15 @@ public class KafkaSource<T> extends DefaultSource<T> implements Source<T> {
 
         return upstream;
       }
-    ),name, null);
+    ),name, getAttributes(config));
+  }
+
+  private static Map<String, Object> getAttributes(Config config) {
+    Map<String ,Object> map = new HashMap<>();
+    Map<String, String> c = toMap(config);
+    map.put("kafka-broker", c.get("bootstrap.servers"));
+    map.put("kafka-topic", c.get("topic"));
+    return map;
   }
 
   private static <T> Message<T> createDataFromRecord(KafkaConsumerRecord<String, T> record) {
@@ -55,7 +63,12 @@ public class KafkaSource<T> extends DefaultSource<T> implements Source<T> {
 
   private static Map<String, String> toMap(Config config) {
     Map<String, String> map = new LinkedHashMap<>();
-    config.names().forEachRemaining(name -> map.put(name, config.getString(name, null)));
+
+    // Read the global kafka config
+    Config kafka = config.root().getConfig("kafka").orElse(Config.empty());
+    kafka.names().forEachRemaining(name -> map.put(name, kafka.getString(name).orElse(null)));
+    // Override values
+    config.names().forEachRemaining(name -> map.put(name, config.getString(name).orElse(null)));
     return map;
   }
 

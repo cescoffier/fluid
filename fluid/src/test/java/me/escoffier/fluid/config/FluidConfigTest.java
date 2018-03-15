@@ -207,5 +207,10 @@ public class FluidConfigTest {
     assertThat(fluid.getConfig().getString("message", "bar")).isEqualTo("bar");
   }
 
+  @Test
+  public void testEmpty() {
+    assertThat(Config.empty().names()).isEmpty();
+  }
+
 
 }

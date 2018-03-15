@@ -223,6 +223,7 @@ public class DefaultSource<T> implements Source<T> {
 
   // TODO Windowing here
 
+  @Override
   public Source<T> log(String loggerName) {
     Flowable<Message<T>> flowable = Flowable.fromPublisher(flow)
       .doOnNext(d -> {
@@ -307,12 +308,10 @@ public class DefaultSource<T> implements Source<T> {
   @Override
   public Sink<T> to(Sink<T> sink) {
     Objects.requireNonNull(sink, "The sink must not be `null`");
-    Flowable<Message<Void>> flowable = Flowable.fromPublisher(flow)
+    Flowable.fromPublisher(flow)
       .flatMapCompletable(sink::dispatch)
       .doOnError(Throwable::printStackTrace) // TODO error reporting
-      .toFlowable();
-
-    flowable.subscribe();
+      .subscribe();
     return sink;
   }
 
