@@ -71,7 +71,6 @@ public class KafkaSink<T> implements Sink<T> {
           if (x.succeeded()) {
             handler.handle(Future.succeededFuture());
           } else {
-            x.cause().printStackTrace();
             handler.handle(Future.failedFuture(x.cause()));
           }
         }));
