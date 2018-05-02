@@ -25,7 +25,7 @@ public class FluidTest {
 
   @Test
   public void testCreation() {
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     AtomicBoolean called = new AtomicBoolean();
@@ -37,7 +37,7 @@ public class FluidTest {
   @Test
   public void testCreationWithVertx() {
     Vertx vertx = Vertx.vertx();
-    Fluid fluid = new Fluid(vertx);
+    Fluid fluid = Fluid.create(vertx);
 
     List<String> list = new ArrayList<>();
     FluidRegistry.register("input", Source.from("a", "b", "c"));
@@ -61,7 +61,7 @@ public class FluidTest {
     FluidRegistry.register("input", Source.from("a", "b", "c"));
     FluidRegistry.register("output", Sink.<String>forEachPayload(list::add));
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     fluid.deploy(MyMediator1.class);
@@ -77,7 +77,7 @@ public class FluidTest {
     FluidRegistry.register("input", Source.from("a", "b", "c"));
     FluidRegistry.register("output", Sink.<String>forEachPayload(list::add));
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     fluid.deploy(MyMediator2.class);
@@ -92,7 +92,7 @@ public class FluidTest {
     FluidRegistry.register("input", Source.from("a", "b", "c"));
     FluidRegistry.register("output", Sink.<String>forEach(s -> {
     }));
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     try {
@@ -110,7 +110,7 @@ public class FluidTest {
     FluidRegistry.register("output", Sink.<String>forEach(s -> {
     }));
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     try {
@@ -128,7 +128,7 @@ public class FluidTest {
     FluidRegistry.register("output", Sink.<String>forEach(s -> {
     }));
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     try {
@@ -146,7 +146,7 @@ public class FluidTest {
     FluidRegistry.register("input", Source.from("a", "b", "c"));
     FluidRegistry.register("output", Sink.<String>forEachPayload(list::add));
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     fluid.deploy(MyChildMediator.class);
@@ -162,7 +162,7 @@ public class FluidTest {
     FluidRegistry.register("input", Source.from("a", "b", "c"));
     FluidRegistry.register("output", Sink.<String>forEachPayload(list::add));
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     fluid.deploy(MyMediator6.class);
@@ -177,7 +177,7 @@ public class FluidTest {
     FluidRegistry.register("input", Source.from("a", "b", "c"));
     FluidRegistry.unregisterSink("output");
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     try {
@@ -204,7 +204,7 @@ public class FluidTest {
     FluidRegistry.register("input", Source.from("a", "b", "c"));
     FluidRegistry.register("output", Sink.discard());
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(fluid.vertx()).isNotNull();
 
     try {

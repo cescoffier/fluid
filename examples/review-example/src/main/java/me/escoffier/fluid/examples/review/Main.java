@@ -9,10 +9,10 @@ import me.escoffier.fluid.framework.Fluid;
 public class Main {
 
   public static void main(String[] args) {
-    Fluid fluid = new Fluid();
-    fluid.deploy(ReviewProducer.class);
-    fluid.deploy(ReviewGlobalRating.class);
-    fluid.deploy(FraudDetector.class);
-    fluid.deploy(ReviewRecentRating.class);
+    Fluid.create()
+      .deploy(ReviewProducer.class)
+      .deploy(ReviewGlobalRating.class)
+      .deploy(FraudDetector.class)
+      .deploy(ReviewRecentRating.class);
   }
 }

@@ -20,7 +20,7 @@ public class MainWithFramework {
   public static void main(String[] args) throws IOException {
     Main.init();
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
 
     // Deploy some sensors using the "code" deployment
     fluid.deploy(MainWithFramework::createSensor);

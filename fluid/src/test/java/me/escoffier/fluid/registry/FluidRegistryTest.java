@@ -101,7 +101,7 @@ public class FluidRegistryTest {
 
   @Test
   public void testInitialize() {
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
     assertThat(FluidRegistry.source("unknown")).isNull();
     assertThat(FluidRegistry.sink("unknown")).isNull();
     fluid.vertx().close();

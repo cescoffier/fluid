@@ -39,7 +39,7 @@ public class FluidConfigTest {
     out = new File("target/test-classes/fluid.yml");
     File in = new File("src/test/resources/config/config-sample.yml");
     FileUtils.copyFile(in, out);
-    fluid = new Fluid();
+    fluid = Fluid.create();
     FluidConfig config = fluid.getConfig();
 
     // Basic String queries
@@ -184,7 +184,7 @@ public class FluidConfigTest {
     File in = new File("src/test/resources/config/config-sample.yml");
     FileUtils.copyFile(in, out);
 
-    fluid = new Fluid();
+    fluid = Fluid.create();
     assertThat(fluid.getConfig().getString("message")).get().isEqualTo("welcome");
   }
 
@@ -193,7 +193,7 @@ public class FluidConfigTest {
     // Prepare
     System.setProperty("fluid-config", "src/test/resources/config/another.yml");
 
-    fluid = new Fluid();
+    fluid = Fluid.create();
 
     // Basic String queries
     assertThat(fluid.getConfig().getString("message")).get().isEqualTo("hello");
@@ -203,7 +203,7 @@ public class FluidConfigTest {
 
   @Test
   public void loadMissingConfig() {
-    fluid = new Fluid();
+    fluid = Fluid.create();
     assertThat(fluid.getConfig().getString("message", "bar")).isEqualTo("bar");
   }
 

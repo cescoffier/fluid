@@ -30,7 +30,7 @@ public class SourceAndSinkBuilderTest {
   public void setup() {
     System.setProperty("fluid-config", "src/test/resources/config/fake.yml");
     FluidRegistry.reset();
-    fluid = new Fluid();
+    fluid = Fluid.create();
     vertx = fluid.vertx();
   }
 

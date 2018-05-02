@@ -27,7 +27,7 @@ public class InjectionTest {
   @Before
   public void setUp() {
     my_sink = Sink.list();
-    fluid = new Fluid();
+    fluid = Fluid.create();
     FluidRegistry.register("my-source", MY_SOURCE);
     FluidRegistry.register("my-sink", my_sink);
   }

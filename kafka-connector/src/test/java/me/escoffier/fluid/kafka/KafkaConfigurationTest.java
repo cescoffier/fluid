@@ -30,7 +30,7 @@ public class KafkaConfigurationTest {
   public void testSourceConfigUsingExplodedConf() {
     System.setProperty("fluid-config", "src/test/resources/config/source-and-sink.yaml");
 
-    fluid = new Fluid();
+    fluid = Fluid.create();
     Source<Object> sensor = fluid.from("sensor");
     Source<Object> average = fluid.from("average");
 
@@ -50,7 +50,7 @@ public class KafkaConfigurationTest {
   public void testSinkConfigUsingExplodedConf() {
     System.setProperty("fluid-config", "src/test/resources/config/source-and-sink.yaml");
 
-    fluid = new Fluid();
+    fluid = Fluid.create();
     Sink<Object> sensor = fluid.sink("sensor");
     Sink<Object> average = fluid.sink("average");
 
@@ -70,7 +70,7 @@ public class KafkaConfigurationTest {
   public void testSourceConfigUsingGlobalConf() {
     System.setProperty("fluid-config", "src/test/resources/config/use-global.yaml");
 
-    fluid = new Fluid();
+    fluid = Fluid.create();
     Source<Object> sensor = fluid.from("sensor");
     Source<Object> average = fluid.from("average");
 
@@ -90,7 +90,7 @@ public class KafkaConfigurationTest {
   public void testSinkConfigUsingGlobalConf() {
     System.setProperty("fluid-config", "src/test/resources/config/use-global.yaml");
 
-    fluid = new Fluid();
+    fluid = Fluid.create();
     Sink<Object> sensor = fluid.sink("sensor");
     Sink<Object> average = fluid.sink("average");
 

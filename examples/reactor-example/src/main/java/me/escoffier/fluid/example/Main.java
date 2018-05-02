@@ -27,7 +27,7 @@ public class Main {
   public static void main(String[] args) throws IOException {
     init();
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
 
     // Sensors
     createSensor();

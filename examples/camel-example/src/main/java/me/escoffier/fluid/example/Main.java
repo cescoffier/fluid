@@ -16,7 +16,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static me.escoffier.fluid.registry.FluidRegistry.sink;
-import static me.escoffier.fluid.registry.FluidRegistry.source;
 
 /**
  * @author <a href="http://escoffier.me">Clement Escoffier</a>
@@ -27,7 +26,7 @@ public class Main {
   public static void main(String[] args) throws IOException {
     init();
 
-    Fluid fluid = new Fluid();
+    Fluid fluid = Fluid.create();
 
     // Sensors
     createSensor();
@@ -35,7 +34,6 @@ public class Main {
 
     fluid.deploy(CamelComponent.class);
     fluid.deploy(ResultComponent.class);
-
 
   }
 
@@ -49,7 +47,7 @@ public class Main {
       .to(sink("sensor"));
   }
 
-  static void init() throws IOException {
+  public static void init() throws IOException {
     Properties props = new Properties();
     props.setProperty("zookeeper.connection.timeout.ms", "10000");
     File directory = Testing.Files.createTestingDirectory(System.getProperty("java.io.tmpdir"), true);
