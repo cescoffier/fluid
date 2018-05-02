@@ -89,10 +89,11 @@ public class KafkaSourceTest {
       .to(Sink.forEachPayload(results::add));
 
     AtomicInteger counter = new AtomicInteger();
-    usage.produceIntegers(10, null,
-      () -> new ProducerRecord<>(topic, counter.getAndIncrement()));
+    new Thread(() ->
+      usage.produceIntegers(10, null,
+        () -> new ProducerRecord<>(topic, counter.getAndIncrement()))).start();
 
-    await().atMost(1, TimeUnit.MINUTES).until(() -> results.size() >= 10);
+    await().atMost(2, TimeUnit.MINUTES).until(() -> results.size() >= 10);
     assertThat(results).containsExactly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
   }
 

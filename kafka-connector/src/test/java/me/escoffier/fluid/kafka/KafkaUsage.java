@@ -82,17 +82,17 @@ public class KafkaUsage {
                                Supplier<ProducerRecord<K, V>> messageSupplier) {
         Properties props = getProducerProperties(producerName);
         Thread t = new Thread(() -> {
-            LOGGER.debug("Starting producer {} to write {} messages", producerName, messageCount);
+            LOGGER.info("Starting producer {} to write {} messages", producerName, messageCount);
             try (KafkaProducer<K, V> producer = new KafkaProducer<>(props, keySerializer, valueSerializer)) {
                 for (int i = 0; i != messageCount; ++i) {
                     ProducerRecord<K, V> record = messageSupplier.get();
                     producer.send(record);
                     producer.flush();
-                    LOGGER.debug("Producer {}: sent message {}", producerName, record);
+                    LOGGER.info("Producer {}: sent message {}", producerName, record);
                 }
             } finally {
                 if (completionCallback != null) completionCallback.run();
-                LOGGER.debug("Stopping producer {}", producerName);
+                LOGGER.info("Stopping producer {}", producerName);
             }
         });
         t.setName(producerName + "-thread");
