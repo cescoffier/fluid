@@ -62,11 +62,11 @@
 
     <!-- dependency versions -->
     <vertx.version>3.5.1</vertx.version>
-    <kafka.version>1.0.0</kafka.version>
-    <debezium.version>0.7.4</debezium.version>
-    <log4j2.version>2.10.0</log4j2.version>
-    <jackson.version>2.9.4</jackson.version>
-    <rxjava.version>2.1.9</rxjava.version>
+    <kafka.version>1.1.0</kafka.version>
+    <debezium.version>0.7.5</debezium.version>
+    <log4j2.version>2.11.0</log4j2.version>
+    <jackson.version>2.9.5</jackson.version>
+    <rxjava.version>2.1.13</rxjava.version>
   </properties>
 
   <scm>
