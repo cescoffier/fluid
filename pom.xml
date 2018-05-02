@@ -4,7 +4,7 @@
 
   <groupId>me.escoffier.fluid</groupId>
   <artifactId>fluid-project</artifactId>
-  <version>0.8</version>
+  <version>0.9-SNAPSHOT</version>
 
   <name>the Fluid Project</name>
   <description>Fluid - a substance that has no fixed shape and yields easily to external pressure</description>
@@ -71,7 +71,7 @@
     <url>https://github.com/cescoffier/fluid</url>
     <connection>scm:git:https://github.com/cescoffier/fluid.git</connection>
     <developerConnection>scm:git:git:@github.com:cescoffier/fluid.git</developerConnection>
-    <tag>fluid-project-0.8</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <dependencyManagement>
