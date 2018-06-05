@@ -8,8 +8,12 @@ import me.escoffier.fluid.annotations.Inbound;
  */
 public class ResultComponent {
 
-  @Function
-  public void printResult(@Inbound("result") int val) {
-    System.out.println("Result: " + val);
+  @Function(outbound = "res")
+  public String printResult(@Inbound("data") int val) {
+      return process(val);
+  }
+
+  private String process(int val) {
+    return "";
   }
 }

@@ -35,7 +35,7 @@ public class ReviewRecentRating {
               .map(avg -> Pair.pair(group.getKey(), avg)
               ))
       )
-      .to(Sink.forEachPayload(pair -> System.out.println("Window rating of " + pair.left() + " : " + pair.right())));
+      .to(Sink.forEachPayload(pair -> {}));
   }
 
 }
