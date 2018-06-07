@@ -52,7 +52,7 @@
     <maven-release-plugin.version>2.5.3</maven-release-plugin.version>
     <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
     <maven-source-plugin.version>3.0.1</maven-source-plugin.version>
-    <maven-surefire-plugin.version>2.20</maven-surefire-plugin.version>
+    <maven-surefire-plugin.version>2.21.0</maven-surefire-plugin.version>
     <maven-war-plugin.version>3.2.1</maven-war-plugin.version>
     <vertx-maven-plugin.version>1.0.13</vertx-maven-plugin.version>
 
