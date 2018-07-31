@@ -62,7 +62,7 @@
     <vertx.version>3.5.2</vertx.version>
     <kafka.version>2.0.0</kafka.version>
     <debezium.version>0.8.1.Final</debezium.version>
-    <log4j2.version>2.11.0</log4j2.version>
+    <log4j2.version>2.11.1</log4j2.version>
     <jackson.version>2.9.6</jackson.version>
     <rxjava.version>2.1.17</rxjava.version>
   </properties>
