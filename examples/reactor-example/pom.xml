@@ -13,7 +13,7 @@
 
   <properties>
     <sonar.skip>true</sonar.skip>
-    <reactor.version>3.2.1.RELEASE</reactor.version>
+    <reactor.version>3.2.2.RELEASE</reactor.version>
   </properties>
 
   <dependencies>
